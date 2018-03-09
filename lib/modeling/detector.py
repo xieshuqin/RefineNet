@@ -269,15 +269,23 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             dst_sc = dst_spatial_scale
             bl_out_list = []
             for lvl in range(k_min, k_max + 1):
-                bl_in = blobs_in[k_max - lvl] # came in reversed order
                 src_sc = src_spatial_scales[k_max - lvl] # reversed order
                 dst_sc = dst_spatial_scale
+
+                bl_in = blobs_in[k_max - lvl] # came in reversed order
                 bl_rois = blob_rois + '_fpn' + str(lvl)
+                bl_in_list = [bl_in, bl_rois]
+                bl_in_list = [core.ScopedBlobReference(b) for b in bl_in_list]
+                name = 'CollectAndDistributeFpnRpnProposalsOp:' + ','.join(
+                    [str(b) for b in bl_in_list]
+                )
+
                 bl_out = blob_out + '_fpn' + str(lvl)
+                bl_out = core.ScopedBlobReference(bl_out)
                 bl_out_list.append(bl_out)
                 self.net.Python(
                     RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
-                )([bl_in, bl_rois], bl_out)
+                )(bl_in_list, bl_out, name=name)
 
             # The pooled features from all levels are concatenated along the
             # batch dimension into a single 4D tensor.
@@ -294,9 +302,17 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             # Single scale feature
             src_sc = src_spatial_scales
             dst_sc = dst_spatial_scale
+            blobs_in_list = [blobs_in, blob_rois]
+            blobs_in_list = [core.ScopedBlobReference(b) for b in blobs_in_list]
+            name = 'CollectAndDistributeFpnRpnProposalsOp:' + ','.join(
+                [str(b) for b in blobs_in_list]
+            )
+
+            blob_out = core.ScopedBlobReference(blob_out)
+
             xform_out = self.net.Python(
                 RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
-            )([blobs_in, blos_rois], blob_out)
+            )(blobs_in_list, blob_out, name=name)
 
         # Only return the first blob (the transformed features)
         return xform_out
@@ -317,9 +333,16 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         Input rois: mask_rois
         Output blob: mask_indicators
         """
+        blobs_in_list = blobs_in + [blob_rois]
+        blobs_in_list = [core.ScopedBlobReference(b) for b in blobs_in_list]
+        name = 'GenerateMaskIndicatorsOp:' + ','.join(
+            [str(b) for b in blobs_in_list]
+        )
+        blob_out = core.ScopedBlobReference(blob_out)
+
         xform_out = self.net.Python(
             GenerateMaskIndicatorsOp(scale=dst_spatial_scale).forward
-        )(blobs_in + [blob_rois], blob_out)
+        )(blobs_in_list, blob_out, name=name)
         return xform_out
 
 
