@@ -133,21 +133,22 @@ def add_refine_keypoints_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx,
 
 
 def _expand_to_class_specific_mask_targets(masks, mask_class_labels):
-    """Expand masks from shape (#masks, M ** 2) to (#masks, #classes * M ** 2)
-    to encode class specific mask targets.
+    """Expand masks from shape (#masks, out_h * out_w) 
+        to shape (#masks, #classes * out_h * out_w)
+        to encode class specific mask targets.
     """
     assert masks.shape[0] == mask_class_labels.shape[0]
-    M = cfg.MRCNN.RESOLUTION
+    mask_size = masks.shape[1]
 
     # Target values of -1 are "don't care" / ignore labels
     mask_targets = -blob_utils.ones(
-        (masks.shape[0], cfg.MODEL.NUM_CLASSES * M**2), int32=True
+        (masks.shape[0], cfg.MODEL.NUM_CLASSES * mask_size), int32=True
     )
 
     for i in range(masks.shape[0]):
         cls = int(mask_class_labels[i])
-        start = M**2 * cls
-        end = start + M**2
+        start = mask_size * cls
+        end = start + mask_size
         # Ignore background instance
         # (only happens when there is no fg samples in an image)
         if cls > 0:
