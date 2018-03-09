@@ -1,5 +1,5 @@
-"""Inherit from the e2e_mask_rcnn_R-101-FPN_2x.yaml"""
-"""Add Indicator component to the cfg"""
+# Inherit from the e2e_mask_rcnn_R-101-FPN_2x.yaml
+# Add Indicator component to the cfg
 MODEL:
   TYPE: generalized_rcnn
   CONV_BODY: FPN.add_fpn_ResNet101_conv5_body

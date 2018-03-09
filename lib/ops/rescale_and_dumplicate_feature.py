@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 import numpy as np
 import cv2
 
-class RescaleAndDumplcateFeatureOp(object):
+class RescaleAndDumplicateFeatureOp(object):
     """ Rescale the image feature map and dumplicate them multiple times
     input:  <feature_name> (N x C x H x W)
             <rois>        (M x 5) [batch_id, x1, x2, y1, y2]
     outputs: <feature_name_dump> (M x C x sH x sW), where s = dst_sc / src_sc
     """
-            
+
 
     def __init__(self, src_sc, dst_sc):
         self.src_sc = src_sc

@@ -3,15 +3,15 @@
 The design is as follows:
 
 ... -> RoI   -\
-               -> Indicator -\ 
+               -> Indicator -\
 ... -> Local -/               \
        Output                  -> refine input -> refine head -> refine output -> loss
                               /
 ... ----------> Feature Map -/
 
-The local output is the prediction of mask/keypoint head. The RoI is then used 
-for mapping the local output into the original image space. Then it concantated 
-with the entire feature map, generating input for RefineNet head. The RefineNet 
+The local output is the prediction of mask/keypoint head. The RoI is then used
+for mapping the local output into the original image space. Then it concantated
+with the entire feature map, generating input for RefineNet head. The RefineNet
 then generates a new refined prediction (soft masks/ keypoint heatmap)
 
 """
@@ -38,7 +38,7 @@ def add_refine_net_inputs(model, blob_in, dim_in, spatial_scale, indicator_type)
         blob_out, dim_out = add_refine_net_mask_inputs(
             model, blob_in, dim_in, spatial_scale
         )
-    else: 
+    else:
         blob_out, dim_out = add_refine_net_keypoint_inputs(
             model, blob_in, dim_in, spatial_scale
         )
@@ -47,37 +47,38 @@ def add_refine_net_inputs(model, blob_in, dim_in, spatial_scale, indicator_type)
 
 def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
     """ Prepare mask inputs for RefineNet.
-    This function uses mask as indicator and generates input for 
+    This function uses mask as indicator and generates input for
     RefineNet. It maps the local mask prediction to global image
-    space, which serves as an indicator, and concantate the 
-    indicator with the entire feature map. The resulted tensor 
-    served as input for RefineNet. 
-    Input: 
+    space, which serves as an indicator, and concantate the
+    indicator with the entire feature map. The resulted tensor
+    served as input for RefineNet.
+    Input:
         blob_in: FPN/ResNet feature.
         dim_in: FPN/ResNet feature dimension
         spatial_scale: FPN/ResNet scale
-    Output: 
+    Output:
         'refine_mask_net_input'
         dim_out: dim_in + num_cls
     """
 
-    # Rescale and Dumplicate the feature map 
+    # Rescale and Dumplicate the feature map
     src_sc = spatial_scale
     dst_sc = cfg.REFINENET.SPATIAL_SCALE
     rois_global_feat = model.RescaleAndDumplicateFeature(
-        blobs_in=blob_in, 
-        blob_out='rois_global_feat', 
-        blob_rois='mask_rois', 
-        src_rc, dst_sc
+        blobs_in=blob_in,
+        blob_out='rois_global_feat',
+        blob_rois='mask_rois',
+        src_spatial_scales=src_rc,
+        dst_spatial_scale=dst_sc
     )
 
-    # Generate mask indicators 
+    # Generate mask indicators
     num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
     mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
     mask_indicators = model.GenerateMaskIndicators(
-        blobs_in=['data']+[mask_probs], 
-        blob_out='mask_indicators', 
-        blob_rois='mask_rois', 
+        blobs_in=['data']+[mask_probs],
+        blob_out='mask_indicators',
+        blob_rois='mask_rois',
         dst_spatial_scale=dst_sc
     )
 
@@ -113,7 +114,7 @@ def add_refine_net_outputs(model, blob_in, dim_in, refined_output_type):
 
 
 def add_refine_net_mask_outputs(model, blob_in, dim_in):
-    """ add Refine Net output 
+    """ add Refine Net output
     blob_in: 'refine_mask_net_feat'
     blob_out: 'refined_mask_logits' or 'refined_mask_probs'
     """
@@ -183,9 +184,9 @@ def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
 # ---------------------------------------------------------------------------- #
 def add_refine_net_head(model, blob_in, dim_in, prefix):
     """ Currently, we only consider using Hourglass as the RefineNet head,
-    however it can be expanded to other types of network. Therefore we 
-    will leave a function to allow different choices of fcn model. 
-    Note that the refine head is free of indicator type. 
+    however it can be expanded to other types of network. Therefore we
+    will leave a function to allow different choices of fcn model.
+    Note that the refine head is free of indicator type.
     """
     # note that prefix must be 'mask' or 'keypoint'
     assert prefix in {'mask', 'keypoints'}, \
