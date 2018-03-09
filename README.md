@@ -1,5 +1,5 @@
 # RefineNet
-Code implemented based on the `Detectron` project. The code struct is discussed in [`Code Struct.md`](Code\ Struct.md). 
+Code implemented based on the `Detectron` project. The code struct is discussed in [`CODE_STRUCT.md`](CODE_STRUCT.md). 
 
 # Detectron
 
