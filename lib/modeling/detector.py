@@ -244,25 +244,25 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         self,
         blobs_in,
         blob_out,
-        blos_rois='mask_rois',
+        blos_rois,
         src_spatial_scales,
         dst_spatial_scale
     ):
-        """ Dumplicate feature maps for the refiner network. 
+        """ Dumplicate feature maps for the refiner network.
         If use FPN, then rescale the different FPN level feature
         to a dst_spatial_scale. Then concancate the feature maps
         along the batch dimension
 
         Input blobs: [fpn_<min>, ..., fpn_<max>]
         Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
-        
+
         Output blobs: rois_global_feature
         """
         if isinstance(blobs_in, list):
             # FPN cases: add RescaleAndDumplcateFeatureOp to each level
             # Since .net.Python can only use existing blob as input,
-            # we create a blob to maintain some temporary parameters 
-            # and pass the blob to custom_op 
+            # we create a blob to maintain some temporary parameters
+            # and pass the blob to custom_op
             k_max = cfg.FPN.ROI_MAX_LEVEL
             k_min = cfg.FPN.ROI_MIN_LEVEL
             assert len(blobs_in) == k_max - k_min + 1
@@ -272,7 +272,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 bl_in = blobs_in[k_max - lvl] # came in reversed order
                 src_sc = src_spatial_scales[k_max - lvl] # reversed order
                 dst_sc = dst_spatial_scale
-                bl_rois = blob_rois + '_fpn' + str(lvl) 
+                bl_rois = blob_rois + '_fpn' + str(lvl)
                 bl_out = blob_out + '_fpn' + str(lvl)
                 bl_out_list.append(bl_out)
                 self.net.Python(
@@ -309,7 +309,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         blob_rois='mask_rois',
         dst_spatial_scale=1/16.
     ):
-        """ Add mask indicators to the refine network. It maps the 
+        """ Add mask indicators to the refine network. It maps the
         'mask_probs' into the input images' space, and narrow it down
         by the value 'scale'
 
@@ -332,12 +332,12 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         resolution=64,
         spatial_scale=1. / 16
     ):
-        """ IMPORTANT !! 
+        """ IMPORTANT !!
             Do NOT use this function !!
             Do NOT use this function !!
         """
-        """Add Indicators for the refine network. Resize the feature 
-        map to a fixed size and concat the indicator along the 
+        """Add Indicators for the refine network. Resize the feature
+        map to a fixed size and concat the indicator along the
         channel axis.
 
         Abstracts away:
@@ -360,7 +360,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 bl_out = blob_out + '_fpn' + str(lvl)
                 bl_out_list.append(bl_out)
                 self.net.Python(GenerateIndicatorsOp().forward)(
-                    [bl_in, bl_roi], bl_out, 
+                    [bl_in, bl_roi], bl_out,
                     indicator_type=indicator_type,
                     resolution=resolution,
                     spatial_scale=sc
@@ -385,7 +385,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             )
         # Only return the first blob (the transformed features)
         return xform_out
-        
+
 # ---------------------------------------------------------------------------- #
 # End of shuqin's code
 # ---------------------------------------------------------------------------- #
