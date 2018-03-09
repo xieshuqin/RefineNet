@@ -68,7 +68,7 @@ def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
         blobs_in=blob_in,
         blob_out='rois_global_feat',
         blob_rois='mask_rois',
-        src_spatial_scales=src_rc,
+        src_spatial_scales=src_sc,
         dst_spatial_scale=dst_sc
     )
 

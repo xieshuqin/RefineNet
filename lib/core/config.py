@@ -489,10 +489,10 @@ __C.MODEL.RPN_ONLY = False
 __C.MODEL.EXECUTION_TYPE = b'dag'
 
 # Indicates the model makes refinement
-__C.MODEL.REFINE_ON = True
+__C.MODEL.REFINE_ON = False
 
 # Indicates the model makes mask refinement
-__C.MODEL.REFINE_MASK_ON = True
+__C.MODEL.REFINE_MASK_ON = False
 
 # Indicates the model makes keypoint refinement
 __C.MODEL.REFINE_KEYPOINTS_ON = False
@@ -894,18 +894,18 @@ __C.RESNETS.RES5_DILATION = 1
 
 
 # ---------------------------------------------------------------------------- #
-# RefineNet options 
+# RefineNet options
 # ---------------------------------------------------------------------------- #
 __C.REFINENET = AttrDict()
 
 # RefineNet head type
-__C.REFINENET.HEAD: b'HOURGLASS'   # RefineNet Head : hourglass model
+__C.REFINENET.HEAD = b'HOURGLASS'   # RefineNet Head : hourglass model
 
 # Indicator type
-__C.REFINENET.INDICATOR_TYPE: b'Mask' # Indicator type, mask or keypoint
+__C.REFINENET.INDICATOR_TYPE = b'Mask' # Indicator type, mask or keypoint
 
 # Refined output type
-__C.REFINENET.REFINE_OUTPUT_TYPE: b'Mask'   # Refine output type, mask or keypoint
+__C.REFINENET.REFINE_OUTPUT_TYPE = b'Mask'   # Refine output type, mask or keypoint
 
 # spatial scale for the indicator
 __C.REFINENET.SPATIAL_SCALE = 0.125 # down-sampling scale for the indicator
@@ -915,15 +915,15 @@ __C.REFINENET.WEIGHT_LOSS_MASK = 1.0
 
 
 # ---------------------------------------------------------------------------- #
-# Hourglass options 
+# Hourglass options
 # ---------------------------------------------------------------------------- #
 __C.HG = AttrDict()
 
 # Hourglass inner feature dimension
-__C.HG.DIM_FEATS: 256  # dimension number of hourglass unit
+__C.HG.DIM_FEATS = 256  # dimension number of hourglass unit
 
-# Num of Stacked Hourglass 
-__C.HG.NUM_STACKS: 1   # number of stacked hourglass
+# Num of Stacked Hourglass
+__C.HG.NUM_STACKS = 1   # number of stacked hourglass
 
 # ---------------------------------------------------------------------------- #
 # Misc options

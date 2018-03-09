@@ -126,7 +126,7 @@ def add_refine_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data
     # Update blobs dict with Refine-Net blobs
     blobs['refined_mask_rois'] = rois_fg
     blobs['roi_has_refined_mask_int32'] = roi_has_mask
-    blobs['refined_masks_int32'] = global_masks
+    blobs['refined_masks_int32'] = masks
 
 def add_refine_keypoints_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data):
     pass

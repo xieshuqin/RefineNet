@@ -244,7 +244,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         self,
         blobs_in,
         blob_out,
-        blos_rois,
+        blob_rois,
         src_spatial_scales,
         dst_spatial_scale
     ):

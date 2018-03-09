@@ -12,7 +12,7 @@ import utils.blob as blob_utils
 # ---------------------------------------------------------------------------- #
 # Hourglass model
 # ---------------------------------------------------------------------------- #
-# The blobs are terribly named. So is the code struct. 
+# The blobs are terribly named. So is the code struct.
 # Re-implement it in the future.
 
 def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
@@ -30,7 +30,7 @@ def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
 
     i = 0
     prefix = prefix + '_stack{}'.format(i)
-    hg = add_hourglass_unit(model, blob_in, prefix, 4)
+    hg = _add_hourglass_unit(model, blob_in, prefix, 4)
 
     # Residual layers at output resolution
     ll = _add_hourglass_residual_block(
@@ -90,7 +90,7 @@ def _add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
 
 def _add_hourglass_residual_block(model, blob_in, prefix, dim_in, dim_out):
     """ fixed the dim_inner to be dim_out/2 as in implemented in Torch"""
-    dim_inner = dim_out/2
+    dim_inner = int(dim_out/2)
 
     blob_out = ResNet.add_residual_block(
         model,
@@ -99,6 +99,7 @@ def _add_hourglass_residual_block(model, blob_in, prefix, dim_in, dim_out):
         dim_in,
         dim_out,
         dim_inner,
+        1,
         inplace_sum=True
     )
 

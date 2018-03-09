@@ -334,7 +334,7 @@ def _add_roi_keypoint_head(
 def _add_generic_refine_mask_net_head(
     model, blob_in, dim_in, spatial_scale_in
 ):
-    """Add a generic refine head to the model. 
+    """Add a generic refine head to the model.
     Allows Mask/Keypoint indicator and Mask/Keypoint refined output
     """
     # Capture the model graph before adding the refine head
@@ -344,7 +344,7 @@ def _add_generic_refine_mask_net_head(
     # Different indicator type will generate different blob_refine_net_in
     INDICATOR_TYPE = cfg.REFINENET.INDICATOR_TYPE
     blob_refine_net_in, dim_refine_net_in = \
-        refine_net_heads.add_refine_net_input(
+        refine_net_heads.add_refine_net_inputs(
             model, blob_in, dim_in, spatial_scale_in, INDICATOR_TYPE
         )
     # Add RefineNet head
@@ -355,15 +355,15 @@ def _add_generic_refine_mask_net_head(
         )
     # Add Refine mask net output
     # Different refined-output type will generate different output
-    blob_refine_mask_out = refine_net_heads.add_refine_mask_net_outputs(
+    blob_refine_mask_out = refine_net_heads.add_refine_net_mask_outputs(
         model, blob_refine_net_head, dim_refine_net_head
     )
 
     if not model.train: # == inference
         # Inference uses a cascade of box predictions, then roi mask predictions
-        # then refine mask prediction. This requires separate nets for box and 
-        # mask and refine mask prediction. 
-        # So we extract the refine mask prediction net, store it as its own 
+        # then refine mask prediction. This requires separate nets for box and
+        # mask and refine mask prediction.
+        # So we extract the refine mask prediction net, store it as its own
         # network,then restore model.net to be the bbox-only network
         model.refine_mask_net, refine_mask_net_blob_out = c2_utils.SuffixNet(
             'refine_mask_net', model.net, len(bbox_net.op), blob_refine_mask_out
@@ -371,7 +371,7 @@ def _add_generic_refine_mask_net_head(
         model.net._net = bbox_net
         loss_gradients = None
     else:
-        loss_gradients = refine_net_heads.add_refine_mask_losses(
+        loss_gradients = refine_net_heads.add_refine_net_mask_losses(
             model, blob_refine_mask_out
         )
     return loss_gradients
@@ -380,7 +380,7 @@ def _add_generic_refine_mask_net_head(
 def _add_generic_refine_keypoints_net_head(
     model, blob_in, dim_in, spatial_scale_in
 ):
-    """Add a generic refine head to the model. 
+    """Add a generic refine head to the model.
     Allows Mask/Keypoint indicator and Mask/Keypoint refined output
     """
     # Capture the model graph before adding the refine head
@@ -407,12 +407,12 @@ def _add_generic_refine_keypoints_net_head(
 
     if not model.train: # == inference
         # Inference uses a cascade of box predictions, then roi mask predictions
-        # then refine mask prediction. This requires separate nets for box and 
-        # mask and refine mask prediction. 
-        # So we extract the refine mask prediction net, store it as its own 
+        # then refine mask prediction. This requires separate nets for box and
+        # mask and refine mask prediction.
+        # So we extract the refine mask prediction net, store it as its own
         # network,then restore model.net to be the bbox-only network
         model.refine_keypoints_net, refine_blob_out = c2_utils.SuffixNet(
-            'refine_keypoints_net', model.net, len(bbox_net.op), 
+            'refine_keypoints_net', model.net, len(bbox_net.op),
             blob_refine_keypoints_out
         )
         model.net._net = bbox_net
