@@ -289,6 +289,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
             # The pooled features from all levels are concatenated along the
             # batch dimension into a single 4D tensor.
+            blob_out = core.ScopedBlobReference(blob_out)
             xform_shuffled, _ = self.net.Concat(
                 bl_out_list, [blob_out + '_shuffled', '_concat_' + blob_out],
                 axis=0
