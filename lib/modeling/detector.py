@@ -299,12 +299,13 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             xform_out = self.net.BatchPermutation(
                 [xform_shuffled, restore_bl], blob_out
             )
+            print('xform_out', xform_out)
         else:
             # Single scale feature
             src_sc = src_spatial_scales
             dst_sc = dst_spatial_scale
             blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
-            name = 'CollectAndDistributeFpnRpnProposalsOp:' + ','.join(
+            name = 'RescaleAndDumplicateOp:' + ','.join(
                 [str(b) for b in blobs_in_list]
             )
 
@@ -334,7 +335,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         Output blob: mask_indicators
         """
         blob_rois = core.ScopedBlobReference(blob_rois) # refer blob_rois
-        blobs_in_list = blobs_in + [blob_rois] 
+        blobs_in_list = blobs_in + [blob_rois]
         name = 'GenerateMaskIndicatorsOp:' + ','.join(
             [str(b) for b in blobs_in_list]
         )
