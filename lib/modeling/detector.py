@@ -294,6 +294,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 bl_out_list, [blob_out + '_shuffled', '_concat_' + blob_out],
                 axis=0
             )
+            blob_rois = core.ScopedBlobReference(blob_rois)
             # Unshuffle to match rois from dataloader
             restore_bl = blob_rois + '_idx_restore_int32'
             xform_out = self.net.BatchPermutation(
