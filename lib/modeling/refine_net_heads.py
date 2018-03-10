@@ -75,8 +75,9 @@ def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
     # Generate mask indicators
     num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
     mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    blob_data = core.ScopedBlobReference('data')
     mask_indicators = model.GenerateMaskIndicators(
-        blobs_in=['data']+[mask_probs],
+        blobs_in=[blob_data, mask_probs],
         blob_out='mask_indicators',
         blob_rois='mask_rois',
         dst_spatial_scale=dst_sc

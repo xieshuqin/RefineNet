@@ -258,6 +258,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         Output blobs: rois_global_feature
         """
+        blob_out = core.ScopedBlobReference(blob_out)
         if isinstance(blobs_in, list):
             # FPN cases: add RescaleAndDumplcateFeatureOp to each level
             # Since .net.Python can only use existing blob as input,
@@ -276,7 +277,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 bl_rois = blob_rois + '_fpn' + str(lvl)
                 bl_in_list = [bl_in, bl_rois]
                 bl_in_list = [core.ScopedBlobReference(b) for b in bl_in_list]
-                name = 'CollectAndDistributeFpnRpnProposalsOp:' + ','.join(
+                name = 'RescaleAndDumplicateFeatureOp:' + ','.join(
                     [str(b) for b in bl_in_list]
                 )
 
@@ -334,8 +335,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         Input rois: mask_rois
         Output blob: mask_indicators
         """
-        blobs_in_list = blobs_in + [blob_rois]
-        blobs_in_list = [core.ScopedBlobReference(b) for b in blobs_in_list]
+        blob_rois = core.ScopedBlobReference(blob_rois) # refer blob_rois
+        blobs_in_list = blobs_in + [blob_rois] 
         name = 'GenerateMaskIndicatorsOp:' + ','.join(
             [str(b) for b in blobs_in_list]
         )
