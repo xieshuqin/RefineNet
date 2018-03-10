@@ -258,7 +258,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         Output blobs: rois_global_feature
         """
-        blob_out = core.ScopedBlobReference(blob_out)
+        # Add scoped blob
+
         if isinstance(blobs_in, list):
             # FPN cases: add RescaleAndDumplcateFeatureOp to each level
             # Since .net.Python can only use existing blob as input,
@@ -274,15 +275,13 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 dst_sc = dst_spatial_scale
 
                 bl_in = blobs_in[k_max - lvl] # came in reversed order
-                bl_rois = blob_rois + '_fpn' + str(lvl)
+                bl_rois = core.ScopedBlobReference(blob_rois + '_fpn' + str(lvl))
                 bl_in_list = [bl_in, bl_rois]
-                bl_in_list = [core.ScopedBlobReference(b) for b in bl_in_list]
                 name = 'RescaleAndDumplicateFeatureOp:' + ','.join(
                     [str(b) for b in bl_in_list]
                 )
 
-                bl_out = blob_out + '_fpn' + str(lvl)
-                bl_out = core.ScopedBlobReference(bl_out)
+                bl_out = core.ScopedBlobReference(blob_out + '_fpn' + str(lvl))
                 bl_out_list.append(bl_out)
                 self.net.Python(
                     RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
@@ -290,7 +289,6 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
             # The pooled features from all levels are concatenated along the
             # batch dimension into a single 4D tensor.
-            blob_out = core.ScopedBlobReference(blob_out)
             xform_shuffled, _ = self.net.Concat(
                 bl_out_list, [blob_out + '_shuffled', '_concat_' + blob_out],
                 axis=0
@@ -304,8 +302,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             # Single scale feature
             src_sc = src_spatial_scales
             dst_sc = dst_spatial_scale
-            blobs_in_list = [blobs_in, blob_rois]
-            blobs_in_list = [core.ScopedBlobReference(b) for b in blobs_in_list]
+            blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
             name = 'CollectAndDistributeFpnRpnProposalsOp:' + ','.join(
                 [str(b) for b in blobs_in_list]
             )
