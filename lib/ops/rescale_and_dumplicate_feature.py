@@ -47,8 +47,8 @@ class RescaleAndDumplicateFeatureSingleOp(object):
 
 class RescaleAndDumplicateFeatureFPNOp(object):
     """ Rescale the FPN feature map and dumplicate them multiple times
-    input:  [fpn_<min>, <rois>_fpn<min>, 
-                        .... , 
+    input:  [fpn_<min>, <rois>_fpn<min>,
+                        .... ,
              fpn_<max>, <rois>_fpn<max> ]
 
             fpn shape:  (N x C x H x W)
@@ -93,4 +93,4 @@ class RescaleAndDumplicateFeatureFPNOp(object):
 
             outputs[lvl].reshape(feat_dump.shape)
             outputs[lvl].data[...] = feat_dump
-        
+
