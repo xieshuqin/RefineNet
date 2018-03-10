@@ -64,13 +64,24 @@ def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
     # Rescale and Dumplicate the feature map
     src_sc = spatial_scale
     dst_sc = cfg.REFINENET.SPATIAL_SCALE
-    rois_global_feat = model.RescaleAndDumplicateFeature(
-        blobs_in=blob_in,
-        blob_out='rois_global_feat',
-        blob_rois='mask_rois',
-        src_spatial_scales=src_sc,
-        dst_spatial_scale=dst_sc
-    )
+
+    if cfg.FPN.FPN_ON: 
+        rois_global_feat = model.RescaleAndDumplicateFeatureFPN(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            src_spatial_scales=src_sc,
+            dst_spatial_scale=dst_sc
+        )
+    else:
+        rois_global_feat = model.RescaleAndDumplicateFeatureSingle(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            src_spatial_scales=src_sc,
+            dst_spatial_scale=dst_sc
+        )
+
 
     # Generate mask indicators
     num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1

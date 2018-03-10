@@ -32,8 +32,13 @@ from ops.collect_and_distribute_fpn_rpn_proposals \
     import CollectAndDistributeFpnRpnProposalsOp
 from ops.generate_proposal_labels import GenerateProposalLabelsOp
 from ops.generate_proposals import GenerateProposalsOp
+
 from ops.rescale_and_dumplicate_feature \
-    import RescaleAndDumplicateFeatureOp
+    import RescaleAndDumplicateFeatureSingleOp
+
+from ops.rescale_and_dumplicate_feature \
+    import RescaleAndDumplicateFeatureFPNOp
+
 from ops.generate_mask_indicators import GenerateMaskIndicatorsOp
 from utils import lr_policy
 import roi_data.fast_rcnn
@@ -239,8 +244,106 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 # ---------------------------------------------------------------------------- #
 # Beginning of shuqin's code
 # ---------------------------------------------------------------------------- #
+    def RescaleAndDumplicateFeatureFPN(
+        self, 
+        blobs_in,
+        blob_out,
+        blob_rois,
+        src_spatial_scales,
+        dst_spatial_scale
+    ):
+        """ Dumplicate FPN feature maps for the refiner network.
+        If use FPN, then call. Then concancate the feature maps
+        along the batch dimension
 
-    def RescaleAndDumplicateFeature(
+        Input blobs: [fpn_<min>, ..., fpn_<max>]
+        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
+
+        Output blobs: rois_global_feature
+        """
+        dst_sc = dst_spatial_scale
+
+        k_max = cfg.FPN.ROI_MAX_LEVEL
+        k_min = cfg.FPN.ROI_MIN_LEVEL
+        blob_fpn_rois = [
+            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl)) 
+            for lvl in range(k_min, k_max+1)
+        ]
+
+        src_sc = []
+        blobs_in_list = []
+        for lvl in range(k_min, k_max+1):
+            blob_in = blobs_in[k_max - lvl] # reversed order 
+            src_sc.append(src_spatial_scales[k_max - lvl]) # reversed order 
+            blob_fpn_roi = blob_fpn_rois[lvl - k_min]
+            blobs_in_list.append(blob_in)
+            blobs_in_list.append(blob_fpn_roi)
+
+        name = 'RescaleAndDumplcateFeatureFPNOp: ' + ','.join(
+                [str(b) for b in blobs_in_list]
+            )
+
+        blob_fpn_dumplicate_out = [
+            core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
+            for lvl in range(k_min, k_max+1)
+        ]
+
+        #Rescale and Dumplicate FPN feature
+        blob_dumplicate_list = self.net.Python(
+            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).forward
+        )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
+
+        # The pooled features from all levels are concatenated along the
+            # batch dimension into a single 4D tensor.
+        xform_shuffled, _ = self.net.Concat(
+            blob_dumplicate_list, [blob_out + '_shuffled', '_concat_' + blob_out],
+            axis=0
+        )
+        # Unshuffle to match rois from dataloader
+        restore_bl = core.ScopedBlobReference(blob_rois + '_idx_restore_int32')
+        xform_out = self.net.BatchPermutation(
+            [xform_shuffled, restore_bl], blob_out
+        )
+
+        return xform_out
+
+
+    def RescaleAndDumplicateFeatureSingle(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        src_spatial_scales,
+        dst_spatial_scale
+    ):
+        """ Dumplicate feature maps for the refiner network.
+        If use FPN, then rescale the different FPN level feature
+        to a dst_spatial_scale. Then concancate the feature maps
+        along the batch dimension
+
+        Input blobs: res_...
+        Input rois: mask_rois_fpn
+
+        Output blobs: rois_global_feature
+        """
+        # Single scale feature
+        src_sc = src_spatial_scales
+        dst_sc = dst_spatial_scale
+        blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
+        name = 'RescaleAndDumplicateOp:' + ','.join(
+            [str(b) for b in blobs_in_list]
+        )
+
+        blob_out = core.ScopedBlobReference(blob_out)
+
+        xform_out = self.net.Python(
+            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).forward
+        )(blobs_in_list, blob_out, name=name)
+
+        return xform_out
+
+
+    def RescaleAndDumplicateFeatureOld(
         self,
         blobs_in,
         blob_out,
@@ -299,7 +402,6 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             xform_out = self.net.BatchPermutation(
                 [xform_shuffled, restore_bl], blob_out
             )
-            print('xform_out', xform_out)
         else:
             # Single scale feature
             src_sc = src_spatial_scales
