@@ -21,6 +21,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from caffe2.python import core
 from core.config import cfg
 from utils.c2 import const_fill
 from utils.c2 import gauss_fill
