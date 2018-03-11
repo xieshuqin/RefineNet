@@ -25,7 +25,7 @@ def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
 
     if dim_in != dim_feats: # conv1 to change the input channel
         blob_in = _add_linear_layer(
-            model, blob_in, 'hg_conv1', dim_in, dim_feats
+            model, blob_in, prefix+'_resort_dim', dim_in, dim_feats
         )
 
     i = 0
@@ -34,7 +34,7 @@ def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
 
     # Residual layers at output resolution
     ll = _add_hourglass_residual_block(
-        model, hg, prefix+'_hg_conv1', dim_feats, dim_feats
+        model, hg, prefix+'_hg_conv2', dim_feats, dim_feats
     )
     # linear layer to generate blob_out
     blob_out = _add_linear_layer(
