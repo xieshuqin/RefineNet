@@ -245,7 +245,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 # Beginning of shuqin's code
 # ---------------------------------------------------------------------------- #
     def RescaleAndDumplicateFeatureFPN(
-        self, 
+        self,
         blobs_in,
         blob_out,
         blob_rois,
@@ -266,15 +266,15 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         k_max = cfg.FPN.ROI_MAX_LEVEL
         k_min = cfg.FPN.ROI_MIN_LEVEL
         blob_fpn_rois = [
-            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl)) 
+            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl))
             for lvl in range(k_min, k_max+1)
         ]
 
         src_sc = []
         blobs_in_list = []
         for lvl in range(k_min, k_max+1):
-            blob_in = blobs_in[k_max - lvl] # reversed order 
-            src_sc.append(src_spatial_scales[k_max - lvl]) # reversed order 
+            blob_in = blobs_in[k_max - lvl] # reversed order
+            src_sc.append(src_spatial_scales[k_max - lvl]) # reversed order
             blob_fpn_roi = blob_fpn_rois[lvl - k_min]
             blobs_in_list.append(blob_in)
             blobs_in_list.append(blob_fpn_roi)
@@ -282,6 +282,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         name = 'RescaleAndDumplcateFeatureFPNOp: ' + ','.join(
                 [str(b) for b in blobs_in_list]
             )
+        # ignore gradient for 'blob_rois'
+        grad_input_indices = [2*(i-k_min) for i in range(k_min, k_max+1)]
 
         blob_fpn_dumplicate_out = [
             core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
@@ -290,7 +292,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         #Rescale and Dumplicate FPN feature
         blob_dumplicate_list = self.net.Python(
-            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).forward
+            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).forward,
+            grad_input_indices=grad_input_indices
         )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
 
         # The pooled features from all levels are concatenated along the
@@ -337,7 +340,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         blob_out = core.ScopedBlobReference(blob_out)
 
         xform_out = self.net.Python(
-            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).forward
+            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).forward,
+            grad_input_indices=[0]
         )(blobs_in_list, blob_out, name=name)
 
         return xform_out
@@ -442,9 +446,11 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             [str(b) for b in blobs_in_list]
         )
         blob_out = core.ScopedBlobReference(blob_out)
+        grad_input_indices=[0,1] # ignore gradient for blob_rois
 
         xform_out = self.net.Python(
-            GenerateMaskIndicatorsOp(scale=dst_spatial_scale).forward
+            GenerateMaskIndicatorsOp(scale=dst_spatial_scale).forward,
+            grad_input_indices=grad_input_indices
         )(blobs_in_list, blob_out, name=name)
         return xform_out
 
