@@ -284,6 +284,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             )
         # ignore gradient for 'blob_rois'
         grad_input_indices = [2*(i-k_min) for i in range(k_min, k_max+1)]
+        #grad_input_indices=[]
 
         blob_fpn_dumplicate_out = [
             core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
@@ -446,10 +447,11 @@ class DetectionModelHelper(cnn.CNNModelHelper):
             [str(b) for b in blobs_in_list]
         )
         blob_out = core.ScopedBlobReference(blob_out)
-        grad_input_indices=[0,1] # ignore gradient for blob_rois
+        grad_input_indices=[0] # ignore gradient for blob_rois
 
         xform_out = self.net.Python(
             GenerateMaskIndicatorsOp(scale=dst_spatial_scale).forward,
+            GenerateMaskIndicatorsOp(scale=dst_spatial_scale).backward,
             grad_input_indices=grad_input_indices
         )(blobs_in_list, blob_out, name=name)
         return xform_out

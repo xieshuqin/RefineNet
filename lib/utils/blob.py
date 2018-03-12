@@ -52,6 +52,9 @@ def im_list_to_blob(ims):
     # Pad the image so they can be divisible by a stride
     if cfg.FPN.FPN_ON:
         stride = float(cfg.FPN.COARSEST_STRIDE)
+        if cfg.MODEL.REFINE_ON:
+            refine_stride = 16 * (1 / cfg.REFINENET.SPATIAL_SCALE)
+            stride = max(stride, refine_stride)
         max_shape[0] = int(np.ceil(max_shape[0] / stride) * stride)
         max_shape[1] = int(np.ceil(max_shape[1] / stride) * stride)
 

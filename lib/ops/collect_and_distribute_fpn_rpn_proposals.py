@@ -51,8 +51,8 @@ class CollectAndDistributeFpnRpnProposalsOp(object):
             roidb = blob_utils.deserialize(inputs[-2].data)
             # If use RefineNet, then 'data' is not None
             if cfg.MODEL.REFINE_MASK_ON or cfg.MODEL.REFINE_KEYPOINTS_ON:
-                data = inputs[-3].data 
-            else: 
+                data = inputs[-3].data
+            else:
                 data = None
             # For historical consistency with the original Faster R-CNN
             # implementation we are *not* filtering crowd proposals.
@@ -81,7 +81,7 @@ def collect(inputs, is_training):
     roi_inputs = inputs[:num_lvls]
     score_inputs = inputs[num_lvls:]
     if is_training:
-        score_inputs = score_inputs[:-2]
+        score_inputs = score_inputs[:-3]
 
     # rois are in [[batch_idx, x0, y0, x1, y2], ...] format
     # Combine predictions across all levels and retain the top scoring

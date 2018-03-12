@@ -64,7 +64,7 @@ def add_refine_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data
 
     # Define size variables
     inp_h, inp_w = data.shape[2], data.shape[3]
-    out_h, out_w = inp_h * dst_scale, inp_w * dst_scale
+    out_h, out_w = int(inp_h * dst_scale), int(inp_w * dst_scale)
 
     if fg_inds.shape[0] > 0:
         # Class labels for the foreground rois
@@ -85,7 +85,7 @@ def add_refine_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data
         # narrow scale and size
         scale = im_scale * dst_scale
         im_h, im_w = roidb['height'], roidb['width']
-        im_label_h, im_label_w = floor(im_h*scale), floor(im_w*scale)
+        im_label_h, im_label_w = int(im_h*scale), int(im_w*scale)
 
         # add fg targets
         for i in range(rois_fg.shape[0]):
@@ -98,7 +98,7 @@ def add_refine_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data
             mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
             masks[i, 0:im_label_h, 0:im_label_w] = mask
 
-        masks = np.reshape(masks, out_h*out_w)
+        masks = np.reshape(masks, (-1,out_h*out_w))
 
 
     else:  # If there are no fg masks (it does happen)
@@ -133,7 +133,7 @@ def add_refine_keypoints_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx,
 
 
 def _expand_to_class_specific_mask_targets(masks, mask_class_labels):
-    """Expand masks from shape (#masks, out_h * out_w) 
+    """Expand masks from shape (#masks, out_h * out_w)
         to shape (#masks, #classes * out_h * out_w)
         to encode class specific mask targets.
     """

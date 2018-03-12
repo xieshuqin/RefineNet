@@ -30,7 +30,7 @@ class RescaleAndDumplicateFeatureSingleOp(object):
         feat = feat.transpose(swap_order)
         for i in range(num_images):
             img = feat[i]
-            img_resize = cv2.rescale(img, None, None, fx=s, fy=s)
+            img_resize = cv2.resize(img, None, None, fx=s, fy=s)
             feat_resize.append(img_resize[np.newaxis, :])
 
         feat_resize = np.concatenate(feat_resize, axis=0)
@@ -80,7 +80,7 @@ class RescaleAndDumplicateFeatureFPNOp(object):
             feat = feat.transpose(swap_order)
             for i in range(num_images):
                 img = feat[i]
-                img_resize = cv2.rescale(img, None, None, fx=s, fy=s)
+                img_resize = cv2.resize(img, None, None, fx=s, fy=s)
                 feat_resize.append(img_resize[np.newaxis, :])
 
             feat_resize = np.concatenate(feat_resize, axis=0)
@@ -88,7 +88,7 @@ class RescaleAndDumplicateFeatureFPNOp(object):
             feat_resize = feat_resize.transpose(swap_order)
 
             # dumplicate features
-            batch_ids = rois[:,0]
+            batch_ids = rois[:,0].astype(np.int32)
             feat_dump = feat_resize[batch_ids,:]
 
             outputs[lvl].reshape(feat_dump.shape)

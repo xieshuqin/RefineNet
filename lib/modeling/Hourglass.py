@@ -81,19 +81,16 @@ def add_hourglass_unit(model, blob_in, prefix, n):
 
 
 def add_residual_block(model, blob_in, prefix, dim_in, dim_out):
-
     is_test = (not model.train)
-
     # transform
     tr = add_conv_block(model, blob_in, prefix, dim_in, dim_out, is_test)
-
     # shortcut
-    sc = add_short_cut(model, blob_in, prefix, dim_in, dim_out, is_test)
-
+    sc = add_shortcut(model, blob_in, prefix, dim_in, dim_out, is_test)
     # Sum -> Relu
     s = model.net.Sum([tr, sc], prefix+'_sum')
 
     return model.Relu(s,s)
+
 
 def add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
 
@@ -113,10 +110,10 @@ def add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
 def add_conv_block(model, blob_in, prefix, dim_in, dim_out, is_test):
     """ fixed the dim_inner to be dim_out/2 as in implemented in Torch"""
 
-    dim_inner = dim_out // 2 
+    dim_inner = dim_out // 2
     # conv 1x1 -> BN -> Relu
     blob_conv_1 = model.Conv(
-        blob_in, prefix+'_branch2a_conv', dim_in, dim_inner, 
+        blob_in, prefix+'_branch2a_conv', dim_in, dim_inner,
         kernel=1, stride=1, pad=0
     )
     blob_bn_1 = model.SpatialBN(

@@ -120,17 +120,18 @@ def polys_to_mask_wrt_box(polygons, box, M):
 def polys_to_mask_scaled(polygons, height, width, scale):
     """ Convert from the COCO polygon segmentation forat to a binary mask
     encoded as a 2D array of data type numpy.float32. The polygon segmentation
-    is understood to be enclosed in the given (height x width) and rasterized 
+    is understood to be enclosed in the given (height x width) and rasterized
     to a sH x sW mask where s is a scale factor. The resulting mask is therefore
     of shape (sH, sW)
     """
-    sH, sW = floor(height*scale), floor(width*scale)
+    sH, sW = int(height*scale), int(width*scale)
 
     polygons_norm = []
     for poly in polygons:
         p = np.array(poly, dtype=np.float32)
         p[0::2] = p[0::2] * scale
         p[1::2] = p[1::2] * scale
+        polygons_norm.append(p)
 
     rle = mask_util.frPyObjects(polygons_norm, sH, sW)
     mask = np.array(mask_util.decode(rle), dtype=np.float32)
