@@ -113,29 +113,30 @@ def add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
 def add_conv_block(model, blob_in, prefix, dim_in, dim_out, is_test):
     """ fixed the dim_inner to be dim_out/2 as in implemented in Torch"""
 
+    dim_inner = dim_out // 2 
     # conv 1x1 -> BN -> Relu
     blob_conv_1 = model.Conv(
-        blob_in, prefix+'_branch2a_conv', dim_in, dim_out/2, 
+        blob_in, prefix+'_branch2a_conv', dim_in, dim_inner, 
         kernel=1, stride=1, pad=0
     )
     blob_bn_1 = model.SpatialBN(
-        blob_conv_1, prefix+'_branch2a_bn', dim_out/2, is_test=is_test
+        blob_conv_1, prefix+'_branch2a_bn', dim_inner, is_test=is_test
     )
     blob_relu_1 = model.Relu(blob_bn_1, blob_bn_1)
 
     # conv 3x3 -> BN -> Relu
     blob_conv_2 = model.Conv(
-        blob_relu_1, prefix+'_branch2b_conv', dim_out/2, dim_out/2,
+        blob_relu_1, prefix+'_branch2b_conv', dim_inner, dim_inner,
         kernel=3, stride=1, pad=1
     )
     blob_bn_2 = model.SpatialBN(
-        blob_conv_2, prefix+'_branch2b_bn', dim_out/2, is_test=is_test
+        blob_conv_2, prefix+'_branch2b_bn', dim_inner, is_test=is_test
     )
     blob_relu_2 = model.Relu(blob_bn_2, blob_bn_2)
 
     # conv 1x1 -> BN
     blob_conv_3 = model.Conv(
-        blob_relu_2, prefix+'_branch2c_conv', dim_out/2, dim_out,
+        blob_relu_2, prefix+'_branch2c_conv', dim_inner, dim_out,
         kernel=1, stride=1, pad=0
     )
     blob_bn_3 = model.SpatialBN(
