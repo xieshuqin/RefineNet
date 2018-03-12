@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 from core.config import cfg
 import modeling.ResNet as ResNet
+from caffe2.python import brew
 #from utils.c2 import const_fill
 #from utils.c2 import gauss_fill
 #import modeling.ResNet as ResNet
@@ -87,7 +88,8 @@ def _add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
         kernel=1, stride=1, pad=0
     )
     #blob_bn = model.AffineChannel(blob_conv, blob_out+'_bn', inplace=False)
-    blob_bn = blob_conv # Debug to see if the problem is due to the AffineChannel
+    blob_bn = model.SpatialBN(blob_conv, blob_out+'_bn', dim_out, is_test=False)
+    print('blob_bn', blob_bn)
     blob_out = model.Relu(blob_bn, blob_out)
     return blob_out
 
