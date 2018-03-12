@@ -4,6 +4,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from core.config import cfg
+<<<<<<< HEAD
+=======
+import modeling.ResNet as ResNet
+from caffe2.python import brew
+#from utils.c2 import const_fill
+#from utils.c2 import gauss_fill
+#import modeling.ResNet as ResNet
+#import utils.blob as blob_utils
+>>>>>>> 4cb868f01fefaf5d74e1fb6ba67de4eda2ab17eb
 
 # ---------------------------------------------------------------------------- #
 # Hourglass model
@@ -81,7 +90,13 @@ def _add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
         blob_in, blob_out+'_conv', dim_in, dim_out,
         kernel=1, stride=1, pad=0
     )
+<<<<<<< HEAD
     blob_bn = model.SpatialBN(blob_conv, blob_out+'_bn', dim_out)
+=======
+    #blob_bn = model.AffineChannel(blob_conv, blob_out+'_bn', inplace=False)
+    blob_bn = model.SpatialBN(blob_conv, blob_out+'_bn', dim_out, is_test=False)
+    print('blob_bn', blob_bn)
+>>>>>>> 4cb868f01fefaf5d74e1fb6ba67de4eda2ab17eb
     blob_out = model.Relu(blob_bn, blob_out)
 
 
