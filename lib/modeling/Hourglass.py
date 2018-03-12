@@ -4,11 +4,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from core.config import cfg
-import modeling.ResNet as ResNet
-#from utils.c2 import const_fill
-#from utils.c2 import gauss_fill
-#import modeling.ResNet as ResNet
-#import utils.blob as blob_utils
 
 # ---------------------------------------------------------------------------- #
 # Hourglass model
@@ -86,18 +81,9 @@ def _add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
         blob_in, blob_out+'_conv', dim_in, dim_out,
         kernel=1, stride=1, pad=0
     )
-    #blob_bn = model.AffineChannel(blob_conv, blob_out+'_bn', inplace=False)
-    blob_bn = blob_conv # Debug to see if the problem is due to the AffineChannel
+    blob_bn = model.SpatialBN(blob_conv, blob_out+'_bn', dim_out)
     blob_out = model.Relu(blob_bn, blob_out)
-    return blob_out
 
-    #conv_bn = model.ConvAffine(
-    #    blob_in, prefix, dim_in, dim_out, kernel=1, stride=1, pad=0,
-    #    inplace=True
-    #)
-    ##blob_out = model.Relu(conv_bn, blob_out)
-    #conv_bn = model.Relu(conv_bn, conv_bn)
-    #return blob_out
 
 def _add_hourglass_residual_block(model, blob_in, prefix, dim_in, dim_out):
     """ fixed the dim_inner to be dim_out/2 as in implemented in Torch"""
