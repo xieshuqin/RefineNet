@@ -25,7 +25,7 @@ def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
 
     if dim_in != dim_feats: # conv1 to change the input channel
         blob_in = _add_linear_layer(
-            model, blob_in, prefix+'_resort_dim', dim_in, dim_feats
+            model, blob_in, prefix+'_hg_resort_dim', dim_in, dim_feats
         )
 
     i = 0
