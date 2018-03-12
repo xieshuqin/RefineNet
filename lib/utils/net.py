@@ -176,6 +176,7 @@ def broadcast_parameters(model):
         blobs_per_gpu = int(len(all_blobs) / cfg.NUM_GPUS)
         for i in range(blobs_per_gpu):
             blobs = [p for p in all_blobs[i::blobs_per_gpu]]
+            print(blobs)
             data = workspace.FetchBlob(blobs[0])
             logger.debug('Broadcasting {} to'.format(str(blobs[0])))
             for i, p in enumerate(blobs[1:]):
