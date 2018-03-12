@@ -46,7 +46,7 @@ class GenerateMaskIndicatorsOp(object):
         outputs[0].data[...] = mask_indicators
 
     def backward(self, inputs, outputs):
-        # for forward inputs
+        # We don't back-propagate for this layer. So just pass a zero array.
         data = inputs[0]
         grad_in = outputs[0]
 

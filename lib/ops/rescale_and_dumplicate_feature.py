@@ -44,6 +44,16 @@ class RescaleAndDumplicateFeatureSingleOp(object):
         outputs[0].reshape(feat_dump.shape)
         outputs[0].data[...] = feat_dump
 
+    def backward(self, inputs, outputs):
+        """ Currently, we didn't back-propagate into the feature. 
+        Thus, we pass a zero-array as the gradient 
+        """
+        feature = inputs[0].data
+        grad_feature = outputs[0]
+
+        grad_feature.reshape(feature.shape)
+        grad_feature.data[...] = np.zeros(feature.shape, dtype=np.float32)
+
 
 class RescaleAndDumplicateFeatureFPNOp(object):
     """ Rescale the FPN feature map and dumplicate them multiple times
@@ -93,4 +103,17 @@ class RescaleAndDumplicateFeatureFPNOp(object):
 
             outputs[lvl].reshape(feat_dump.shape)
             outputs[lvl].data[...] = feat_dump
+
+    def backward(self, inputs, outputs):
+        """ Currently, we don't back-propagate into the feature map
+        Thus we pass a zero array as the gradient
+        """
+        for lvl in range(self.num_fpn_lvls):
+            fpn_feat = inputs[2*lvl].data
+            grad_fpn_feat = outputs[lvl]
+
+            grad_fpn_feat.reshape(fpn_feat.shape)
+            grad_fpn_feat.data[...] = np.zeros(fpn_feat.shape, dtype=np.float32)
+
+
 

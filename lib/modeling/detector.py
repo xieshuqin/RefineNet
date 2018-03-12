@@ -294,6 +294,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         #Rescale and Dumplicate FPN feature
         blob_dumplicate_list = self.net.Python(
             RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).forward,
+            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).backward,
             grad_input_indices=grad_input_indices
         )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
 
@@ -342,6 +343,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         xform_out = self.net.Python(
             RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).forward,
+            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).backward,
             grad_input_indices=[0]
         )(blobs_in_list, blob_out, name=name)
 
