@@ -134,6 +134,8 @@ def save_model_to_weights_file(weights_file, model):
         'Saving parameters and momentum to {}'.format(
             os.path.abspath(weights_file)))
     blobs = {}
+    extra_params = [b for b in workspace.blobs if b.endswith("_rm") or b.endswith("_riv")]
+    print('extra_params', extra_params)
     # Save all parameters
     for param in model.params:
         scoped_name = str(param)
