@@ -25,7 +25,6 @@ class GenerateMaskIndicatorsOp(object):
         num_rois = mask_rois.shape[0]
         num_cls = mask_probs.shape[1]
         mask_indicators = np.zeros(shape=(num_rois, height, width, num_cls))
-        print('mask_indicators shape', height, width)
 
         # some data processing
         swap_order = (0, 2, 3, 1)
