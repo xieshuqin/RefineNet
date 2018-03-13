@@ -102,7 +102,7 @@ def im_detect_all(model, im, box_proposals, timers=None):
         if cfg.TEST.MASK_AUG.ENABLED:
             refined_masks = im_detect_refined_mask_aug(model, im, boxes)
         else:
-            refined_masks = im_detect_refined_mask(model, im_scales)
+            refined_masks = im_detect_refined_mask(model, im_scales, boxes)
         timers['im_detect_refined_mask'].toc()
 
         timers['misc_refined_mask'].tic()
@@ -118,7 +118,7 @@ def im_detect_all(model, im, box_proposals, timers=None):
         if cfg.TEST.KPS_AUG.ENABLED:
             refined_heatmaps = im_detect_refined_keypoints_aug(model, im, boxes)
         else:
-            refined_heatmaps = im_detect_refined_keypoints(model, im_scales)
+            refined_heatmaps = im_detect_refined_keypoints(model, im_scales, boxes)
         timers['im_detect_refined_keypoints'].toc()
 
         timers['misc_refined_keypoints'].tic()
@@ -749,7 +749,7 @@ def im_detect_keypoints_aspect_ratio(
     return heatmaps_ar
 
 
-def im_detect_refined_mask(model, im_scales):
+def im_detect_refined_mask(model, im_scales, boxes):
     """Infer refined instance segmentation masks. This function must be called
     after **im_detect_mask** as it assumes that the Caffe2 workspace is already
     populated with the necessary blobs.
@@ -815,7 +815,7 @@ def im_detect_refined_mask_aug(model, im, boxes):
     # Compute masks for the original image (identity transform)
     im_scales_i = im_conv_body_only(model, im)
     masks_i = im_detect_mask(model, im_scales_i, boxes)
-    refined_masks_i = im_detect_refined_mask(model, im_scales_i)
+    refined_masks_i = im_detect_refined_mask(model, im_scales_i, boxes)
     refined_masks_ts.append(refined_masks_i)
 
     # Perform mask detection on the horizontally flipped image
@@ -879,7 +879,7 @@ def im_detect_refined_mask_hflip(model, im, boxes):
 
     im_scales = im_conv_body_only(model, im_hf)
     masks_hf = im_detect_mask(model, im_scales, boxes_hf)
-    refined_masks_hf = im_detect_refined_mask(model, im_scales)
+    refined_masks_hf = im_detect_refined_mask(model, im_scales, boxes_hf)
 
     # Invert the predicted soft masks
     refined_masks_inv = refined_masks_hf[:, :, :, ::-1]
@@ -903,7 +903,7 @@ def im_detect_refined_mask_scale(model, im, scale, max_size, boxes, hflip=False)
     else:
         im_scales = im_conv_body_only(model, im)
         masks_scl = im_detect_mask(model, im_scales, boxes)
-        refined_masks_scl = im_detect_refined_mask(model, im_scales)
+        refined_masks_scl = im_detect_refined_mask(model, im_scales, boxes)
 
     # Restore the original scale
     cfg.TEST.SCALES = orig_scales
@@ -924,7 +924,7 @@ def im_detect_refined_mask_aspect_ratio(model, im, aspect_ratio, boxes, hflip=Fa
     else:
         im_scales = im_conv_body_only(model, im_ar)
         masks_ar = im_detect_mask(model, im_scales, boxes_ar)
-        refined_masks_ar = im_detect_refined_mask(model, im_scales)
+        refined_masks_ar = im_detect_refined_mask(model, im_scales, boxes_ar)
 
     return refined_masks_ar
 
