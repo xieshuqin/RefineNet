@@ -102,7 +102,7 @@ def im_detect_all(model, im, box_proposals, timers=None):
         if cfg.TEST.MASK_AUG.ENABLED:
             refined_masks = im_detect_refined_mask_aug(model, im, boxes)
         else:
-            refined_masks = im_detect_mask(model, im_scales)
+            refined_masks = im_detect_refined_mask(model, im_scales)
         timers['im_detect_refined_mask'].toc()
 
         timers['misc_refined_mask'].tic()
@@ -750,8 +750,8 @@ def im_detect_keypoints_aspect_ratio(
 
 
 def im_detect_refined_mask(model, im_scales):
-    """Infer refined instance segmentation masks. This function must be called 
-    after **im_detect_mask** as it assumes that the Caffe2 workspace is already 
+    """Infer refined instance segmentation masks. This function must be called
+    after **im_detect_mask** as it assumes that the Caffe2 workspace is already
     populated with the necessary blobs.
 
     Arguments:
@@ -759,13 +759,13 @@ def im_detect_refined_mask(model, im_scales):
         im_scales (list): image blob scales as returned by im_detect_bbox
 
     Returns:
-        pred_refined_masks (ndarray): R x K x sH x sW array of class specific 
-            soft masks, where s is the down-sampling scale, defined in 
-            cfg.REFINENET.SPATIAL_SCALE and H, W is the size of the 'data' 
-            blob.  
-            The output must be processed by the function refined_segm_results 
+        pred_refined_masks (ndarray): R x K x sH x sW array of class specific
+            soft masks, where s is the down-sampling scale, defined in
+            cfg.REFINENET.SPATIAL_SCALE and H, W is the size of the 'data'
+            blob.
+            The output must be processed by the function refined_segm_results
             to convert into hard masks in the original image coordinate space)
-            
+
     """
     assert len(im_scales) == 1, \
         'Only single-image / single-scale batch implemented'

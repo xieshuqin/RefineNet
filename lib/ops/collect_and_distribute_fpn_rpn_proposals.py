@@ -82,6 +82,8 @@ def collect(inputs, is_training):
     score_inputs = inputs[num_lvls:]
     if is_training:
         score_inputs = score_inputs[:-3]
+    else:
+        score_inputs = score_inputs[:-1]
 
     # rois are in [[batch_idx, x0, y0, x1, y2], ...] format
     # Combine predictions across all levels and retain the top scoring
