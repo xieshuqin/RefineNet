@@ -50,7 +50,9 @@ logger = logging.getLogger(__name__)
 
 
 def evaluate_all(
-    dataset, all_boxes, all_segms, all_keyps, output_dir, use_matlab=False
+    dataset, all_boxes, all_segms, all_keyps, 
+    all_refined_segms, all_refined_keyps,
+    output_dir, use_matlab=False
 ):
     """Evaluate "all" tasks, where "all" includes box detection, instance
     segmentation, and keypoint detection.
@@ -67,6 +69,14 @@ def evaluate_all(
         results = evaluate_keypoints(dataset, all_boxes, all_keyps, output_dir)
         all_results[dataset.name].update(results[dataset.name])
         logger.info('Evaluating keypoints is done!')
+    if cfg.MODEL.REFINE_MASK_ON:
+        results = evaluate_refined_masks(dataset, all_boxes, all_refined_segms, output_dir)
+        all_results[dataset.name].update(results[dataset.name])
+        logger.info('Evaluating refined segmentations is done!')
+    if cfg.MODEL.REFINE_KEYPOINTS_ON:
+        results = evaluate_refined_keyps(dataset, all_boxes, all_refined_keyps, output_dir)
+        all_results[dataset.name].update(results[dataset.name])
+        logger.info('Evaluating refined keypoints is done!')
     return all_results
 
 
@@ -128,11 +138,60 @@ def evaluate_masks(dataset, all_boxes, all_segms, output_dir):
             'No evaluator for dataset: {}'.format(dataset.name)
         )
     return OrderedDict([(dataset.name, mask_results)])
+    
+
+def evaluate_refined_masks(dataset, all_boxes, all_segms, output_dir):
+    """Evaluate instance segmentation."""
+    logger.info('Evaluating refined segmentations')
+    not_comp = not cfg.TEST.COMPETITION_MODE
+    if _use_json_dataset_evaluator(dataset):
+        coco_eval = json_dataset_evaluator.evaluate_masks(
+            dataset,
+            all_boxes,
+            all_segms,
+            output_dir,
+            use_salt=not_comp,
+            cleanup=not_comp
+        )
+        mask_results = _coco_eval_to_mask_results(coco_eval)
+    elif _use_cityscapes_evaluator(dataset):
+        cs_eval = cs_json_dataset_evaluator.evaluate_masks(
+            dataset,
+            all_boxes,
+            all_segms,
+            output_dir,
+            use_salt=not_comp,
+            cleanup=not_comp
+        )
+        mask_results = _cs_eval_to_mask_results(cs_eval)
+    else:
+        raise NotImplementedError(
+            'No evaluator for dataset: {}'.format(dataset.name)
+        )
+    return OrderedDict([(dataset.name, mask_results)])
 
 
 def evaluate_keypoints(dataset, all_boxes, all_keyps, output_dir):
     """Evaluate human keypoint detection (i.e., 2D pose estimation)."""
     logger.info('Evaluating detections')
+    not_comp = not cfg.TEST.COMPETITION_MODE
+    assert dataset.name.startswith('keypoints_coco_'), \
+        'Only COCO keypoints are currently supported'
+    coco_eval = json_dataset_evaluator.evaluate_keypoints(
+        dataset,
+        all_boxes,
+        all_keyps,
+        output_dir,
+        use_salt=not_comp,
+        cleanup=not_comp
+    )
+    keypoint_results = _coco_eval_to_keypoint_results(coco_eval)
+    return OrderedDict([(dataset.name, keypoint_results)])
+
+
+def evaluate_refined_keypoints(dataset, all_boxes, all_keyps, output_dir):
+    """Evaluate human keypoint detection (i.e., 2D pose estimation)."""
+    logger.info('Evaluating refined detections')
     not_comp = not cfg.TEST.COMPETITION_MODE
     assert dataset.name.startswith('keypoints_coco_'), \
         'Only COCO keypoints are currently supported'
