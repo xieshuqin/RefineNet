@@ -36,6 +36,7 @@ import test_net
 from caffe2.python import memonger
 from caffe2.python import utils as c2_py_utils
 from caffe2.python import workspace
+from caffe2.python import core
 
 from core.config import assert_and_infer_cfg
 from core.config import cfg
@@ -209,7 +210,6 @@ def train_model():
 
     setup_model_for_training(model, output_dir)
     training_stats = TrainingStats(model)
-    training_stats.LOG_PERIOD=1 # for debug
     CHECKPOINT_PERIOD = int(cfg.TRAIN.SNAPSHOT_ITERS / cfg.NUM_GPUS)
 
     for cur_iter in range(start_iter, cfg.SOLVER.MAX_ITER):
