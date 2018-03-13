@@ -36,7 +36,6 @@ import test_net
 from caffe2.python import memonger
 from caffe2.python import utils as c2_py_utils
 from caffe2.python import workspace
-from caffe2.python import core
 
 from core.config import assert_and_infer_cfg
 from core.config import cfg
