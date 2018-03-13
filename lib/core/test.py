@@ -66,7 +66,6 @@ def im_detect_all(model, im, box_proposals, timers=None):
     timers['misc_bbox'].tic()
     scores, boxes, cls_boxes = box_results_with_nms_and_limit(scores, boxes)
     timers['misc_bbox'].toc()
-    print('boxes.shape', boxes.shape)
 
     if cfg.MODEL.MASK_ON and boxes.shape[0] > 0:
         timers['im_detect_mask'].tic()

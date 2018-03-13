@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from core.config import cfg
+from caffe2.python import core
 
 import modeling.ResNet as ResNet
 #from utils.c2 import const_fill
@@ -102,7 +103,7 @@ def add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
     blob_bn = model.SpatialBN(
         blob_conv, blob_out+'_bn', dim_out, is_test=is_test
     )
-    # A little bit surgery to get the running mean and variance 
+    # A little bit surgery to get the running mean and variance
     # at test time
     model.params.append(core.ScopedBlobReference(blob_out+'_bn_rm'))
     model.params.append(core.ScopedBlobReference(blob_out+'_bn_riv'))

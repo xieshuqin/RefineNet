@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 
 
 def evaluate_all(
-    dataset, all_boxes, all_segms, all_keyps, 
+    dataset, all_boxes, all_segms, all_keyps,
     all_refined_segms, all_refined_keyps,
     output_dir, use_matlab=False
 ):
@@ -138,7 +138,7 @@ def evaluate_masks(dataset, all_boxes, all_segms, output_dir):
             'No evaluator for dataset: {}'.format(dataset.name)
         )
     return OrderedDict([(dataset.name, mask_results)])
-    
+
 
 def evaluate_refined_masks(dataset, all_boxes, all_segms, output_dir):
     """Evaluate instance segmentation."""
