@@ -517,6 +517,10 @@ def add_inference_inputs(model):
         create_input_blobs_for_net(model.mask_net.Proto())
     if cfg.MODEL.KEYPOINTS_ON:
         create_input_blobs_for_net(model.keypoint_net.Proto())
+    if cfg.MODEL.REFINE_MASK_ON:
+        create_input_blobs_for_net(model.refine_mask_net.Proto())
+    if cfg.MODEL.REFINE_KEYPOINTS_ON:
+        create_input_blobs_for_net(model.refine_keypoints_net.Proto())
 
 
 # ---------------------------------------------------------------------------- #
