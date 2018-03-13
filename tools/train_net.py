@@ -209,6 +209,7 @@ def train_model():
 
     setup_model_for_training(model, output_dir)
     training_stats = TrainingStats(model)
+    training_stats.LOG_PERIOD=1 # for debug
     CHECKPOINT_PERIOD = int(cfg.TRAIN.SNAPSHOT_ITERS / cfg.NUM_GPUS)
 
     for cur_iter in range(start_iter, cfg.SOLVER.MAX_ITER):
