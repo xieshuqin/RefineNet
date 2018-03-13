@@ -65,7 +65,7 @@ def test_net_on_dataset(multi_gpu=False):
     test_timer.toc()
     logger.info('Total inference time: {:.3f}s'.format(test_timer.average_time))
     results = task_evaluation.evaluate_all(
-        dataset, all_boxes, all_segms, all_keyps, 
+        dataset, all_boxes, all_segms, all_keyps,
         all_refined_segms, all_refined_keyps, output_dir
     )
     return results
@@ -117,7 +117,7 @@ def multi_gpu_test_net_on_dataset(num_images, output_dir):
     )
     logger.info('Wrote detections to: {}'.format(os.path.abspath(det_file)))
 
-    return all_boxes, all_segms, all_keyps
+    return all_boxes, all_segms, all_keyps, all_refined_segms, all_refined_keyps
 
 
 def test_net(ind_range=None):
@@ -181,15 +181,15 @@ def test_net(ind_range=None):
             det_time = (
                 timers['im_detect_bbox'].average_time +
                 timers['im_detect_mask'].average_time +
-                timers['im_detect_keypoints'].average_time + 
-                timers['im_detect_refined_mask'].average_time + 
-                timers['im_detect_refined_keypoints'],average_time
+                timers['im_detect_keypoints'].average_time +
+                timers['im_detect_refined_mask'].average_time +
+                timers['im_detect_refined_keypoints'].average_time
             )
             misc_time = (
                 timers['misc_bbox'].average_time +
                 timers['misc_mask'].average_time +
                 timers['misc_keypoints'].average_time +
-                timers['misc_refined_mask'].average_time + 
+                timers['misc_refined_mask'].average_time +
                 timers['misc_refined_keypoints'].average_time
             )
             logger.info(
@@ -248,7 +248,7 @@ def test_net(ind_range=None):
         ), det_file
     )
     logger.info('Wrote detections to: {}'.format(os.path.abspath(det_file)))
-    return all_boxes, all_segms, all_keyps
+    return all_boxes, all_segms, all_keyps, all_refined_segms, all_refined_keyps
 
 
 def initialize_model_from_cfg():

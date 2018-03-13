@@ -134,8 +134,16 @@ def save_model_to_weights_file(weights_file, model):
         'Saving parameters and momentum to {}'.format(
             os.path.abspath(weights_file)))
     blobs = {}
-    extra_params = [b for b in workspace.blobs if b.endswith("_rm") or b.endswith("_riv")]
-    print('extra_params', extra_params)
+
+    # A little surgery to address the problem that SpatialBN doesn't
+    # save *_rm and *_riv as model parameter at training time
+    # but require to use it at inference time...
+    # Stupid caffe2.
+    for scoped_name in workspace.Blobs():
+        if scoped_name.endswith("_rm") or scoped_name.endswith("_riv"):
+            param = core.BlobReference(scoped_name)
+            model.params.append(param)
+
     # Save all parameters
     for param in model.params:
         scoped_name = str(param)

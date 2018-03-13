@@ -92,11 +92,15 @@ def do_reval(dataset_name, output_dir, args):
         core.config.merge_cfg_from_cfg(yaml.load(dets['cfg']))
     else:
         core.config._merge_a_into_b(yaml.load(dets['cfg']), cfg)
+    print('all_boxes')
+    print(dets['all_boxes'])
     results = task_evaluation.evaluate_all(
         dataset,
         dets['all_boxes'],
         dets['all_segms'],
         dets['all_keyps'],
+        dets['all_refined_segms'],
+        dets['all_refined_keyps'],
         output_dir,
         use_matlab=args.matlab_eval
     )
