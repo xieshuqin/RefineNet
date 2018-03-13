@@ -774,7 +774,7 @@ def im_detect_refined_mask(model, im_scales):
     num_cls = cfg.MODEL.NUM_CLASSES
     data = workspace.FetchBlob(core.ScopedName('data'))
     inp_h, inp_w = data.shape[2], data.shape[3]
-    out_h, out_w = floor(inp_h*down_scale), floor(inp_w*down_scale)
+    out_h, out_w = int(inp_h*down_scale), int(inp_w*down_scale)
 
     if boxes.shape[0] == 0:
         pred_refined_masks = np.zeros((0, out_h, out_w), np.float32)
