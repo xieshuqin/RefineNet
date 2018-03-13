@@ -102,6 +102,11 @@ def add_linear_layer(model, blob_in, blob_out, dim_in, dim_out):
     blob_bn = model.SpatialBN(
         blob_conv, blob_out+'_bn', dim_out, is_test=is_test
     )
+    # A little bit surgery to get the running mean and variance 
+    # at test time
+    model.params.append(core.ScopedBlobReference(blob_out+'_bn_rm'))
+    model.params.append(core.ScopedBlobReference(blob_out+'_bn_riv'))
+
     blob_out = model.Relu(blob_bn, blob_out)
 
     return blob_out
@@ -119,6 +124,9 @@ def add_conv_block(model, blob_in, prefix, dim_in, dim_out, is_test):
     blob_bn_1 = model.SpatialBN(
         blob_conv_1, prefix+'_branch2a_bn', dim_inner, is_test=is_test
     )
+    model.params.append(core.ScopedBlobReference(prefix+'_branch2a_bn_rm'))
+    model.params.append(core.ScopedBlobReference(prefix+'_branch2a_bn_riv'))
+
     blob_relu_1 = model.Relu(blob_bn_1, blob_bn_1)
 
     # conv 3x3 -> BN -> Relu
@@ -129,6 +137,9 @@ def add_conv_block(model, blob_in, prefix, dim_in, dim_out, is_test):
     blob_bn_2 = model.SpatialBN(
         blob_conv_2, prefix+'_branch2b_bn', dim_inner, is_test=is_test
     )
+    model.params.append(core.ScopedBlobReference(prefix+'_branch2b_bn_rm'))
+    model.params.append(core.ScopedBlobReference(prefix+'_branch2b_bn_riv'))
+
     blob_relu_2 = model.Relu(blob_bn_2, blob_bn_2)
 
     # conv 1x1 -> BN
@@ -139,6 +150,8 @@ def add_conv_block(model, blob_in, prefix, dim_in, dim_out, is_test):
     blob_bn_3 = model.SpatialBN(
         blob_conv_3, prefix+'_branch2c_bn', dim_out, is_test=is_test
     )
+    model.params.append(core.ScopedBlobReference(prefix+'_branch2c_bn_rm'))
+    model.params.append(core.ScopedBlobReference(prefix+'_branch2c_bn_riv'))
 
     return blob_bn_3
 
@@ -154,6 +167,8 @@ def add_shortcut(model, blob_in, prefix, dim_in, dim_out, is_test):
     blob_bn = model.SpatialBN(
         blob_conv, prefix+'_branch1_bn', dim_out, is_test=is_test
     )
+    model.params.append(core.ScopedBlobReference(prefix+'_branch1_bn_rm'))
+    model.params.append(core.ScopedBlobReference(prefix+'_branch1_bn_riv'))
 
     return blob_bn
 

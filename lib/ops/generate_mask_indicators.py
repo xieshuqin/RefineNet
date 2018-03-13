@@ -36,7 +36,7 @@ class GenerateMaskIndicatorsOp(object):
             roi = mask_rois[i]
             shape = (roi[2]-roi[0]+1, roi[3]-roi[1]+1) # (roi_w, roi_h)
             mask_local_resize = cv2.resize(mask_local, shape)
-            mask_indicators[i,roi[1]:roi[3]+1,roi[0]:roi[2]+1,:] = mask_local_resize
+            mask_indicators[i,roi[1]:roi[3]+1,roi[0]:roi[2]+1,:].copy(mask_local_resize.data)
 
         swap_order = (0, 3, 1, 2)
         mask_indicators = mask_indicators.transpose(swap_order)
