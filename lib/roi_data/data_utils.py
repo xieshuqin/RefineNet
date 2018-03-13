@@ -66,9 +66,18 @@ def get_field_of_anchors(
 
     # Generate canonical proposals from shifted anchors
     # Enumerate all shifted positions on the (H, W) grid
+    # FPN max size
     fpn_max_size = cfg.FPN.COARSEST_STRIDE * np.ceil(
         cfg.TRAIN.MAX_SIZE / float(cfg.FPN.COARSEST_STRIDE)
     )
+    # RefineNet max size
+    if cfg.MODEL.REFINE_ON:
+        refinenet_stride = (1./cfg.REFINENET.SPATIAL_SCALE) * cfg.REFINENET.STRIDE
+        refinenet_max_size = refinenet_stride * np.ceil(
+            cfg.TRAIN.MAX_SIZE / float(refinenet_stride)
+        )
+        fpn_max_size = max(fpn_max_size, refinenet_max_size)
+
     field_size = int(np.ceil(fpn_max_size / float(stride)))
     shifts = np.arange(0, field_size) * stride
     shift_x, shift_y = np.meshgrid(shifts, shifts)

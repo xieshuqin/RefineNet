@@ -913,6 +913,8 @@ __C.REFINENET.SPATIAL_SCALE = 0.125 # down-sampling scale for the indicator
 # Mask loss weight
 __C.REFINENET.WEIGHT_LOSS_MASK = 1.0
 
+# Refine Head stride
+__C.REFINENET.STRIDE = 16
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options

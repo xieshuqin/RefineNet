@@ -73,3 +73,9 @@ test.py
 
 Only implement the `mask` related test function. The `keypoint` function haven't been written yet. 
 
+
+## Hourglass
+Due to some wierd setting of Resnet.add_residual_block， I
+
+## ** IMPORTANT **
+Remember to check the 'refined_mask_int32' is correct and the `GenerateMaskIndicator` is correct too. Can use the ground truth to do the evaluation. 
