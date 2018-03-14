@@ -8,9 +8,9 @@ import cv2
 import utils.boxes as box_utils
 
 class PoolingIndicatorFeatureSingleOp(object):
-    """ 
-    Generate indicator feature by 
-    1. Up scale the rois 
+    """
+    Generate indicator feature by
+    1. Up scale the rois
     2. Pool the feature map from the pad_rois
     3. Resize to MxM, where M is defined in cfg.REFINENET.RESOLUTION
 
@@ -46,21 +46,21 @@ class PoolingIndicatorFeatureSingleOp(object):
         pad_roi_feats = np.zeros((num_rois, M, M, feat.shape[3]))
         batch_idx = rois[:,0]
         for i in range(num_rois):
-            batch_id = batch_idx[i]
+            batch_id = int(batch_idx[i])
             pad_roi = pad_rois[i]
             pad_roi_feat = feat[batch_id, pad_roi[1]:pad_roi[3]+1, pad_roi[0]:pad_roi[2]+1, :]
             pad_roi_feat_resize = cv2.resize(pad_roi_feat, (M, M))
             pad_roi_feats[i] = pad_roi_feat_resize
 
-        pad_roi_feats.transpose((0, 3, 1, 2))
+        pad_roi_feats = pad_roi_feats.transpose((0, 3, 1, 2))
 
         outputs[0].reshape(pad_roi_feats.shape)
         outputs[0].data[...] = pad_roi_feats
 
 
     def backward(self, inputs, outputs):
-        """ Currently, we didn't back-propagate into the feature. 
-        Thus, we pass a zero-array as the gradient 
+        """ Currently, we didn't back-propagate into the feature.
+        Thus, we pass a zero-array as the gradient
         """
         feature = inputs[0].data
         grad_feature = outputs[0]
@@ -114,13 +114,13 @@ class PoolingIndicatorFeatureFPNOp(object):
             pad_roi_feats = np.zeros((num_rois, M, M, feat.shape[3]))
             batch_idx = rois[:,0]
             for i in range(num_rois):
-                batch_id = batch_idx[i]
+                batch_id = int(batch_idx[i])
                 pad_roi = pad_rois[i]
                 pad_roi_feat = feat[batch_id, pad_roi[1]:pad_roi[3]+1, pad_roi[0]:pad_roi[2]+1, :]
                 pad_roi_feat_resize = cv2.resize(pad_roi_feat, (M, M))
                 pad_roi_feats[i] = pad_roi_feat_resize
 
-            pad_roi_feats.transpose((0, 3, 1, 2))
+            pad_roi_feats = pad_roi_feats.transpose((0, 3, 1, 2))
 
             outputs[lvl].reshape(pad_roi_feats.shape)
             outputs[lvl].data[...] = pad_roi_feats

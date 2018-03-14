@@ -94,7 +94,7 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
         # (measured by bbox overlap)
         fg_polys_inds = np.argmax(overlaps_bbfg_bbpolys, axis=1)
 
-        # Expand the foreground rois by a factor of up_scale and 
+        # Expand the foreground rois by a factor of up_scale and
         # clip by the padded image boundary
         pad_rois_fg = box_utils.expand_boxes_by_scale(rois_fg, up_scale)
         pad_rois_fg = box_utils.clip_boxes_to_image(pad_rois_fg, pad_img_h, pad_img_w)
@@ -128,7 +128,7 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
         masks = _expand_to_class_specific_mask_targets(masks, mask_class_labels)
 
     # Scale rois_fg and format as (batch_idx, x1, y1, x2, y2)
-    pad_rois_fg *= im_scale
+    pad_rois_fg = ((pad_rois_fg.astype(np.float32))*im_scale).astype(np.int32)
     repeated_batch_idx = batch_idx * blob_utils.ones((pad_rois_fg.shape[0], 1))
     pad_rois_fg = np.hstack((repeated_batch_idx, pad_rois_fg))
 

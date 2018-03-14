@@ -118,17 +118,17 @@ def expand_boxes_by_scale(xyxy, scale):
     elif isinstance(xyxy, np.ndarray):
         # Multiple boxes given as a 2D ndarray
         size = xyxy[:, 2:4] - xyxy[:, 0:2] + 1
-        ctr = xyxy[:, 0:2] + 0.5*size 
-        return np.hstack(ctr-size*scale/2, ctr+size*scale/2, dtype='int32')
+        ctr = xyxy[:, 0:2] + 0.5*size
+        return np.hstack((ctr-size*scale/2, ctr+size*scale/2)).astype(np.int32)
     else:
         raise TypeError('Argument xyxy must be a list, typle or numpy array.')
 
 
 def convert_coordinate(box_from, box_to, M):
-    """ Convert the coordinate of box_from into the 
+    """ Convert the coordinate of box_from into the
     coordinate axis of box_to.
     The box_from and box_to are in the same coordinate axis.
-    """ 
+    """
     box_from = box_from.astype(np.float32)
     box_to = box_to.astype(np.float32)
 

@@ -58,9 +58,9 @@ class GenerateGlobalMaskIndicatorsOp(object):
 
 
 class GenerateLocalMaskIndicatorsOp(object):
-    """ Generate mask indicators in a local area. 
-        We enlarge the roi by a up_scale factor, converting the 
-        local mask_probs to this enlarged box, then resized the 
+    """ Generate mask indicators in a local area.
+        We enlarge the roi by a up_scale factor, converting the
+        local mask_probs to this enlarged box, then resized the
         box to a fixed resolution, serving as the indicator
 
         inputs: [data, mask_probs, mask_rois]
@@ -78,6 +78,7 @@ class GenerateLocalMaskIndicatorsOp(object):
 
         # output indicator resolution
         M = self.resolution
+        up_scale = self.up_scale
         num_cls = mask_probs.shape[1]
         num_rois = mask_rois.shape[0]
         mask_indicators = np.zeros((num_rois, M, M, num_cls), dtype='float32')
@@ -89,7 +90,7 @@ class GenerateLocalMaskIndicatorsOp(object):
         pad_rois = box_utils.expand_boxes_by_scale(rois, up_scale)
         pad_rois = box_utils.clip_boxes_to_image(pad_rois, height, width)
         # calculate converted coordinates
-        converted_coords = convert_coordinate(rois, pad_rois, M)
+        converted_coords = box_utils.convert_coordinate(rois, pad_rois, M)
         for i in range(num_rois):
             mask_prob = mask_probs_NHWC[i]
             coords = converted_coords[i]

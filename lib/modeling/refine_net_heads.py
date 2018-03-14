@@ -79,7 +79,7 @@ def add_refine_net_global_mask_inputs(model, blob_in, dim_in, spatial_scale):
     src_sc = spatial_scale
     dst_sc = cfg.REFINENET.SPATIAL_SCALE
 
-    if cfg.FPN.FPN_ON: 
+    if cfg.FPN.FPN_ON:
         rois_global_feat = model.RescaleAndDumplicateFeatureFPN(
             blobs_in=blob_in,
             blob_out='rois_global_feat',
@@ -136,17 +136,19 @@ def add_refine_net_local_mask_inputs(model, blob_in, dim_in, spatial_scale):
         dim_out: dim_in + num_cls
     """
 
-    # Generate the indicator feature map by 
-    # 1. up_scale the rois 
+    # Generate the indicator feature map by
+    # 1. up_scale the rois
     # 2. pool the feature from the pad_rois
     # 3. resize to MxM, where M is specified in the cfg
 
-    if cfg.FPN.FPN_ON: 
+    M = cfg.REFINENET.RESOLUTION
+    up_scale = cfg.REFINENET.UP_SCALE
+    if cfg.FPN.FPN_ON:
         rois_global_feat = model.PoolingIndicatorFeatureFPN(
             blobs_in=blob_in,
             blob_out='rois_global_feat',
             blob_rois='mask_rois',
-            spatial_scale=spatial_scale
+            spatial_scales=spatial_scale
         )
     else:
         rois_global_feat = model.PoolingIndicatorFeatureSingle(
