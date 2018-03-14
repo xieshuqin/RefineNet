@@ -47,6 +47,19 @@ def add_refine_net_inputs(model, blob_in, dim_in, spatial_scale, indicator_type)
 
 
 def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
+    """ function to determine which type of indicator to use"""
+    if cfg.REFINENET.LOCAL_MASK:
+        blob_out, dim_out = add_refine_net_local_mask_inputs(
+            model, blob_in, dim_in, spatial_scale
+        )
+    else:
+        blob_out, dim_out = add_refine_net_global_mask_inputs(
+            model, blob_in, dim_in, spatial_scale
+        )
+
+    return blob_out, dim_out
+
+def add_refine_net_global_mask_inputs(model, blob_in, dim_in, spatial_scale):
     """ Prepare mask inputs for RefineNet.
     This function uses mask as indicator and generates input for
     RefineNet. It maps the local mask prediction to global image
@@ -88,11 +101,70 @@ def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
     num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
     mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
     blob_data = core.ScopedBlobReference('data')
-    mask_indicators = model.GenerateMaskIndicators(
+    mask_indicators = model.GenerateGlobalMaskIndicators(
         blobs_in=[blob_data, mask_probs],
         blob_out='mask_indicators',
         blob_rois='mask_rois',
         dst_spatial_scale=dst_sc
+    )
+
+    # Concatenate along the channel dimension
+    concat_list = [rois_global_feat, mask_indicators]
+    refine_net_input, _ = model.net.Concat(
+        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
+    )
+
+    blob_out = refine_net_input
+    dim_out = dim_in + num_cls
+
+    return blob_out, dim_out
+
+
+def add_refine_net_local_mask_inputs(model, blob_in, dim_in, spatial_scale):
+    """ Prepare mask inputs for RefineNet.
+    This function uses mask as indicator and generates input for
+    RefineNet. It maps the local mask prediction to global image
+    space, which serves as an indicator, and concantate the
+    indicator with the entire feature map. The resulted tensor
+    served as input for RefineNet.
+    Input:
+        blob_in: FPN/ResNet feature.
+        dim_in: FPN/ResNet feature dimension
+        spatial_scale: FPN/ResNet scale
+    Output:
+        'refine_mask_net_input'
+        dim_out: dim_in + num_cls
+    """
+
+    # Generate the indicator feature map by 
+    # 1. up_scale the rois 
+    # 2. pool the feature from the pad_rois
+    # 3. resize to MxM, where M is specified in the cfg
+
+    if cfg.FPN.FPN_ON: 
+        rois_global_feat = model.PoolingIndicatorFeatureFPN(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            spatial_scale=spatial_scale
+        )
+    else:
+        rois_global_feat = model.PoolingIndicatorFeatureSingle(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            spatial_scale=spatial_scale
+        )
+
+
+    # Generate mask indicators
+    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
+    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    blob_data = core.ScopedBlobReference('data')
+    mask_indicators = model.GenerateLocalMaskIndicators(
+        blobs_in=[blob_data, mask_probs],
+        blob_out='mask_indicators',
+        blob_rois='mask_rois',
     )
 
     # Concatenate along the channel dimension
@@ -210,4 +282,53 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
             model, blob_in, blob_out, dim_in, prefix
         )
         return blob_out, dim_out
+    elif cfg.REFINENET.HEAD == 'MRCNN_FCN':
+        # Use similar heads as Mask head, but changed the names.
+        num_convs = cfg.REFINENET.MRCNN_FCN.NUM_CONVS
+        blob_out, dim_out = add_fcn_head(
+            model, blob_in, blob_out, dim_in, prefix, num_convs
+        )
+        return blob_out, dim_out
+    else:
+        raise NotImplementedError(
+            '{} not supported'.format(cfg.REFINENET.HEAD)
+        )
 
+
+def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs):
+
+    dilation = cfg.MRCNN.DILATION
+    dim_inner = cfg.MRCNN.DIM_REDUCED
+
+    current = blob_in
+    for i in range(num_convs-1):
+        current = model.Conv(
+            current,
+            prefix+'_[refined_mask]_fcn' + str(i + 1),
+            dim_in,
+            dim_inner,
+            kernel=3,
+            pad=1 * dilation,
+            stride=1,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
+        current = model.Relu(current, current)
+        dim_in = dim_inner
+
+    model.Conv(
+        current,
+        blob_out,
+        dim_in,
+        dim_inner,
+        kernel=3,
+        pad=1 * dilation,
+        stride=1,
+        weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+        bias_init=('ConstantFill', {'value': 0.})
+    )
+
+    blob_out = model.Relu(blob_out, blob_out)
+    dim_out = dim_inner
+
+    return blob_out, dim_out

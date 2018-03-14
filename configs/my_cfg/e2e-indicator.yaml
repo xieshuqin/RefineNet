@@ -35,11 +35,17 @@ MRCNN:
   DILATION: 1  # default 2
   CONV_INIT: MSRAFill  # default GaussianFill
 REFINENET:
-  HEAD: HOURGLASS   # RefineNet Head : hourglass model
+  HEAD: MRCNN_FCN   # default is HOURGLASS
   INDICATOR_TYPE: Mask # Indicator type, mask or keypoint
   REFINE_OUTPUT_TYPE: Mask   # Refine output type, mask or keypoint
   SPATIAL_SCALE: 0.125 # down-sampling scale for the indicator
   WEIGHT_LOSS_MASK: 1.0
+  UP_SCALE: 2   # upscale factor for local indicator
+  STRIDE: 1  # default 1, 16 only for hourglass 
+  RESOLUTION: 56  # default 28
+  LOCAL_MASK: True # Use local mask as indicator
+  MRCNN_FCN:
+    NUM_CONVS: 8  # default 4
 HG:
   DIM_FEATS: 256  # dimension number of hourglass unit
   NUM_STACKS: 1   # number of stacked hourglass

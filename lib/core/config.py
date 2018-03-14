@@ -914,7 +914,21 @@ __C.REFINENET.SPATIAL_SCALE = 0.125 # down-sampling scale for the indicator
 __C.REFINENET.WEIGHT_LOSS_MASK = 1.0
 
 # Refine Head stride
-__C.REFINENET.STRIDE = 16
+__C.REFINENET.STRIDE = 1
+
+# bbox upscale factor for local indicator
+__C.REFINENET.UP_SCALE = 1
+
+# Local indicator resolution
+__C.REFINENET.RESOLUTION = 28 # default is 28
+
+# Using local mask as indicator
+__C.REFINENET.LOCAL_MASK = False # 
+
+# Using similar heads like MRCNN_FPN
+__C.REFINENET.MRCNN_FCN = AttrDict()
+
+__C.REFINENET.MRCNN_FCN.NUM_CONVS = 4 # default num convs
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options
