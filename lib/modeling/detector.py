@@ -42,6 +42,8 @@ from ops.rescale_and_dumplicate_feature \
 from ops.pooling_feature import PoolingIndicatorFeatureSingleOp
 from ops.pooling_feature import PoolingIndicatorFeatureFPNOp
 
+from ops.scale_rois import ScaleRoIsSingleOp, ScaleRoIsFPNOp
+
 from ops.generate_mask_indicators import GenerateGlobalMaskIndicatorsOp
 from ops.generate_mask_indicators import GenerateLocalMaskIndicatorsOp
 from utils import lr_policy
@@ -537,6 +539,51 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         return xform_out
 
+
+    def ScaleRoIs(self, blob_rois, blob_scale_rois, up_scale):
+        """ Scale the blob_rois by a up_scale factor. 
+            abstract the use of FPN here.
+        """
+        if cfg.FPN.FPN_ON:
+            # FPN case
+            k_max = cfg.FPN.ROI_MAX_LEVEL
+            k_min = cfg.FPN.ROI_MIN_LEVEL
+            blobs_in_list = ['data']
+            blobs_out_list = []
+            for lvl in range(k_min, k_max+1):
+                blob_roi = blob_rois + '_fpn' + str(lvl)
+                blob_scale_roi = blob_scale_rois + '_fpn' + str(lvl)
+                blobs_in_list.append(blob_roi)
+                blobs_out_list.append(blob_scale_roi)
+
+            blobs_in_list = [core.ScopedBlobReference(b) for b in blobs_in_list]
+            blobs_out_list = [core.ScopedBlobReference(b) for b in blobs_out_list]
+            name = 'ScaleRoIsFPNOp: ' + ','.join(
+                [str(b) for b in blobs_in_list]
+            )
+
+            xform_out = self.net.Python(
+                ScaleRoIsFPNOp(k_min, k_max, up_scale).forward
+            )(blobs_in_list, blobs_out_list, name=name)
+
+            # create the corresponding _idx_restore_int32 for later use
+            restore_bl = blob_rois + '_idx_restore_int32'
+            restore_bl = workspace.FetchBlob(core.ScopedName(restore_bl))
+            scale_restore_bl = blob_scale_rois + '_idx_restore_int32'
+            workspace.FeedBlob(core.ScopedName(scale_restore_bl), restore_bl)
+
+
+        else: 
+            # Single RPN case
+            blob_rois = core.ScopedBlobReference(blob_rois)
+            blob_scale_rois = core.ScopedBlobReference(blob_scale_rois)
+            name = 'ScaleRoIsSingleOp: ' + str(blob_rois)
+
+            xform_out = self.net.Python(
+                ScaleRoIsSingleOp(up_scale).forward
+            )(blob_rois, blob_scale_rois, name=name)
+
+        return xform_out
 
 
     def GenerateGlobalMaskIndicators(

@@ -924,6 +924,12 @@ __C.REFINENET.UP_SCALE = 1
 # Local indicator resolution
 __C.REFINENET.RESOLUTION = 28 # default is 28
 
+# Sampling Ratio for RoIAlign
+__C.REFINENET.ROI_XFORM_SAMPLING_RATIO = 0
+
+# Use GPU implementation (RoIAlign) to abstract the feature
+__C.REFINENET.USE_GPU = False
+
 # Using local mask as indicator
 __C.REFINENET.LOCAL_MASK = False # 
 

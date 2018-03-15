@@ -44,8 +44,10 @@ REFINENET:
   STRIDE: 1  # default 1, 16 only for hourglass 
   RESOLUTION: 56  # default 28
   LOCAL_MASK: True # Use local mask as indicator
+  USE_GPU: True # Use GPU RoIAlign for abstract indicator feature
   MRCNN_FCN:
     NUM_CONVS: 8  # default 4
+  ROI_XFORM_SAMPLING_RATIO: 2
 HG:
   DIM_FEATS: 256  # dimension number of hourglass unit
   NUM_STACKS: 1   # number of stacked hourglass

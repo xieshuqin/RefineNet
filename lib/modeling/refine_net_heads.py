@@ -121,6 +121,83 @@ def add_refine_net_global_mask_inputs(model, blob_in, dim_in, spatial_scale):
 
 
 def add_refine_net_local_mask_inputs(model, blob_in, dim_in, spatial_scale):
+    if cfg.REFINENET.USE_GPU:
+        blob_out, dim_out = add_refine_net_local_mask_inputs_gpu(
+            model, blob_in, dim_in, spatial_scale
+        )
+    else:
+        blob_out, dim_out = add_refine_net_local_mask_inputs_cpu(
+            model, blob_in, dim_in, spatial_scale
+        )
+    return blob_out, dim_out
+
+
+def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
+    """ Prepare mask inputs for RefineNet.
+    This function uses mask as indicator and generates input for
+    RefineNet. It maps the local mask prediction to global image
+    space, which serves as an indicator, and concantate the
+    indicator with the entire feature map. The resulted tensor
+    served as input for RefineNet.
+    Input:
+        blob_in: FPN/ResNet feature.
+        dim_in: FPN/ResNet feature dimension
+        spatial_scale: FPN/ResNet scale
+    Output:
+        'refine_mask_net_input'
+        dim_out: dim_in + num_cls
+    """
+
+    # Generate the indicator feature map by
+    # 1. up_scale the rois
+    # 2. use RoIAlign to pool a M x M feature from the pad_rois,
+    #    where M is specified in the cfg.
+    # 3. draw the local mask to the pad_rois as an indicator
+    # 4. concat the indicator with the pooled feature
+
+    M = cfg.REFINENET.RESOLUTION
+    up_scale = cfg.REFINENET.UP_SCALE
+
+    # up_scale mask_rois
+    scale_rois = model.ScaleRoIs(
+        blob_rois='mask_rois', 
+        blob_scaled_rois='refined_mask_rois', 
+        up_scale=up_scale
+    )
+    # use RoIAlign to poor the feature
+    rois_global_feat = model.RoIFeatureTransform(
+        blob_in,
+        blob_out='rois_global_feat',
+        blob_rois='refined_mask_rois',
+        method='RoIAlign',
+        resolution=M,
+        sampling_ratio=cfg.REFINENET.ROI_XFORM_SAMPLING_RATIO,
+        spatial_scale=spatial_scale
+    )
+
+    # Generate mask indicators
+    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
+    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    blob_data = core.ScopedBlobReference('data')
+    mask_indicators = model.GenerateLocalMaskIndicators(
+        blobs_in=[blob_data, mask_probs],
+        blob_out='mask_indicators',
+        blob_rois='mask_rois',
+    )
+
+    # Concatenate along the channel dimension
+    concat_list = [rois_global_feat, mask_indicators]
+    refine_net_input, _ = model.net.Concat(
+        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
+    )
+
+    blob_out = refine_net_input
+    dim_out = dim_in + num_cls
+
+    return blob_out, dim_out
+
+
+def add_refine_net_local_mask_inputs_cpu(model, blob_in, dim_in, spatial_scale):
     """ Prepare mask inputs for RefineNet.
     This function uses mask as indicator and generates input for
     RefineNet. It maps the local mask prediction to global image
@@ -143,7 +220,8 @@ def add_refine_net_local_mask_inputs(model, blob_in, dim_in, spatial_scale):
 
     M = cfg.REFINENET.RESOLUTION
     up_scale = cfg.REFINENET.UP_SCALE
-    if cfg.FPN.FPN_ON:
+    if isinstance(blob_in, list):
+        # FPN case
         rois_global_feat = model.PoolingIndicatorFeatureFPN(
             blobs_in=blob_in,
             blob_out='rois_global_feat',
@@ -151,6 +229,7 @@ def add_refine_net_local_mask_inputs(model, blob_in, dim_in, spatial_scale):
             spatial_scales=spatial_scale
         )
     else:
+        # 
         rois_global_feat = model.PoolingIndicatorFeatureSingle(
             blobs_in=blob_in,
             blob_out='rois_global_feat',
