@@ -213,6 +213,15 @@ def build_generic_detection_model(
                 spatial_scale_conv
             )
 
+        if cfg.MODEL.FREEZE_MASK_RCNN:
+            # Freeze mask rcnn components,
+            # including FPN, Fast/Mask R-CNN heads
+            blob_freeze_list = _get_freeze_blob_names()
+            #for b in c2_utils.BlobReferenceList(blob_freeze_list):
+            for b in blob_freeze_list:
+                scoped_b = core.ScopedBlobReference(b)
+                model.StopGradient(scoped_b, scoped_b)
+
         if cfg.MODEL.REFINE_MASK_ON:
             # Add the refine net head
             head_loss_gradients['refine_mask'] = \
@@ -226,15 +235,6 @@ def build_generic_detection_model(
             _add_generic_refine_keypoints_net_head(
                 model, blob_conv, dim_conv, spatial_scale_conv
             )
-
-        if cfg.MODEL.FREEZE_MASK_RCNN:
-            # Freeze mask rcnn components,
-            # including FPN, Fast/Mask R-CNN heads
-            blob_freeze_list = _get_freeze_blob_names()
-            #for b in c2_utils.BlobReferenceList(blob_freeze_list):
-            for b in blob_freeze_list:
-                scoped_b = core.ScopedBlobReference(b)
-                model.StopGradient(scoped_b, scoped_b)
 
         if model.train:
             loss_gradients = {}
