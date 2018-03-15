@@ -441,8 +441,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         blob_rois,
         spatial_scale
     ):
-        """ Pool indicator feature for the rois. Scale the roi with a 
-        factor and then create a feature map with size MxM. 
+        """ Pool indicator feature for the rois. Scale the roi with a
+        factor and then create a feature map with size MxM.
 
         Input blobs: res_...
         Input rois: mask_rois_fpn
@@ -476,9 +476,9 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         blob_rois,
         spatial_scales
     ):
-        """ 
-        Pool indicator feature for the rois. Scale the roi with a 
-        factor and then create a feature map with size MxM. 
+        """
+        Pool indicator feature for the rois. Scale the roi with a
+        factor and then create a feature map with size MxM.
         If use FPN, then call. Then concancate the feature maps
         along the batch dimension
 
@@ -541,7 +541,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
 
     def ScaleRoIs(self, blob_rois, blob_scale_rois, up_scale):
-        """ Scale the blob_rois by a up_scale factor. 
+        """ Scale the blob_rois by a up_scale factor.
             abstract the use of FPN here.
         """
         if cfg.FPN.FPN_ON:
@@ -556,6 +556,12 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 blobs_in_list.append(blob_roi)
                 blobs_out_list.append(blob_scale_roi)
 
+            # add the *_idx_restore_int32 to the blobs_list
+            restore_bl = blob_rois + '_idx_restore_int32'
+            scale_restore_bl = blob_scale_rois + '_idx_restore_int32'
+            blobs_in_list.append(restore_bl)
+            blobs_out_list.append(scale_restore_bl)
+            # Scoped the blob names
             blobs_in_list = [core.ScopedBlobReference(b) for b in blobs_in_list]
             blobs_out_list = [core.ScopedBlobReference(b) for b in blobs_out_list]
             name = 'ScaleRoIsFPNOp: ' + ','.join(
@@ -566,14 +572,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 ScaleRoIsFPNOp(k_min, k_max, up_scale).forward
             )(blobs_in_list, blobs_out_list, name=name)
 
-            # create the corresponding _idx_restore_int32 for later use
-            restore_bl = blob_rois + '_idx_restore_int32'
-            restore_bl = workspace.FetchBlob(core.ScopedName(restore_bl))
-            scale_restore_bl = blob_scale_rois + '_idx_restore_int32'
-            workspace.FeedBlob(core.ScopedName(scale_restore_bl), restore_bl)
-
-
-        else: 
+        else:
             # Single RPN case
             blob_rois = core.ScopedBlobReference(blob_rois)
             blob_scale_rois = core.ScopedBlobReference(blob_scale_rois)

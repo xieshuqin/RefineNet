@@ -26,7 +26,6 @@ import modeling.FPN as fpn
 import roi_data.fast_rcnn
 import utils.blob as blob_utils
 
-
 class CollectAndDistributeFpnRpnProposalsOp(object):
     def __init__(self, train):
         self._train = train
