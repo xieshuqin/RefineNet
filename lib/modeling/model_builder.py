@@ -227,12 +227,14 @@ def build_generic_detection_model(
                 model, blob_conv, dim_conv, spatial_scale_conv
             )
 
-        if cfg.MODEL.FREEZE_MRCNN:
-            # Freeze mask rcnn components, 
+        if cfg.MODEL.FREEZE_MASK_RCNN:
+            # Freeze mask rcnn components,
             # including FPN, Fast/Mask R-CNN heads
             blob_freeze_list = _get_freeze_blob_names()
-            for b in c2_utils.BlobReferenceList(blob_freeze_list):
-                model.StopGradient(b, b)
+            #for b in c2_utils.BlobReferenceList(blob_freeze_list):
+            for b in blob_freeze_list:
+                scoped_b = core.ScopedBlobReference(b)
+                model.StopGradient(scoped_b, scoped_b)
 
         if model.train:
             loss_gradients = {}

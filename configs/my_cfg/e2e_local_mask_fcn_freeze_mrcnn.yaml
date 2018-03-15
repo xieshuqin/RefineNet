@@ -9,7 +9,7 @@ MODEL:
   REFINE_ON: True
   REFINE_MASK_ON: True
   REFINE_KEYPOINTS_ON: False
-  FREEZE_MRCNN: True
+  FREEZE_MASK_RCNN: True
 NUM_GPUS: 2
 SOLVER:
   WEIGHT_DECAY: 0.0001
@@ -51,7 +51,7 @@ HG:
   DIM_FEATS: 256  # dimension number of hourglass unit
   NUM_STACKS: 1   # number of stacked hourglass
 TRAIN:
-  WEIGHTS: /home/zhangwei/shuqin/models/R-50.pkl
+  WEIGHTS: /home/zhangwei/shuqin/models/e2e_mask_rcnn_R-101-FPN_2x_final.pkl
   #DATASETS: ('coco_2014_train', 'coco_2014_valminusminival')
   DATASETS: ('coco_2014_minival', 'coco_2014_minival') # For debugging
   SCALES: (800,)
