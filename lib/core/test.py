@@ -107,7 +107,7 @@ def im_detect_all(model, im, box_proposals, timers=None):
 
         timers['misc_refined_mask'].tic()
         cls_refined_segms = refined_segm_results(
-            cls_boxes, refined_masks, im_scales, im.shape[0], im.shape[1]
+            cls_boxes, refined_masks, boxes, im_scales, im.shape[0], im.shape[1]
         )
         timers['misc_refined_mask'].toc()
     else:
@@ -750,6 +750,55 @@ def im_detect_keypoints_aspect_ratio(
 
 
 def im_detect_refined_mask(model, im_scales, boxes):
+    """ Head function for local/global mask indicator detection"""
+    if cfg.REFINENET.LOCAL_MASK:
+        return im_detect_refined_local_mask(model, im_scales, boxes)
+    else:
+        return im_detect_refined_global_mask(model, im_scales, boxes)
+
+
+def im_detect_refined_local_mask(model, im_scales, boxes):
+    """Infer refined instance segmentation masks. This function must be called
+    after **im_detect_mask** as it assumes that the Caffe2 workspace is already
+    populated with the necessary blobs.
+
+    Arguments:
+        model (DetectionModelHelper): the detection model to use
+        im_scales (list): image blob scales as returned by im_detect_bbox
+
+    Returns:
+        pred_refined_masks (ndarray): R x K x M x M array of class specific
+            soft masks, where M is the refined mask resolution, defined in
+            cfg.REFINENET.RESOLUTION 
+            The output must be processed by the function refined_segm_results
+            to convert into hard masks in the original image coordinate space)
+
+    """
+    assert len(im_scales) == 1, \
+        'Only single-image / single-scale batch implemented'
+
+    M = cfg.REFINENET.RESOLUTION
+    num_cls = cfg.MODEL.NUM_CLASSES
+
+    if boxes.shape[0] == 0:
+        pred_refined_masks = np.zeros((0, M, M), np.float32)
+        return pred_refined_masks
+
+    workspace.RunNet(model.refine_mask_net.Proto().name)
+
+    # Fetch masks
+    pred_refined_masks = workspace.FetchBlob(
+        core.ScopedName('refined_mask_probs')
+    ).squeeze()
+
+    if cfg.MRCNN.CLS_SPECIFIC_MASK:
+        pred_refined_masks = pred_refined_masks.reshape([-1, num_cls, M, M])
+    else:
+        pred_refined_masks = pred_refined_masks.reshape([-1, 1, M, M])
+
+    return pred_refined_masks
+
+def im_detect_refined_global_mask(model, im_scales, boxes):
     """Infer refined instance segmentation masks. This function must be called
     after **im_detect_mask** as it assumes that the Caffe2 workspace is already
     populated with the necessary blobs.
@@ -1078,7 +1127,88 @@ def segm_results(cls_boxes, masks, ref_boxes, im_h, im_w):
     return cls_segms
 
 
-def refined_segm_results(cls_boxes, refined_masks, im_scales, im_h, im_w):
+def refined_segm_results(cls_boxes, refined_masks, ref_boxes, im_scales, im_h, im_w):
+    # header function for local/global indicator
+    if cfg.REFINENET.LOCAL_MASK:
+        return refined_local_segm_results(cls_boxes, refined_masks, ref_boxes, im_scales, im_h, im_w)
+    else:
+        return refined_global_segm_results(cls_boxes, refined_masks, im_scales, im_h, im_w)
+
+
+def refined_local_segm_results(cls_boxes, masks, ref_boxes, im_scales, im_h, im_w):
+    num_classes = cfg.MODEL.NUM_CLASSES
+    cls_segms = [[] for _ in range(num_classes)]
+    mask_ind = 0
+
+    # Since the refined mask is done on the padded image, we need to
+    # copy the output to the padded image. Therefore, we need to 
+    # get the padded image size.
+    data = workspace.FetchBlob(core.ScopedName('data'))
+    pad_h, pad_w = data.shape[2], data.shape[3]
+    pad_img_h, pad_img_w = int(pad_h / im_scales), int(pad_w / im_scales)
+
+    # The ref_boxes are with regard to mask_rois, we need to scale it 
+    # up to get the boxes for indicator, then clip it to the size of 
+    # padded image
+    up_scale = cfg.REFINENET.UP_SCALE
+    ref_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
+    ref_boxes = box_utils.clip_boxes_to_image(ref_boxes, pad_img_h, pad_img_w)
+
+    # To work around an issue with cv2.resize (it seems to automatically pad
+    # with repeated border values), we manually zero-pad the masks by 1 pixel
+    # prior to resizing back to the original image resolution. This prevents
+    # "top hat" artifacts. We therefore need to expand the reference boxes by an
+    # appropriate factor.
+    M = cfg.REFINENET.RESOLUTION
+    scale = (M + 2.0) / M
+    ref_boxes = box_utils.expand_boxes(ref_boxes, scale)
+    ref_boxes = ref_boxes.astype(np.int32)
+    padded_mask = np.zeros((M + 2, M + 2), dtype=np.float32)
+
+    # skip j = 0, because it's the background class
+    for j in range(1, num_classes):
+        segms = []
+        for _ in range(cls_boxes[j].shape[0]):
+            if cfg.MRCNN.CLS_SPECIFIC_MASK:
+                padded_mask[1:-1, 1:-1] = masks[mask_ind, j, :, :]
+            else:
+                padded_mask[1:-1, 1:-1] = masks[mask_ind, 0, :, :]
+
+            ref_box = ref_boxes[mask_ind, :]
+            w = ref_box[2] - ref_box[0] + 1
+            h = ref_box[3] - ref_box[1] + 1
+            w = np.maximum(w, 1)
+            h = np.maximum(h, 1)
+
+            mask = cv2.resize(padded_mask, (w, h))
+            mask = np.array(mask > cfg.MRCNN.THRESH_BINARIZE, dtype=np.uint8)
+            im_mask = np.zeros((im_h, im_w), dtype=np.uint8)
+
+            x_0 = max(ref_box[0], 0)
+            x_1 = min(ref_box[2] + 1, im_w)
+            y_0 = max(ref_box[1], 0)
+            y_1 = min(ref_box[3] + 1, im_h)
+
+            im_mask[y_0:y_1, x_0:x_1] = mask[
+                (y_0 - ref_box[1]):(y_1 - ref_box[1]),
+                (x_0 - ref_box[0]):(x_1 - ref_box[0])
+            ]
+
+            # Get RLE encoding used by the COCO evaluation API
+            rle = mask_util.encode(
+                np.array(im_mask[:, :, np.newaxis], order='F')
+            )[0]
+            segms.append(rle)
+
+            mask_ind += 1
+
+        cls_segms[j] = segms
+
+    assert mask_ind == masks.shape[0]
+    return cls_segms
+
+
+def refined_global_segm_results(cls_boxes, refined_masks, im_scales, im_h, im_w):
     num_classes = cfg.MODEL.NUM_CLASSES
     cls_refined_segms = [[] for _ in range(num_classes)]
     mask_ind = 0
@@ -1098,7 +1228,7 @@ def refined_segm_results(cls_boxes, refined_masks, im_scales, im_h, im_w):
 
             mask = cv2.resize(mask, None, None, fx=inv_scale, fy=inv_scale)
             mask = np.array(mask > cfg.MRCNN.THRESH_BINARIZE, dtype=np.uint8)
-            im_mask = mask[0:im_h-1, 0:im_w-1]
+            im_mask = mask[0:im_h, 0:im_w]
 
             # Get RLE encoding used by the COCO evaluation API
             rle = mask_util.encode(
