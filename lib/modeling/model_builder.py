@@ -227,6 +227,13 @@ def build_generic_detection_model(
                 model, blob_conv, dim_conv, spatial_scale_conv
             )
 
+        if cfg.MODEL.FREEZE_MRCNN:
+            # Freeze mask rcnn components, 
+            # including FPN, Fast/Mask R-CNN heads
+            blob_freeze_list = _get_freeze_blob_names()
+            for b in c2_utils.BlobReferenceList(blob_freeze_list):
+                model.StopGradient(b, b)
+
         if model.train:
             loss_gradients = {}
             for lg in head_loss_gradients.values():
@@ -422,6 +429,35 @@ def _add_generic_refine_keypoints_net_head(
             model, blob_refine_keypoints_out, REFINE_OUTPUT_TYPE
         )
     return loss_gradients
+
+
+def _get_freeze_blob_names():
+    # return the name list of freeze blobs
+    blob_freeze_lists = []
+
+    # add RPN blobs:
+    if cfg.RPN.RPN_ON:
+        if cfg.FPN.FPN_ON:
+            k_max = cfg.FPN.RPN_MAX_LEVEL  # coarsest level of pyramid
+            k_min = cfg.FPN.RPN_MIN_LEVEL  # finest level of pyramid
+            for lvl in range(k_min, k_max+1):
+                blob_freeze_lists.append('rpn_cls_logits_fpn' + str(lvl))
+                blob_freeze_lists.append('rpn_bbox_pred_fpn' + str(lvl))
+        else:
+            blob_freeze_lists.append('rpn_cls_logits')
+            blob_freeze_lists.append('rpn_bbox_pred')
+    # add Fast R-CNN blobs:
+    if not cfg.MODEL.RPN_ONLY:
+        blob_freeze_lists.append('cls_score')
+        blob_freeze_lists.append('bbox_pred')
+    # add Mask R-CNN blobs
+    if cfg.MODEL.MASK_ON:
+        blob_freeze_lists.append('mask_fcn_logits')
+    # add Keypoint R-CNN blobs:
+    if cfg.MODEL.KEYPOINTS_ON:
+        blob_freeze_lists.append('kps_deconv')
+
+    return blob_freeze_lists
 
 
 def build_generic_rfcn_model(model, add_conv_body_func, dim_reduce=None):

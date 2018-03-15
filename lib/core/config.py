@@ -497,6 +497,8 @@ __C.MODEL.REFINE_MASK_ON = False
 # Indicates the model makes keypoint refinement
 __C.MODEL.REFINE_KEYPOINTS_ON = False
 
+# Whether to freeze mask-rcnn
+__C.MODEL.FREEZE_MASK_RCNN = False
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
