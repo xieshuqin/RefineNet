@@ -45,6 +45,8 @@ REFINENET:
   STRIDE: 1  # default 1, 16 only for hourglass 
   RESOLUTION: 56  # default 28
   LOCAL_MASK: True # Use local mask as indicator
+  USE_GPU: True # Use gpu for fast feature abstract
+  ROI_XFORM_SAMPLING_RATIO: 2
   MRCNN_FCN:
     NUM_CONVS: 8  # default 4
 HG:
