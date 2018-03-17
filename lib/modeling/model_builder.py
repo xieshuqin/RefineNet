@@ -56,6 +56,7 @@ import modeling.rpn_heads as rpn_heads
 import modeling.refine_net_heads as refine_net_heads
 import roi_data.minibatch
 import utils.c2 as c2_utils
+import utils.net as net_utils
 
 logger = logging.getLogger(__name__)
 
@@ -230,10 +231,8 @@ def build_generic_detection_model(
         if cfg.MODEL.FREEZE_MASK_RCNN:
             # Freeze mask rcnn components,
             # including FPN, Fast/Mask R-CNN heads
-            blob_freeze_list = _get_freeze_blob_names()
-            for b in blob_freeze_list:
-                b = core.ScopedBlobReference(b)
-                model.StopGradient(b,b)
+            blob_freeze_lists = _get_freeze_blob_names()
+            net_utils.add_stop_gradient_op_to_net(model, blob_freeze_lists)
 
         if model.train:
             loss_gradients = {}

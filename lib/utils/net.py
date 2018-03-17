@@ -267,3 +267,48 @@ def configure_bbox_reg_weights(model, saved_cfg):
             'longer be used for training. To upgrade it to a trainable model '
             'please use fb/compat/convert_bbox_reg_normalized_model.py.'
         )
+
+
+def add_stop_gradient_op_to_net(model, blob_name):
+    """ Add StopGradient to a defined model. The blob_name is the 
+        name of the blob that you want to stop the gradient. 
+    """
+    if isinstance(blob_name, str):
+        blob_stop_grad_list = [core.ScopedBlobReference(blob_name)]
+    elif isinstance(blob_name, BlobReference):
+        blob_stop_grad_list = [blob_name]
+    elif isinstance(blob_name, list) or isinstance(blob_name, tuple):
+        blob_stop_grad_list = [core.ScopedBlobReference(b) for b in blob_name]
+    else:
+        raise TypeError('Argument {} must be a string or ' +
+             'BlobReference or list,  tuple'.format(blob_name))
+
+    # Get the op's index for the stop_gradient blob
+    stop_grad_index = []
+    sorted_name = []
+    for i, op in enumerate(model.net._net.op):
+        for o in op.output:
+            if o in blob_stop_grad_list:
+                stop_grad_index.append(i)
+                sorted_name.append(o)
+    # Construct sub nets
+    op_index = [-1] + stop_grad_index + [len(model.net._net.op)-1]
+    sub_nets = []
+    for i in range(len(op_index)-1):
+        start_id, end_id = op_index[i] + 1, op_index[i+1] + 1
+        sub_nets.append(model.net._net.op[start_id:end_id])
+
+    del model.net._net.op[:]
+    # Add a StopGradientOp after adding each subnet to the net
+    for i in range(len(sub_nets)-1):
+        model.net._net.op.extend(sub_nets[i])
+        blob_stop_grad = sorted_name[i]
+        model.net.StopGradient(blob_stop_grad, blob_stop_grad)
+    # Add the last subnet to the net
+    model.net._net.op.extend(sub_nets[-1])
+    
+
+
+
+
+
