@@ -232,7 +232,7 @@ def build_generic_detection_model(
             # Freeze mask rcnn components,
             # including FPN, Fast/Mask R-CNN heads
             blob_freeze_lists = _get_freeze_blob_names()
-            net_utils.add_stop_gradient_op_to_net(model, blob_freeze_lists)
+            model = net_utils.add_stop_gradient_op_to_net(model, blob_freeze_lists)
 
         if model.train:
             loss_gradients = {}

@@ -270,12 +270,12 @@ def configure_bbox_reg_weights(model, saved_cfg):
 
 
 def add_stop_gradient_op_to_net(model, blob_name):
-    """ Add StopGradient to a defined model. The blob_name is the 
-        name of the blob that you want to stop the gradient. 
+    """ Add StopGradient to a defined model. The blob_name is the
+        name of the blob that you want to stop the gradient.
     """
     if isinstance(blob_name, str):
         blob_stop_grad_list = [core.ScopedBlobReference(blob_name)]
-    elif isinstance(blob_name, BlobReference):
+    elif isinstance(blob_name, core.BlobReference):
         blob_stop_grad_list = [blob_name]
     elif isinstance(blob_name, list) or isinstance(blob_name, tuple):
         blob_stop_grad_list = [core.ScopedBlobReference(b) for b in blob_name]
@@ -302,11 +302,13 @@ def add_stop_gradient_op_to_net(model, blob_name):
     # Add a StopGradientOp after adding each subnet to the net
     for i in range(len(sub_nets)-1):
         model.net._net.op.extend(sub_nets[i])
-        blob_stop_grad = sorted_name[i]
+        blob_stop_grad = c2_utils.UnscopeName(str(sorted_name[i]))
         model.net.StopGradient(blob_stop_grad, blob_stop_grad)
     # Add the last subnet to the net
     model.net._net.op.extend(sub_nets[-1])
-    
+
+    return model
+
 
 
 
