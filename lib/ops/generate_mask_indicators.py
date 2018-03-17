@@ -110,10 +110,16 @@ class GenerateLocalMaskIndicatorsOp(object):
     def backward(self, inputs, outputs):
         # We don't back-propagate for this layer. So just pass a zero array.
         data = inputs[0]
-        grad_in = outputs[0]
+        grad_data = outputs[0]
 
-        grad_in.reshape(data.shape)
-        grad_in.data[...] = np.zeros(data.shape, dtype=np.float32)
+        grad_data.reshape(data.shape)
+        grad_data.data[...] = np.zeros(data.shape, dtype=np.float32)
+
+        #mask_probs = inputs[1]
+        #grad_mask_probs = outputs[1]
+        #grad_mask_probs.reshape(mask_probs.shape)
+        #grad_mask_probs.data[...] = np.zeros(mask_probs.shape, dtype=np.float32)
+
 
 
 
