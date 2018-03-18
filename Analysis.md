@@ -1,8 +1,8 @@
-#Analysize the log
+# Analysize the log
 
 You can use the python analysis script in `tools/analysis_detectron.py` to get the plot for any item you want in a log file or a folder containing several log files.
 
-##Analysize single log file
+## Analysize single log file
 
 For example, if you want to get the plot of `accuracy_cls` item in a log file, you can type
 ```
@@ -17,7 +17,7 @@ You can use the flag `--sample_rate` to decide how often the samples will be pic
 
 You can use the flag `--prefix` to give the output file a prefix name.
 
-##Analysize directory of log files
+## Analysize directory of log files
 
 For example, if you want to get the plot of `accuracy_cls` item in a directory of log files on same figure, you can type
 ```
@@ -30,6 +30,6 @@ The result is
   <p>Example log analysis output.</p>
 </div>
 
-##Other help
+## Other help
 
 You can type ```python2 tools/analysis_detectron.py -h``` for more help and usage about the analysis tool.
