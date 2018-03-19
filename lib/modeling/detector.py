@@ -639,7 +639,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         grad_input_indices=[0] # ignore gradient for blob_rois
 
         up_scale = cfg.REFINENET.UP_SCALE
-        M = cfg.REFINENET.RESOLUTION
+        M = cfg.REFINENET.ROI_XFORM_RESOLUTION
 
         xform_out = self.net.Python(
             GenerateLocalMaskIndicatorsOp(up_scale=up_scale, resolution=M).forward,

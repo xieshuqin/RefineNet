@@ -155,7 +155,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
     # 3. draw the local mask to the pad_rois as an indicator
     # 4. concat the indicator with the pooled feature
 
-    M = cfg.REFINENET.RESOLUTION
+    M = cfg.REFINENET.ROI_XFORM_RESOLUTION
     up_scale = cfg.REFINENET.UP_SCALE
 
     # up_scale mask_rois
@@ -366,8 +366,9 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
     elif cfg.REFINENET.HEAD == 'MRCNN_FCN':
         # Use similar heads as Mask head, but changed the names.
         num_convs = cfg.REFINENET.MRCNN_FCN.NUM_CONVS
+        use_deconv = cfg.REFINENET.MRCNN_FCN.USE_DECONV
         blob_out, dim_out = add_fcn_head(
-            model, blob_in, blob_out, dim_in, prefix, num_convs
+            model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
         )
         return blob_out, dim_out
     else:
@@ -376,7 +377,7 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
         )
 
 
-def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs):
+def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv):
 
     dilation = cfg.MRCNN.DILATION
     dim_inner = cfg.MRCNN.DIM_REDUCED
@@ -397,17 +398,44 @@ def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs):
         current = model.Relu(current, current)
         dim_in = dim_inner
 
-    model.Conv(
-        current,
-        blob_out,
-        dim_in,
-        dim_inner,
-        kernel=3,
-        pad=1 * dilation,
-        stride=1,
-        weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
-        bias_init=('ConstantFill', {'value': 0.})
-    )
+    if use_deconv:
+        model.Conv(
+            current,
+            prefix+'_[refined_mask]_fcn' + str(num_convs)
+            dim_in,
+            dim_inner,
+            kernel=3,
+            pad=1 * dilation,
+            stride=1,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
+        current = model.Relu(current, current)
+        dim_in = dim_inner
+
+        model.ConvTranspose(
+            current,
+            blob_out,
+            dim_in,
+            dim_inner,
+            kernel=2,
+            pad=0,
+            stride=2,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=const_fill(0.0)
+        )
+    else:
+        model.Conv(
+            current,
+            blob_out
+            dim_in,
+            dim_inner,
+            kernel=3,
+            pad=1 * dilation,
+            stride=1,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
 
     blob_out = model.Relu(blob_out, blob_out)
     dim_out = dim_inner

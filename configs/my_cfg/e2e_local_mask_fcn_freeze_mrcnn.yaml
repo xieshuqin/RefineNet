@@ -47,8 +47,10 @@ REFINENET:
   LOCAL_MASK: True # Use local mask as indicator
   USE_GPU: True # Use gpu for fast feature abstract
   ROI_XFORM_SAMPLING_RATIO: 2
+  ROI_XFORM_RESOLUTION: 28
   MRCNN_FCN:
     NUM_CONVS: 8  # default 4
+    USE_DECONV: True # Use deconv to the head
 HG:
   DIM_FEATS: 256  # dimension number of hourglass unit
   NUM_STACKS: 1   # number of stacked hourglass
