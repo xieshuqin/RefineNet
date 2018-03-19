@@ -921,11 +921,14 @@ __C.REFINENET.STRIDE = 1
 # bbox upscale factor for local indicator
 __C.REFINENET.UP_SCALE = 1
 
-# Local indicator resolution
-__C.REFINENET.RESOLUTION = 28 # default is 28
+# Final output resolution
+__C.REFINENET.RESOLUTION = 56 # default is 56
 
 # Sampling Ratio for RoIAlign
 __C.REFINENET.ROI_XFORM_SAMPLING_RATIO = 0
+
+# RoIAlign Resolution for the feature
+__C.REFINENET.ROI_XFORM_RESOLUTION = 28 # default is 28
 
 # Use GPU implementation (RoIAlign) to abstract the feature
 __C.REFINENET.USE_GPU = False
@@ -936,7 +939,11 @@ __C.REFINENET.LOCAL_MASK = False #
 # Using similar heads like MRCNN_FPN
 __C.REFINENET.MRCNN_FCN = AttrDict()
 
+# Num of conv layer to use
 __C.REFINENET.MRCNN_FCN.NUM_CONVS = 4 # default num convs
+
+# Using Deconv in the MRCNN_FCN head
+__C.REFINENET.MRCNN_FCN.USE_DECONV = False # default is false
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options
