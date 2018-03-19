@@ -113,7 +113,8 @@ def main(args):
         timers = defaultdict(Timer)
         t = time.time()
         with c2_utils.NamedCudaScope(0):
-            cls_boxes, cls_segms, cls_keyps = infer_engine.im_detect_all(
+            cls_boxes, cls_segms, cls_keyps, \
+            cls_refined_segms, cls_refined_keyps = infer_engine.im_detect_all(
                 model, im, None, timers=timers
             )
         logger.info('Inference time: {:.3f}s'.format(time.time() - t))
@@ -128,10 +129,23 @@ def main(args):
         vis_utils.vis_one_image(
             im[:, :, ::-1],  # BGR -> RGB for visualization
             im_name,
-            args.output_dir,
+            os.path.join(args.output_dir, 'vis_local'),
             cls_boxes,
             cls_segms,
             cls_keyps,
+            dataset=dummy_coco_dataset,
+            box_alpha=0.3,
+            show_class=True,
+            thresh=0.7,
+            kp_thresh=2
+        )
+        vis_utils.vis_one_image(
+            im[:, :, ::-1],  # BGR -> RGB for visualization
+            im_name,
+            os.path.join(args.output_dir, 'vis_refined'),
+            cls_boxes,
+            cls_refined_segms,
+            cls_refined_keyps,
             dataset=dummy_coco_dataset,
             box_alpha=0.3,
             show_class=True,
