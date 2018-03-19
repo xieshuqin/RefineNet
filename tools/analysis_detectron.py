@@ -1,7 +1,7 @@
 import argparse
 import sys
 import numpy as np
-import pylab as plt
+import matplotlib as mlp
 import os.path as path
 import os
 from scipy.interpolate import interp1d
@@ -55,6 +55,8 @@ def parse_args():
 
 def main():
 	args = parse_args()
+	if not args.display:
+		mlp.use('Agg')
 	getStat(args)
 
 def getStat(args):
@@ -102,6 +104,7 @@ def getStat(args):
 
 def _plotWithinFile(filelist,x,y,type,display):
 	#plot stats in several files on same figure
+	import pylab as plt
 	print "Drawing figure: " + type
 	f_list = filelist
 	if (not isinstance(f_list,list)) and isinstance(f_list,str):
