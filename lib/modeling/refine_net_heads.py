@@ -399,9 +399,9 @@ def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
         dim_in = dim_inner
 
     if use_deconv:
-        model.Conv(
+        current = model.Conv(
             current,
-            prefix+'_[refined_mask]_fcn' + str(num_convs)
+            prefix+'_[refined_mask]_fcn' + str(num_convs),
             dim_in,
             dim_inner,
             kernel=3,
@@ -427,7 +427,7 @@ def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
     else:
         model.Conv(
             current,
-            blob_out
+            blob_out,
             dim_in,
             dim_inner,
             kernel=3,
