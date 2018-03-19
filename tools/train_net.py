@@ -157,15 +157,15 @@ class TrainingStats(object):
                 iter=cur_iter,
                 lr=float(lr),
                 time=self.iter_timer.average_time,
-                loss=self.smoothed_total_loss.GetMedianValue(),
+                loss=self.smoothed_total_loss.GetAverageValue(),
                 eta=eta,
                 mb_qsize=int(
-                    np.round(self.smoothed_mb_qsize.GetMedianValue())
+                    np.round(self.smoothed_mb_qsize.GetAverageValue())
                 ),
                 mem=int(np.ceil(mem_usage / 1024 / 1024))
             )
             for k, v in self.smoothed_losses_and_metrics.items():
-                stats[k] = v.GetMedianValue()
+                stats[k] = v.GetAverageValue()
             log_json_stats(stats)
 
 
