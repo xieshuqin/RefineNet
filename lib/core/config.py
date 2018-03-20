@@ -192,7 +192,7 @@ __C.TRAIN.AUTO_RESUME = True
 # ---------------------------------------------------------------------------- #
 # Data loader options
 # ---------------------------------------------------------------------------- #
-__C.::ER = AttrDict()
+__C.DATA_LOADER = AttrDict()
 
 # Number of Python threads to use for the data loader (warning: using too many
 # threads can cause GIL-based interference with Python Ops leading to *slower*
@@ -937,7 +937,7 @@ __C.REFINENET.ROI_XFORM_RESOLUTION = 28 # default is 28
 __C.REFINENET.USE_GPU = False
 
 # Using local mask as indicator
-__C.REFINENET.LOCAL_MASK = False # 
+__C.REFINENET.LOCAL_MASK = False #
 
 # Using similar heads like MRCNN_FPN
 __C.REFINENET.MRCNN_FCN = AttrDict()
@@ -963,13 +963,13 @@ __C.SEMANTIC_NET.RESCALE_FACTOR = 0.125 # 1/8
 __C.SEMANTIC_NET.ROI_XFORM_METHOD = b'RoIAlign' # use RoIAlign
 
 # Sampling Ratio
-__C.SEMANTIC_NET.ROI_XFORM_SAMPLING_RATIO = 0 # 
+__C.SEMANTIC_NET.ROI_XFORM_SAMPLING_RATIO = 0 #
 
 # Num of conv to generate the semantic segmentation
 __C.SEMANTIC_NET.NUM_CONVS = 4
 
 # Use deconv or not
-__C.SEMANTIC_NET.USE_DECONV = False 
+__C.SEMANTIC_NET.USE_DECONV = False
 
 
 # ---------------------------------------------------------------------------- #

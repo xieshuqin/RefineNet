@@ -54,7 +54,7 @@ import modeling.retinanet_heads as retinanet_heads
 import modeling.rfcn_heads as rfcn_heads
 import modeling.rpn_heads as rpn_heads
 import modeling.refine_net_heads as refine_net_heads
-import modeling.semantic_segms_heads as semantic_segms_heads
+import modeling.semantic_segms_head as semantic_segms_head
 import roi_data.minibatch
 import utils.c2 as c2_utils
 import utils.net as net_utils
@@ -454,7 +454,7 @@ def _add_semantic_segms_head(
         spatial_scale=spatial_scale_in,
         sampling_ratio=cfg.SEMANTIC_NET.ROI_XFORM_SAMPLING_RATIO
         )
-    # Add semantic segms net head 
+    # Add semantic segms net head
     blob_semantic_segms_head, dim_semantic_segms_head = \
         semantic_segms_head.add_semantic_segms_head(
             model, blob_rescale_feat, dim_rescale_feat,
