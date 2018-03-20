@@ -192,7 +192,7 @@ __C.TRAIN.AUTO_RESUME = True
 # ---------------------------------------------------------------------------- #
 # Data loader options
 # ---------------------------------------------------------------------------- #
-__C.DATA_LOADER = AttrDict()
+__C.::ER = AttrDict()
 
 # Number of Python threads to use for the data loader (warning: using too many
 # threads can cause GIL-based interference with Python Ops leading to *slower*

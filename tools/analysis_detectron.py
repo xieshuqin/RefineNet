@@ -37,17 +37,23 @@ def parse_args():
 	parser.add_argument(
 		'--sample_rate',
 		dest='sample_rate', 
-		help='sample rate for train / test loss at each iteration, only int',
+		help='Sample rate for train / test loss at each iteration, only int.',
 		default=10,
 		type=int
 	)
 	parser.add_argument(
 		'-display',
 		dest='display', 
-		help='show the figures',
+		help='Show the figures.',
 		action='store_true'
 	)
-
+	parser.add_argument(
+		'--range',
+		dest='range',
+		help='The range of iterations to be sampled.',
+		default=None,
+		type=str
+	)
 	if len(sys.argv) in [1,2]:
 		parser.print_help()
 		sys.exit(1)
@@ -63,6 +69,21 @@ def getStat(args):
 	log_file = "\\\\".join(args.log_file.split('\\'))
 	assert path.isdir(log_file) or path.isfile(log_file), \
 		log_file + " is not a file or path!"
+	if args.range:
+		assert len(args.range) >= 2, args.range+" is an invalid range!"
+		assert args.range[-1] == ')' and args.range[0] == '(', \
+			args.range+" is an invalid range!"
+		ranges = args.range[1:-1].split(',')
+		assert len(ranges) == 2, args.range+" is an invalid range!"
+		_range = [0,0]
+		for i in range(2):
+			if ranges[i] != '':
+				_range[i] = int(ranges[i])
+				assert _range[i] >= 0, args.range+" cannot have negative index!"+\
+					" To ommit the upper/lower bound of the range, just leave it blank!"
+			elif i == 1:
+				_range[i] = -1
+		assert _range[1] >= _range[0] or _range[1] == -1, args.range+" is an invalid range!"
 	if path.isdir(log_file): # it's a path
 		file_list = [] 
 		for root,dirs,files in os.walk(log_file):
@@ -79,7 +100,11 @@ def getStat(args):
 					print "Log file: %s doesn't have target item: %s, will skip it" \
 						%(file,args.item)
 				else:
-					ind = [int(i) for i in ind]
+					ind, items = _rangeStat(ind, items, _range)
+					if len(ind) == 0:
+						print "Log file: %s doesn't have target item: %s in range %s, will skip it" \
+							%(file,args.item,args.range)
+						continue
 					ind_list.append(ind[::args.sample_rate])
 					items_list.append(items[::args.sample_rate])
 					file_list_good.append(file)
@@ -94,7 +119,9 @@ def getStat(args):
 		with open(log_file,'r') as logfile:
 			ind, items = _getStat(logfile,args.item)
 			assert len(ind) > 0, "Log file must have net Iteration and target item!"
-			ind = [int(i) for i in ind]
+			ind, items = _rangeStat(ind, items, _range)
+			assert len(ind) > 0, "Log file in range %s must have net Iteration and target item!" \
+				%(args.range)
 			ind = ind[::args.sample_rate]
 			items = items[::args.sample_rate]
 			_plotWithinFile(path.basename(log_file),
@@ -129,6 +156,20 @@ def _plotWithinFile(filelist,x,y,type,display):
 	else:
 		plt.close()
 
+def _rangeStat(ind,items,range=None):
+	if range == None:
+		return ind,items
+	else:
+		ind_arr = np.array(ind)[:,np.newaxis]
+		items_arr = np.array(items)[:,np.newaxis]
+		start = range[0]
+		end = range[-1]
+		if end == -1:
+			end = ind[-1]
+		ind_arr = ind_arr[np.where(np.all(np.hstack((ind_arr <= end,ind_arr >= start)),axis=1))]
+		items_arr = items_arr[np.where(np.all(np.hstack((ind_arr <= end,ind_arr >= start)),axis=1))]
+		return ind_arr.squeeze().tolist(),items_arr.squeeze().tolist()
+
 def _getStat(logfile,key):
 	# get iterations in the logfile 
 	# and put the Iteration and item stats to the lists
@@ -141,8 +182,7 @@ def _getStat(logfile,key):
 				if '"%s"'%(key) in v:
 					items.append(float(x[k+1][:-1]))
 				if '"iter"' in v:
-					index.append(x[k+1][:-1])
-
+					index.append(int(x[k+1][:-1]))
 	if len(index)-len(items) > 0:
 		index = index[:-(len(index)-len(items))]
 
