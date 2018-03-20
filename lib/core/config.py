@@ -500,6 +500,9 @@ __C.MODEL.REFINE_KEYPOINTS_ON = False
 # Whether to freeze mask-rcnn
 __C.MODEL.FREEZE_MASK_RCNN = False
 
+# Add Semantic Segmentation Net
+__C.MODEL.SEMANTIC_ON = False
+
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
 # ---------------------------------------------------------------------------- #
@@ -944,6 +947,30 @@ __C.REFINENET.MRCNN_FCN.NUM_CONVS = 4 # default num convs
 
 # Using Deconv in the MRCNN_FCN head
 __C.REFINENET.MRCNN_FCN.USE_DECONV = False # default is false
+
+
+# ---------------------------------------------------------------------------- #
+# Hourglass options
+# ---------------------------------------------------------------------------- #
+
+# Option for Semantic Net
+__C.SEMANTIC_NET = AttrDict()
+
+# Rescale_factor for input of Semantic Net
+__C.SEMANTIC_NET.RESCALE_FACTOR = 0.125 # 1/8
+
+# Method to abstract the feature
+__C.SEMANTIC_NET.ROI_XFORM_METHOD = b'RoIAlign' # use RoIAlign
+
+# Sampling Ratio
+__C.SEMANTIC_NET.ROI_XFORM_SAMPLING_RATIO = 0 # 
+
+# Num of conv to generate the semantic segmentation
+__C.SEMANTIC_NET.NUM_CONVS = 4
+
+# Use deconv or not
+__C.SEMANTIC_NET.USE_DECONV = False 
+
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options

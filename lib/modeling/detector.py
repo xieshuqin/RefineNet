@@ -648,6 +648,76 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         )(blobs_in_list, blob_out, name=name)
         return xform_out
 
+
+    def RescaleFeatureMap(
+        self, 
+        blobs_in, 
+        blob_out, 
+        dim_in,
+        rescale_factor,
+        method='RoIAlign',
+        spatial_scale=1. / 16.,
+        sampling_ratio=0
+    ):
+        """ Rescale the feature map to a rescale_factor size. 
+        If use FPN, then rescale each FPN to a fixed size and 
+        concat them together.
+
+        Else, pass the feature map.
+        """
+        assert method in {'RoIPoolF', 'RoIAlign'}, \
+            'Unknown pooling method: {}'.format(method)
+        has_argmax = (method == 'RoIPoolF')
+        # get the output size
+        dim_out = 0
+        data = workspace.FetchBlob(core.ScopedBlobReference('data'))
+        inp_h, inp_w = data.shape[2], data.shape[3]
+        out_h, out_w = inp_h * rescale_factor, inp_w * rescale_factor
+        img_rois = np.array([0, 0, inp_w, inp_h], dtype=np.float32)
+        workspace.FeedBlob(core.ScopedBlobReference('img_rois'), img_rois)
+
+        if isinstance(blobs_in, list):
+            # FPN case
+            k_max = cfg.FPN.ROI_MAX_LEVEL  # coarsest level of pyramid
+            k_min = cfg.FPN.ROI_MIN_LEVEL  # finest level of pyramid
+            assert len(blobs_in) == k_max - k_min + 1
+
+            bl_out_list = []
+            for lvl in range(k_min, k_max+1):
+                dim_out += dim_in
+                bl_in = blobs_in[k_max - lvl] # reversed order
+                sc = spatial_scale[k_max - lvl] # reversed order
+                bl_rois = 'img_rois'
+                bl_out = blob_out + '_fpn' + str(lvl)
+                bl_out_list.append(bl_out)
+                bl_argmax = ['_argmax_' + bl_out] if has_argmax else []
+                self.net.__getattr__(method)(
+                    [bl_in, bl_rois], [bl_out] + bl_argmax,
+                    pooled_w=out_w,
+                    pooled_h=out_h,
+                    spatial_scale=sc,
+                    sampling_ratio=sampling_ratio
+                )
+            xform_out, _ = self.net.Concat(
+                bl_out_list, [blob_out, '_concat_' + blob_out],
+                axis=1
+            )
+        else:
+            # Single feature level
+            dim_out = dim_in
+            bl_argmax = ['_argmax_' + blob_out] if has_argmax else []
+            # sampling_ratio is ignored for RoIPoolF
+            xform_out = self.net.__getattr__(method)(
+                [blobs_in, blob_rois], [blob_out] + bl_argmax,
+                pooled_w=out_w,
+                pooled_h=out_h,
+                spatial_scale=spatial_scale,
+                sampling_ratio=sampling_ratio
+            )
+
+        return xform_out, dim_out
+
+
 # ---------------------------------------------------------------------------- #
 # End of shuqin's code
 # ---------------------------------------------------------------------------- #

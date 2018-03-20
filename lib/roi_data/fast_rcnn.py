@@ -104,6 +104,10 @@ def get_fast_rcnn_blob_names(is_training=True):
         else: 
             # Refined keypoint label
             pass
+    if is_training and cfg.MODEL.SEMANTIC_ON:
+        # Add semantic segmentation label
+        blob_names += ['semantic_segms_int32']
+
     if cfg.FPN.FPN_ON and cfg.FPN.MULTILEVEL_ROIS:
         # Support for FPN multi-level rois without bbox reg isn't
         # implemented (... and may never be implemented)
@@ -236,13 +240,18 @@ def _sample_rois(roidb, im_scale, batch_idx, data=None):
     # Optionally add Refine Mask Net blobs
     if cfg.MODEL.REFINE_MASK_ON:
         roi_data.refine_net.add_refine_mask_blobs(
-            blob_dict, sampled_boxes, roidb, im_scale, batch_idx, data,
+            blob_dict, sampled_boxes, roidb, im_scale, batch_idx, data
         )
 
     # Optionally add Refine Keypoints Net blobs
     if cfg.MODEL.REFINE_KEYPOINTS_ON:
         roi_data.refine_net.add_refine_keypoints_blobs(
-            blob_dict, sampled_boxes, roidb, im_scale, batch_idx, data,
+            blob_dict, sampled_boxes, roidb, im_scale, batch_idx, data
+        )
+
+    if cfg.MODEL.SEMANTIC_ON:
+        roi_data.semantic_segms.add_semantic_segms_blobs(
+            blob_dict, roidb, im_scale, batch_idx, data
         )
 
     return blob_dict

@@ -54,6 +54,7 @@ import modeling.retinanet_heads as retinanet_heads
 import modeling.rfcn_heads as rfcn_heads
 import modeling.rpn_heads as rpn_heads
 import modeling.refine_net_heads as refine_net_heads
+import modeling.semantic_segms_heads as semantic_segms_heads
 import roi_data.minibatch
 import utils.c2 as c2_utils
 import utils.net as net_utils
@@ -178,6 +179,7 @@ def build_generic_detection_model(
             'keypoints': None,
             'refine_mask': None,
             'refine_keypoints': None,
+            'semantic_segms': None,
         }
 
         if cfg.RPN.RPN_ON:
@@ -191,6 +193,12 @@ def build_generic_detection_model(
             # those used in the RoI heads
             blob_conv, spatial_scale_conv = _narrow_to_fpn_roi_levels(
                 blob_conv, spatial_scale_conv
+            )
+
+        if cfg.MODEL.SEMANTIC_ON:
+            # Add the Semantic Segmentation head
+            head_loss_gradients['semantic_segms'] = _add_semantic_segms_head(
+                model, blob_conv, dim_conv, spatial_scale_conv
             )
 
         if not cfg.MODEL.RPN_ONLY:
@@ -427,6 +435,46 @@ def _add_generic_refine_keypoints_net_head(
     else:
         loss_gradients = refine_net_heads.add_refine_losses(
             model, blob_refine_keypoints_out, REFINE_OUTPUT_TYPE
+        )
+    return loss_gradients
+
+
+def _add_semantic_segms_head(
+    model, blob_in, dim_in, spatial_scale_in
+):
+    """ Add the semantic segmentation head to the network """
+    conv_body_net = copy.deepcopy(model.net.Proto())
+
+    # Add semantic segms net's input
+    rescale_factor = cfg.SEMANTIC_NET.RESCALE_FACTOR
+    blob_rescale_feat, dim_rescale_feat = model.RescaleFeatureMap(
+        blob_in, 'semantic_segms_feature', dim_in,
+        rescale_factor = cfg.SEMANTIC_NET.RESCALE_FACTOR,
+        method=cfg.SEMANTIC_NET.ROI_XFORM_METHOD,
+        spatial_scale=spatial_scale_in,
+        sampling_ratio=cfg.SEMANTIC_NET.ROI_XFORM_SAMPLING_RATIO
+        )
+    # Add semantic segms net head 
+    blob_semantic_segms_head, dim_semantic_segms_head = \
+        semantic_segms_head.add_semantic_segms_head(
+            model, blob_rescale_feat, dim_rescale_feat,
+        )
+    # Add semantic segms net output
+    blob_semantic_segms_out = semantic_segms_head.add_semantic_segms_outputs(
+        model, blob_semantic_segms_head, dim_semantic_segms_head
+    )
+
+    # Add semantic segms loss
+    if not model.train: # inference
+        model.semantic_segms_net, semantic_segms_out = c2_utils.SuffixNet(
+            'semantic_segms_net', model.net, len(conv_body_net.op),
+            blob_semantic_segms_out
+        )
+        model.net._net = conv_body_net
+        loss_gradients = None
+    else:
+        loss_gradients = semantic_segms_head.add_semantic_segms_losses(
+            model, blob_semantic_segms_out
         )
     return loss_gradients
 
