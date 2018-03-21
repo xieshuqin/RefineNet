@@ -655,7 +655,6 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         blob_out, 
         dim_in,
         rescale_factor,
-        method='RoIAlign',
         spatial_scale=1. / 16.,
         sampling_ratio=0
     ):
@@ -665,16 +664,11 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         Else, pass the feature map.
         """
-        assert method in {'RoIPoolF', 'RoIAlign'}, \
-            'Unknown pooling method: {}'.format(method)
-        has_argmax = (method == 'RoIPoolF')
+
+        method = 'RescaleFeatureMap'
         # get the output size
         dim_out = 0
-        data = workspace.FetchBlob(core.ScopedBlobReference('data'))
-        inp_h, inp_w = data.shape[2], data.shape[3]
-        out_h, out_w = inp_h * rescale_factor, inp_w * rescale_factor
-        img_rois = np.array([0, 0, inp_w, inp_h], dtype=np.float32)
-        workspace.FeedBlob(core.ScopedBlobReference('img_rois'), img_rois)
+        blob_data = core.ScopedBlobReference('data')
 
         if isinstance(blobs_in, list):
             # FPN case
@@ -690,12 +684,10 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 bl_rois = 'img_rois'
                 bl_out = blob_out + '_fpn' + str(lvl)
                 bl_out_list.append(bl_out)
-                bl_argmax = ['_argmax_' + bl_out] if has_argmax else []
                 self.net.__getattr__(method)(
-                    [bl_in, bl_rois], [bl_out] + bl_argmax,
-                    pooled_w=out_w,
-                    pooled_h=out_h,
+                    [bl_in, bl_rois, blob_data], [bl_out],
                     spatial_scale=sc,
+                    rescale_factor=rescale_factor,
                     sampling_ratio=sampling_ratio
                 )
             xform_out, _ = self.net.Concat(
@@ -705,13 +697,11 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         else:
             # Single feature level
             dim_out = dim_in
-            bl_argmax = ['_argmax_' + blob_out] if has_argmax else []
             # sampling_ratio is ignored for RoIPoolF
             xform_out = self.net.__getattr__(method)(
-                [blobs_in, blob_rois], [blob_out] + bl_argmax,
-                pooled_w=out_w,
-                pooled_h=out_h,
+                [blobs_in, blob_rois], [blob_out],
                 spatial_scale=spatial_scale,
+                rescale_factor=rescale_factor,
                 sampling_ratio=sampling_ratio
             )
 
