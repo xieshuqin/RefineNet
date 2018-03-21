@@ -449,7 +449,7 @@ def _add_semantic_segms_head(
     rescale_factor = cfg.SEMANTIC_NET.RESCALE_FACTOR
     blob_rescale_feat, dim_rescale_feat = model.RescaleFeatureMap(
         blob_in, 'semantic_segms_feature', dim_in,
-        rescale_factor = cfg.SEMANTIC_NET.RESCALE_FACTOR,
+        rescale_factor=cfg.SEMANTIC_NET.RESCALE_FACTOR,
         spatial_scale=spatial_scale_in,
         sampling_ratio=cfg.SEMANTIC_NET.ROI_XFORM_SAMPLING_RATIO
         )
