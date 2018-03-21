@@ -250,7 +250,7 @@ class GetRescaleFeatureMapGradient : public GradientMakerBase {
     return SingleGradientDef(
         "RescaleFeatureMapGradient",
         "",
-        vector<string>{I(0), I(1), I(2), GO(0)},
+        vector<string>{I(0), I(1), GO(0)},
         vector<string>{GI(0)});
   }
 };
