@@ -34,7 +34,7 @@ import utils.segms as segm_utils
 logger = logging.getLogger(__name__)
 
 def add_semantic_segms_blobs(blobs, roidb, im_scale, batch_idx, data):
-    """ Add Semantic Segmentation Net specidfic blobs to the input blob 
+    """ Add Semantic Segmentation Net specidfic blobs to the input blob
         dictionary. Draw all gt polygons to the label
     """
     num_cls = cfg.MODEL.NUM_CLASSES
@@ -57,7 +57,7 @@ def add_semantic_segms_blobs(blobs, roidb, im_scale, batch_idx, data):
         im_h, im_w = roidb['height'], roidb['width']
         im_label_h, im_label_w = int(im_h * scale), int(im_w * scale)
 
-        # add 
+        # add
         for i in range(polys_gt_inds.shape[0]):
             cls_label = gt_class_labels[i]
             poly_gt = polys_gt[i]
@@ -81,3 +81,4 @@ def add_semantic_segms_blobs(blobs, roidb, im_scale, batch_idx, data):
         semantic_segms = -blob_utils.ones((1, num_cls*out_h*out_w), int32=True)
 
     blobs['semantic_segms_int32'] = semantic_segms
+    blobs['img_rois'] = np.array([batch_idx, 0, 0, inp_w-1, inp_h-1])[np.newaxis, :]

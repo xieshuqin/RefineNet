@@ -32,6 +32,7 @@ import modeling.FPN as fpn
 import roi_data.keypoint_rcnn
 import roi_data.mask_rcnn
 import roi_data.refine_net
+import roi_data.semantic_segms
 import utils.blob as blob_utils
 import utils.boxes as box_utils
 
@@ -97,16 +98,18 @@ def get_fast_rcnn_blob_names(is_training=True):
             # a *bg* RoI will have an all -1 (ignore) mask associated with it in
             # the case that no fg RoIs can be sampled. Shape is (batchsize).
             blob_names += ['roi_has_refined_mask_int32']
-            # 'refined_masks_int32' holds global binary masks for the RoIs 
-            # specified in 'mask_rois'. Shape is (#fg, G_M * G_M) where G_M 
+            # 'refined_masks_int32' holds global binary masks for the RoIs
+            # specified in 'mask_rois'. Shape is (#fg, G_M * G_M) where G_M
             # is the global mask size
             blob_names += ['refined_masks_int32']
-        else: 
+        else:
             # Refined keypoint label
             pass
     if is_training and cfg.MODEL.SEMANTIC_ON:
         # Add semantic segmentation label
         blob_names += ['semantic_segms_int32']
+        # Add the Bounding box of the entire image size.
+        blob_names += ['img_rois']
 
     if cfg.FPN.FPN_ON and cfg.FPN.MULTILEVEL_ROIS:
         # Support for FPN multi-level rois without bbox reg isn't

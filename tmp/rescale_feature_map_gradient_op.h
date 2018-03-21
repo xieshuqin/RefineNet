@@ -16,7 +16,7 @@ class RescaleFeatureMapGradientOp final : public Operator<Context> {
       : Operator<Context>(def, ws),
         spatial_scale_(
             OperatorBase::GetSingleArgument<float>("spatial_scale", 1.)),
-        rescale_factor_(OperatorBase::GetSingleArgument<float>("rescale_factor", 1)),
+        rescale_factor_(OperatorBase::GetSingleArgument<int>("rescale_factor", 1)),
         sampling_ratio_(
             OperatorBase::GetSingleArgument<int>("sampling_ratio", -1)) {
     DCHECK_GT(spatial_scale_, 0);

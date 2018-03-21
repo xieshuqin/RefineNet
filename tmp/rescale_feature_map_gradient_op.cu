@@ -1,13 +1,24 @@
 #include "rescale_feature_map_gradient_op.h"
 
-#include "caffe2/utils/eigen_utils.h"
+#include <stdio.h>
+#include <cfloat>
+#include "caffe2/core/context_gpu.h"
 #include "caffe2/utils/math.h"
 
 namespace caffe2 {
+
 namespace {
 
 template <typename T>
-void bilinear_interpolate_gradient(
+inline __device__ T gpu_atomic_add(const T val, T* address);
+
+template <>
+inline __device__ float gpu_atomic_add(const float val, float* address) {
+  return atomicAdd(address, val);
+}
+
+template <typename T>
+__device__ void bilinear_interpolate_gradient(
     const int height,
     const int width,
     T y,
@@ -20,7 +31,7 @@ void bilinear_interpolate_gradient(
     int& x_high,
     int& y_low,
     int& y_high,
-    const int /*index*/ /* index for debug only*/) {
+    const int index /* index for debug only*/) {
   // deal with cases that inverse elements are out of feature map boundary
   if (y < -1.0 || y > height || x < -1.0 || x > width) {
     // empty
@@ -69,17 +80,12 @@ void bilinear_interpolate_gradient(
   return;
 }
 
-template <class T>
-inline void add(const T& val, T* address) {
-  *address += val;
-}
-
 template <typename T>
-void RescaleFeatureMapBackwardFeature(
+__global__ void RescaleFeatureMapBackwardFeature(
     const int nthreads,
     const T* top_diff,
-    const int /*num_rois*/,
-    const T& spatial_scale,
+    const int num_rois,
+    const T spatial_scale,
     const int channels,
     const int height,
     const int width,
@@ -87,37 +93,30 @@ void RescaleFeatureMapBackwardFeature(
     const int pooled_width,
     const int sampling_ratio,
     T* bottom_diff,
-    const T* bottom_rois,
-    int rois_cols) {
-  DCHECK(rois_cols == 4 || rois_cols == 5);
-
-  for (int index = 0; index < nthreads; index++) {
+    const T* bottom_rois) {
+  CUDA_1D_KERNEL_LOOP(index, nthreads) {
     // (n, c, ph, pw) is an element in the pooled output
     int pw = index % pooled_width;
     int ph = (index / pooled_width) % pooled_height;
     int c = (index / pooled_width / pooled_height) % channels;
     int n = index / pooled_width / pooled_height / channels;
 
-    const T* offset_bottom_rois = bottom_rois + n * rois_cols;
-    int roi_batch_ind = 0;
-    if (rois_cols == 5) {
-      roi_batch_ind = offset_bottom_rois[0];
-      offset_bottom_rois++;
-    }
+    const T* offset_bottom_rois = bottom_rois + n * 5;
+    int roi_batch_ind = offset_bottom_rois[0];
 
     // Do not using rounding; this implementation detail is critical
-    T roi_start_w = offset_bottom_rois[0] * spatial_scale;
-    T roi_start_h = offset_bottom_rois[1] * spatial_scale;
-    T roi_end_w = offset_bottom_rois[2] * spatial_scale;
-    T roi_end_h = offset_bottom_rois[3] * spatial_scale;
-    // T roi_start_w = round(offset_bottom_rois[0] * spatial_scale);
-    // T roi_start_h = round(offset_bottom_rois[1] * spatial_scale);
-    // T roi_end_w = round(offset_bottom_rois[2] * spatial_scale);
-    // T roi_end_h = round(offset_bottom_rois[3] * spatial_scale);
+    T roi_start_w = offset_bottom_rois[1] * spatial_scale;
+    T roi_start_h = offset_bottom_rois[2] * spatial_scale;
+    T roi_end_w = offset_bottom_rois[3] * spatial_scale;
+    T roi_end_h = offset_bottom_rois[4] * spatial_scale;
+    // T roi_start_w = round(offset_bottom_rois[1] * spatial_scale);
+    // T roi_start_h = round(offset_bottom_rois[2] * spatial_scale);
+    // T roi_end_w = round(offset_bottom_rois[3] * spatial_scale);
+    // T roi_end_h = round(offset_bottom_rois[4] * spatial_scale);
 
     // Force malformed ROIs to be 1x1
-    T roi_width = std::max(roi_end_w - roi_start_w, (T)1.);
-    T roi_height = std::max(roi_end_h - roi_start_h, (T)1.);
+    T roi_width = max(roi_end_w - roi_start_w, (T)1.);
+    T roi_height = max(roi_end_h - roi_start_h, (T)1.);
     T bin_size_h = static_cast<T>(roi_height) / static_cast<T>(pooled_height);
     T bin_size_w = static_cast<T>(roi_width) / static_cast<T>(pooled_width);
 
@@ -138,7 +137,8 @@ void RescaleFeatureMapBackwardFeature(
     // We do average (integral) pooling inside a bin
     const T count = roi_bin_grid_h * roi_bin_grid_w; // e.g. = 4
 
-    for (int iy = 0; iy < roi_bin_grid_h; iy++) {
+    for (int iy = 0; iy < roi_bin_grid_h; iy++) // e.g., iy = 0, 1
+    {
       const T y = roi_start_h + ph * bin_size_h +
           static_cast<T>(iy + .5f) * bin_size_h /
               static_cast<T>(roi_bin_grid_h); // e.g., 0.5, 1.5
@@ -171,21 +171,24 @@ void RescaleFeatureMapBackwardFeature(
         T g4 = top_diff_this_bin * w4 / count;
 
         if (x_low >= 0 && x_high >= 0 && y_low >= 0 && y_high >= 0) {
-          // atomic add is not needed for now since it is single threaded
-          add(static_cast<T>(g1), offset_bottom_diff + y_low * width + x_low);
-          add(static_cast<T>(g2), offset_bottom_diff + y_low * width + x_high);
-          add(static_cast<T>(g3), offset_bottom_diff + y_high * width + x_low);
-          add(static_cast<T>(g4), offset_bottom_diff + y_high * width + x_high);
+          gpu_atomic_add(
+              static_cast<T>(g1), offset_bottom_diff + y_low * width + x_low);
+          gpu_atomic_add(
+              static_cast<T>(g2), offset_bottom_diff + y_low * width + x_high);
+          gpu_atomic_add(
+              static_cast<T>(g3), offset_bottom_diff + y_high * width + x_low);
+          gpu_atomic_add(
+              static_cast<T>(g4), offset_bottom_diff + y_high * width + x_high);
         } // if
       } // ix
     } // iy
-  } // for
-} // ROIAlignBackward
+  } // CUDA_1D_KERNEL_LOOP
+} // RoIAlignBackward
 
 } // namespace
 
 template <>
-bool RescaleFeatureMapGradientOp<float, CPUContext>::RunOnDevice() {
+bool RescaleFeatureMapGradientOp<float, CUDAContext>::RunOnDevice() {
   auto& X = Input(0); // Input data to pool
   auto& R = Input(1); // RoIs
   auto& Data = Input(2); //Data
@@ -194,69 +197,41 @@ bool RescaleFeatureMapGradientOp<float, CPUContext>::RunOnDevice() {
   auto* dX = Output(0); // Gradient of net w.r.t. input to "forward" op
                         // (aka "gradInput")
 
+  dX->ResizeLike(X);
+
   int input_height_ = Data.dim32(2);
   int input_width_ = Data.dim32(3);
   pooled_height_ = int( rescale_factor_ * input_height_) ;
   pooled_width_ = int( rescale_factor_ * input_width_ );
 
-  CAFFE_ENFORCE_EQ(R.ndim(), 2);
-  // if R has 5 columns, the first column is the index, otherwise 0
-  CAFFE_ENFORCE(R.dim32(1) == 4 || R.dim32(1) == 5);
-
-  dX->ResizeLike(X);
-
   // Must zero-out dX before accumulating gradients
   // (TODO): Kaiming - is this safe?
-  math::Set<float, CPUContext>(
+  math::Set<float, CUDAContext>(
       dX->size(), 0.f, dX->mutable_data<float>(), &context_);
 
   if (dY.size() > 0) { // Handle possibly empty gradient if there were no rois
-    RescaleFeatureMapBackwardFeature<float>(
-        dY.size(),
-        dY.data<float>(),
-        R.dim32(0),
-        spatial_scale_,
-        X.dim32(1),
-        X.dim32(2),
-        X.dim32(3),
-        pooled_height_,
-        pooled_width_,
-        sampling_ratio_,
-        dX->mutable_data<float>(),
-        R.data<float>(),
-        R.dim32(1));
+    RescaleFeatureMapBackwardFeature<float>
+        <<<CAFFE_GET_BLOCKS(dY.size()),
+           CAFFE_CUDA_NUM_THREADS,
+           0,
+           context_.cuda_stream()>>>(
+            dY.size(),
+            dY.data<float>(),
+            R.dim32(0),
+            spatial_scale_,
+            X.dim32(1),
+            X.dim32(2),
+            X.dim32(3),
+            pooled_height_,
+            pooled_width_,
+            sampling_ratio_,
+            dX->mutable_data<float>(),
+            R.data<float>());
   }
   return true;
 }
 
-REGISTER_CPU_OPERATOR(RescaleFeatureMapGradient, RescaleFeatureMapGradientOp<float, CPUContext>);
-
-// Input: X, rois, Data, dY (aka "gradOutput");
-// Output: dX (aka "gradInput")
-OPERATOR_SCHEMA(RescaleFeatureMapGradient)
-    .NumInputs(4)
-    .NumOutputs(1)
-    .Input(0, "X", "See RoIPoolF.")
-    .Input(1, "RoIs", "See RoIPoolF.")
-    .Input(2, "Data", "Input data for the network. ")
-    .Input(3, "dY", "Gradient of forward output 0 (Y)")
-    .Output(0, "dX", "Gradient of forward input 0 (X)");
-
-namespace {
-
-class GetRescaleFeatureMapGradient : public GradientMakerBase {
-  using GradientMakerBase::GradientMakerBase;
-  vector<OperatorDef> GetGradientDefs() override {
-    return SingleGradientDef(
-        "RescaleFeatureMapGradient",
-        "",
-        vector<string>{I(0), I(1), I(2), GO(0)},
-        vector<string>{GI(0)});
-  }
-};
-
-} // namespace
-
-REGISTER_GRADIENT(RescaleFeatureMap, GetRescaleFeatureMapGradient);
-
+REGISTER_CUDA_OPERATOR(
+    RescaleFeatureMapGradient,
+    RescaleFeatureMapGradientOp<float, CUDAContext>);
 } // namespace caffe2

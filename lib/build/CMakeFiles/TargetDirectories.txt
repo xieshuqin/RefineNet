@@ -1,0 +1,8 @@
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/install/strip.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/install/local.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/install.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/list_install_components.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/rebuild_cache.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/edit_cache.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops.dir
+/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir

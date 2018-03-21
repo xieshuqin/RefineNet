@@ -28,31 +28,28 @@ The CXX compiler identification is GNU, found in "/home/zhangwei/shuqin/MyGit/Re
 Determining if the C compiler works passed with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_cc06e/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_0e379/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_0e379.dir/build.make CMakeFiles/cmTC_0e379.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_cc06e.dir/build.make CMakeFiles/cmTC_cc06e.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_cc06e.dir/testCCompiler.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_cc06e.dir/testCCompiler.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_cc06e
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc06e.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_cc06e.dir/testCCompiler.c.o  -o cmTC_cc06e 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0e379.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_0e379.dir/testCCompiler.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_0e379
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0e379.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_0e379.dir/testCCompiler.c.o  -o cmTC_0e379 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
 Detecting C compiler ABI info compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_e5271/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_c50f1/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_c50f1.dir/build.make CMakeFiles/cmTC_c50f1.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_e5271.dir/build.make CMakeFiles/cmTC_e5271.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o   -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_e5271
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5271.dir/link.txt --verbose=1
-/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o  -o cmTC_e5271 
+Building C object CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o   -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_c50f1
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c50f1.dir/link.txt --verbose=1
+/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o  -o cmTC_c50f1 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/cc
 COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/lto-wrapper
@@ -62,9 +59,8 @@ Thread model: posix
 gcc version 4.8.5 20150623 (Red Hat 4.8.5-16) (GCC) 
 COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/
 LIBRARY_PATH=/usr/local/cuda-8.0/lib64/../lib64/:/usr/local/cuda-8.0/lib64/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:./:/usr/local/cuda-8.0/lib64/:/usr/local/cuda-8.0/lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_e5271' '-mtune=generic' '-march=x86-64'
- /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_e5271 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c50f1' '-mtune=generic' '-march=x86-64'
+ /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_c50f1 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -72,15 +68,14 @@ Parsed C implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_e5271/fast"]
+  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_c50f1/fast"]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_c50f1.dir/build.make CMakeFiles/cmTC_c50f1.dir/build]
   ignore line: [gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp']
-  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_e5271.dir/build.make CMakeFiles/cmTC_e5271.dir/build]
-  ignore line: [gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o   -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_e5271]
-  ignore line: [/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5271.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o  -o cmTC_e5271 ]
+  ignore line: [Building C object CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o   -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_c50f1]
+  ignore line: [/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c50f1.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o  -o cmTC_c50f1 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/cc]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/lto-wrapper]
@@ -90,8 +85,8 @@ Parsed C implicit link information from above output:
   ignore line: [gcc version 4.8.5 20150623 (Red Hat 4.8.5-16) (GCC) ]
   ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/]
   ignore line: [LIBRARY_PATH=/usr/local/cuda-8.0/lib64/../lib64/:/usr/local/cuda-8.0/lib64/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:./:/usr/local/cuda-8.0/lib64/:/usr/local/cuda-8.0/lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_e5271' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_e5271 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c50f1' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_c50f1 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o]
     arg [/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2] ==> ignore
     arg [--build-id] ==> ignore
     arg [--no-add-needed] ==> ignore
@@ -103,7 +98,7 @@ Parsed C implicit link information from above output:
     arg [-dynamic-linker] ==> ignore
     arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_e5271] ==> ignore
+    arg [cmTC_c50f1] ==> ignore
     arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o] ==> ignore
@@ -117,7 +112,7 @@ Parsed C implicit link information from above output:
     arg [-L/usr/local/cuda-8.0/lib64] ==> dir [/usr/local/cuda-8.0/lib64]
     arg [-L/usr/local/cuda-8.0/lib64] ==> dir [/usr/local/cuda-8.0/lib64]
     arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../..] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../..]
-    arg [CMakeFiles/cmTC_e5271.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [CMakeFiles/cmTC_c50f1.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lgcc] ==> lib [gcc]
     arg [--as-needed] ==> ignore
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -148,16 +143,14 @@ Parsed C implicit link information from above output:
 Detecting C [-std=c11] compiler features compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_c60d2/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_9f7b8/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_9f7b8.dir/build.make CMakeFiles/cmTC_9f7b8.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_c60d2.dir/build.make CMakeFiles/cmTC_c60d2.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_c60d2.dir/feature_tests.c.o
-/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_c60d2.dir/feature_tests.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_c60d2
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c60d2.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_c60d2.dir/feature_tests.c.o  -o cmTC_c60d2 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_9f7b8.dir/feature_tests.c.o
+/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_9f7b8.dir/feature_tests.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_9f7b8
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9f7b8.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_9f7b8.dir/feature_tests.c.o  -o cmTC_9f7b8 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -170,16 +163,14 @@ gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 Detecting C [-std=c99] compiler features compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_fce45/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_d44b5/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_d44b5.dir/build.make CMakeFiles/cmTC_d44b5.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_fce45.dir/build.make CMakeFiles/cmTC_fce45.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_fce45.dir/feature_tests.c.o
-/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_fce45.dir/feature_tests.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_fce45
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fce45.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_fce45.dir/feature_tests.c.o  -o cmTC_fce45 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d44b5.dir/feature_tests.c.o
+/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_d44b5.dir/feature_tests.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_d44b5
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d44b5.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_d44b5.dir/feature_tests.c.o  -o cmTC_d44b5 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -192,16 +183,14 @@ gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 Detecting C [-std=c90] compiler features compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_4859e/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_27aa1/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_27aa1.dir/build.make CMakeFiles/cmTC_27aa1.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_4859e.dir/build.make CMakeFiles/cmTC_4859e.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_4859e.dir/feature_tests.c.o
-/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_4859e.dir/feature_tests.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_4859e
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4859e.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_4859e.dir/feature_tests.c.o  -o cmTC_4859e 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_27aa1.dir/feature_tests.c.o
+/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_27aa1.dir/feature_tests.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_27aa1
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_27aa1.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_27aa1.dir/feature_tests.c.o  -o cmTC_27aa1 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -212,31 +201,28 @@ gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 Determining if the CXX compiler works passed with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_46536/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_cafd8/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_cafd8.dir/build.make CMakeFiles/cmTC_cafd8.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_46536.dir/build.make CMakeFiles/cmTC_46536.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_46536.dir/testCXXCompiler.cxx.o
-/usr/bin/c++     -o CMakeFiles/cmTC_46536.dir/testCXXCompiler.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_46536
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_46536.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_46536.dir/testCXXCompiler.cxx.o  -o cmTC_46536 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_cafd8.dir/testCXXCompiler.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTC_cafd8.dir/testCXXCompiler.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_cafd8
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cafd8.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_cafd8.dir/testCXXCompiler.cxx.o  -o cmTC_cafd8 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
 Detecting CXX compiler ABI info compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_b9277/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_39748/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_39748.dir/build.make CMakeFiles/cmTC_39748.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_b9277.dir/build.make CMakeFiles/cmTC_b9277.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/c++     -o CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_b9277
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b9277.dir/link.txt --verbose=1
-/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_b9277 
+Building CXX object CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++     -o CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_39748
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_39748.dir/link.txt --verbose=1
+/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_39748 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/c++
 COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/lto-wrapper
@@ -246,9 +232,8 @@ Thread model: posix
 gcc version 4.8.5 20150623 (Red Hat 4.8.5-16) (GCC) 
 COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/
 LIBRARY_PATH=/usr/local/cuda-8.0/lib64/../lib64/:/usr/local/cuda-8.0/lib64/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:./:/usr/local/cuda-8.0/lib64/:/usr/local/cuda-8.0/lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_b9277' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_b9277 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_39748' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_39748 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -256,15 +241,14 @@ Parsed CXX implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_b9277/fast"]
+  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_39748/fast"]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_39748.dir/build.make CMakeFiles/cmTC_39748.dir/build]
   ignore line: [gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp']
-  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_b9277.dir/build.make CMakeFiles/cmTC_b9277.dir/build]
-  ignore line: [gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_b9277]
-  ignore line: [/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b9277.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_b9277 ]
+  ignore line: [Building CXX object CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_39748]
+  ignore line: [/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_39748.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_39748 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/c++]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/lto-wrapper]
@@ -274,8 +258,8 @@ Parsed CXX implicit link information from above output:
   ignore line: [gcc version 4.8.5 20150623 (Red Hat 4.8.5-16) (GCC) ]
   ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/]
   ignore line: [LIBRARY_PATH=/usr/local/cuda-8.0/lib64/../lib64/:/usr/local/cuda-8.0/lib64/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:./:/usr/local/cuda-8.0/lib64/:/usr/local/cuda-8.0/lib64/:/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_b9277' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_b9277 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_39748' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2 --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_39748 /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/local/cuda-8.0/lib64/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L. -L/usr/local/cuda-8.0/lib64 -L/usr/local/cuda-8.0/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../.. CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtend.o /usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crtn.o]
     arg [/usr/libexec/gcc/x86_64-redhat-linux/4.8.5/collect2] ==> ignore
     arg [--build-id] ==> ignore
     arg [--no-add-needed] ==> ignore
@@ -287,7 +271,7 @@ Parsed CXX implicit link information from above output:
     arg [-dynamic-linker] ==> ignore
     arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_b9277] ==> ignore
+    arg [cmTC_39748] ==> ignore
     arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crti.o] ==> ignore
     arg [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/crtbegin.o] ==> ignore
@@ -301,7 +285,7 @@ Parsed CXX implicit link information from above output:
     arg [-L/usr/local/cuda-8.0/lib64] ==> dir [/usr/local/cuda-8.0/lib64]
     arg [-L/usr/local/cuda-8.0/lib64] ==> dir [/usr/local/cuda-8.0/lib64]
     arg [-L/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../..] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../..]
-    arg [CMakeFiles/cmTC_b9277.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [CMakeFiles/cmTC_39748.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lstdc++] ==> lib [stdc++]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -330,16 +314,14 @@ Parsed CXX implicit link information from above output:
 Detecting CXX [-std=c++1y] compiler features compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_eb1ca/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_1beea/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_1beea.dir/build.make CMakeFiles/cmTC_1beea.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_eb1ca.dir/build.make CMakeFiles/cmTC_eb1ca.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_eb1ca.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++1y -o CMakeFiles/cmTC_eb1ca.dir/feature_tests.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_eb1ca
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eb1ca.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_eb1ca.dir/feature_tests.cxx.o  -o cmTC_eb1ca 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_1beea.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++1y -o CMakeFiles/cmTC_1beea.dir/feature_tests.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_1beea
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1beea.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_1beea.dir/feature_tests.cxx.o  -o cmTC_1beea 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -405,16 +387,14 @@ gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_ee882/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_da705/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_da705.dir/build.make CMakeFiles/cmTC_da705.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_ee882.dir/build.make CMakeFiles/cmTC_ee882.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_ee882.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_ee882.dir/feature_tests.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_ee882
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ee882.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_ee882.dir/feature_tests.cxx.o  -o cmTC_ee882 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_da705.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_da705.dir/feature_tests.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_da705
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_da705.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_da705.dir/feature_tests.cxx.o  -o cmTC_da705 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -480,16 +460,14 @@ gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_564d5/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_fe4ae/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_fe4ae.dir/build.make CMakeFiles/cmTC_fe4ae.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_564d5.dir/build.make CMakeFiles/cmTC_564d5.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_564d5.dir/feature_tests.cxx.o
-/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_564d5.dir/feature_tests.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_564d5
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_564d5.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_564d5.dir/feature_tests.cxx.o  -o cmTC_564d5 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_fe4ae.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_fe4ae.dir/feature_tests.cxx.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_fe4ae
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fe4ae.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_fe4ae.dir/feature_tests.cxx.o  -o cmTC_fe4ae 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
@@ -553,32 +531,28 @@ gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 Determining if the include file pthread.h exists passed with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_f25b3/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_3d4cd/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_3d4cd.dir/build.make CMakeFiles/cmTC_3d4cd.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_f25b3.dir/build.make CMakeFiles/cmTC_f25b3.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_f25b3.dir/CheckIncludeFile.c.o
-/usr/bin/cc   -std=c11    -o CMakeFiles/cmTC_f25b3.dir/CheckIncludeFile.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-Linking C executable cmTC_f25b3
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f25b3.dir/link.txt --verbose=1
-/usr/bin/cc  -std=c11     -rdynamic CMakeFiles/cmTC_f25b3.dir/CheckIncludeFile.c.o  -o cmTC_f25b3 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3d4cd.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -std=c11    -o CMakeFiles/cmTC_3d4cd.dir/CheckIncludeFile.c.o   -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_3d4cd
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3d4cd.dir/link.txt --verbose=1
+/usr/bin/cc  -std=c11     -rdynamic CMakeFiles/cmTC_3d4cd.dir/CheckIncludeFile.c.o  -o cmTC_3d4cd 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function pthread_create exists in the pthread passed with the following output:
 Change Dir: /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_e7ca3/fast"
+Run Build Command:"/usr/bin/gmake" "cmTC_3fff0/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_3fff0.dir/build.make CMakeFiles/cmTC_3fff0.dir/build
 gmake[1]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-/usr/bin/gmake -f CMakeFiles/cmTC_e7ca3.dir/build.make CMakeFiles/cmTC_e7ca3.dir/build
-gmake[2]: Entering directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_e7ca3.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -std=c11 -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_e7ca3.dir/CheckFunctionExists.c.o   -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CheckFunctionExists.c
-Linking C executable cmTC_e7ca3
-/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e7ca3.dir/link.txt --verbose=1
-/usr/bin/cc  -std=c11 -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_e7ca3.dir/CheckFunctionExists.c.o  -o cmTC_e7ca3 -lpthread 
-gmake[2]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3fff0.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -std=c11 -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_3fff0.dir/CheckFunctionExists.c.o   -c /usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_3fff0
+/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3fff0.dir/link.txt --verbose=1
+/usr/bin/cc  -std=c11 -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_3fff0.dir/CheckFunctionExists.c.o  -o cmTC_3fff0 -lpthread 
 gmake[1]: Leaving directory `/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/CMakeTmp'
 
 
