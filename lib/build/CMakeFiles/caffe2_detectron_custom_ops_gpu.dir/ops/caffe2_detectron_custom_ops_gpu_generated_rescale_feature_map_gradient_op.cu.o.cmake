@@ -58,9 +58,9 @@ endif()
 
 # Set these up as variables to make reading the generated file easier
 set(CMAKE_COMMAND "/usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake") # path
-set(source_file "/home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/zero_even_op.cu") # path
-set(NVCC_generated_dependency_file "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.NVCC-depend") # path
-set(cmake_dependency_file "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.depend") # path
+set(source_file "/home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cu") # path
+set(NVCC_generated_dependency_file "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.NVCC-depend") # path
+set(cmake_dependency_file "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.depend") # path
 set(CUDA_make2cmake "/usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/FindCUDA/make2cmake.cmake") # path
 set(CUDA_parse_cubin "/usr/local/cmake-3.10.2-Linux-x86_64/share/cmake-3.10/Modules/FindCUDA/parse_cubin.cmake") # path
 set(build_cubin OFF) # bool
@@ -68,8 +68,8 @@ set(CUDA_HOST_COMPILER "/usr/bin/cc") # path
 # We won't actually use these variables for now, but we need to set this, in
 # order to force this file to be run again if it changes.
 set(generated_file_path "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/.") # path
-set(generated_file_internal "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o") # path
-set(generated_cubin_file_internal "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.cubin.txt") # path
+set(generated_file_internal "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o") # path
+set(generated_cubin_file_internal "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.cubin.txt") # path
 
 set(CUDA_NVCC_EXECUTABLE "/usr/local/cuda/bin/nvcc") # path
 set(CUDA_NVCC_FLAGS -D_MWAITXINTRIN_H_INCLUDED;-D__STRICT_ANSI__;-Wno-deprecated-gpu-targets;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-Xcudafe;--diag_suppress=cc_clobber_ignored;-Xcudafe;--diag_suppress=integer_sign_change;-Xcudafe;--diag_suppress=useless_using_declaration;-Xcudafe;--diag_suppress=set_but_not_used;-std=c++11;-Xcompiler -fPIC;--expt-relaxed-constexpr ;; ) # list
@@ -79,8 +79,8 @@ set(CUDA_NVCC_FLAGS_MINSIZEREL  ; )
 set(CUDA_NVCC_FLAGS_RELEASE  ; )
 set(CUDA_NVCC_FLAGS_RELWITHDEBINFO  ; )
 set(nvcc_flags -m64;-Dcaffe2_detectron_custom_ops_gpu_EXPORTS) # list
-set(CUDA_NVCC_INCLUDE_DIRS "/usr/local/cuda/include;$<TARGET_PROPERTY:caffe2_detectron_custom_ops_gpu,INCLUDE_DIRECTORIES>") # list (needs to be in quotes to handle spaces properly).
-set(CUDA_NVCC_COMPILE_DEFINITIONS [==[$<TARGET_PROPERTY:caffe2_detectron_custom_ops_gpu,COMPILE_DEFINITIONS>]==]) # list (needs to be in lua quotes see #16510 ).
+set(CUDA_NVCC_INCLUDE_DIRS "/usr/local/cuda/include;/usr/local/cuda/include;/usr/local/cuda/include;/usr/local/include;/usr/local/cuda/include;/usr/local/include;/usr/local/include;/usr/local/include;/usr/include;/usr/local/include;/usr/local/include;/usr/local/cuda/include;/usr/local/cuda/include;/usr/local/cuda/include;/usr/local/cuda/include;/usr/local/cuda/include") # list (needs to be in quotes to handle spaces properly).
+set(CUDA_NVCC_COMPILE_DEFINITIONS [==[GFLAGS_IS_A_DLL=0;GOOGLE_GLOG_DLL_DECL=;GOOGLE_GLOG_DLL_DECL_FOR_UNITTESTS=]==]) # list (needs to be in lua quotes see #16510 ).
 set(format_flag "-c") # string
 set(cuda_language_flag ) # list
 

@@ -57,16 +57,78 @@ include CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/flags.make
 
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.depend
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.cmake
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o: ../ops/rescale_feature_map_gradient_op.cu
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building NVCC (Device) object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o"
+	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops && /usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E make_directory /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/.
+	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops && /usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -D verbose:BOOL=$(VERBOSE) -D build_configuration:STRING= -D generated_file:STRING=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o -D generated_cubin_file:STRING=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.cubin.txt -P /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.cmake
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o.depend
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o.cmake
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o: ../ops/rescale_feature_map_op.cu
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building NVCC (Device) object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o"
+	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops && /usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E make_directory /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/.
+	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops && /usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -D verbose:BOOL=$(VERBOSE) -D build_configuration:STRING= -D generated_file:STRING=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o -D generated_cubin_file:STRING=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o.cubin.txt -P /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o.cmake
+
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.depend
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.cmake
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o: ../ops/zero_even_op.cu
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building NVCC (Device) object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building NVCC (Device) object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o"
 	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops && /usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -E make_directory /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/.
 	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops && /usr/local/cmake-3.10.2-Linux-x86_64/bin/cmake -D verbose:BOOL=$(VERBOSE) -D build_configuration:STRING= -D generated_file:STRING=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o -D generated_cubin_file:STRING=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.cubin.txt -P /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.cmake
 
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/flags.make
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o: ../ops/rescale_feature_map_gradient_op.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc > CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.i
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc -o CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.s
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.requires:
+
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.requires
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.provides: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.requires
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.provides.build
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.provides
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.provides.build: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o
+
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/flags.make
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o: ../ops/rescale_feature_map_op.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc > CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.i
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc -o CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.s
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.requires:
+
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.requires
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.provides: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.requires
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.provides.build
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.provides
+
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.provides.build: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o
+
+
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/flags.make
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o: ../ops/zero_even_op.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/zero_even_op.cc
 
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.i: cmake_force
@@ -90,13 +152,21 @@ CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o.provides.bu
 
 # Object files for target caffe2_detectron_custom_ops_gpu
 caffe2_detectron_custom_ops_gpu_OBJECTS = \
+"CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o" \
+"CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o" \
 "CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o"
 
 # External object files for target caffe2_detectron_custom_ops_gpu
 caffe2_detectron_custom_ops_gpu_EXTERNAL_OBJECTS = \
+"/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o" \
+"/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o" \
 "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o"
 
+libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o
+libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o
 libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o
+libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o
+libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o
 libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o
 libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make
 libcaffe2_detectron_custom_ops_gpu.so: /usr/local/cuda/lib64/libcudart_static.a
@@ -117,7 +187,7 @@ libcaffe2_detectron_custom_ops_gpu.so: /usr/local/cuda/lib64/libcublas_device.a
 libcaffe2_detectron_custom_ops_gpu.so: /usr/local/cuda/lib64/libcudnn.so
 libcaffe2_detectron_custom_ops_gpu.so: /usr/local/lib/libnvrtc.so
 libcaffe2_detectron_custom_ops_gpu.so: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX shared library libcaffe2_detectron_custom_ops_gpu.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX shared library libcaffe2_detectron_custom_ops_gpu.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -125,6 +195,8 @@ CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build: libcaffe2_detectron_custom
 
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build
 
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/requires: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o.requires
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/requires: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o.requires
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/requires: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/zero_even_op.cc.o.requires
 
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/requires
@@ -133,6 +205,8 @@ CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/clean:
 	$(CMAKE_COMMAND) -P CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/cmake_clean.cmake
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/clean
 
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/depend: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o
+CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/depend: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/depend: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o
 	cd /home/zhangwei/shuqin/MyGit/RefineNet/lib/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangwei/shuqin/MyGit/RefineNet/lib /home/zhangwei/shuqin/MyGit/RefineNet/lib /home/zhangwei/shuqin/MyGit/RefineNet/lib/build /home/zhangwei/shuqin/MyGit/RefineNet/lib/build /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/depend

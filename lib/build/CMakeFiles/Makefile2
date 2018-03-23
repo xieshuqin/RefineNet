@@ -66,7 +66,7 @@ CMAKE_BINARY_DIR = /home/zhangwei/shuqin/MyGit/RefineNet/lib/build
 CMakeFiles/caffe2_detectron_custom_ops.dir/all:
 	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/depend
 	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=1,2 "Built target caffe2_detectron_custom_ops"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=1,2,3,4 "Built target caffe2_detectron_custom_ops"
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/all
 
 # Include target in all.
@@ -76,7 +76,7 @@ all: CMakeFiles/caffe2_detectron_custom_ops.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/caffe2_detectron_custom_ops.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/caffe2_detectron_custom_ops.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles 0
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/rule
@@ -103,7 +103,7 @@ clean: CMakeFiles/caffe2_detectron_custom_ops.dir/clean
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/all:
 	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/depend
 	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=3,4,5 "Built target caffe2_detectron_custom_ops_gpu"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=5,6,7,8,9,10,11 "Built target caffe2_detectron_custom_ops_gpu"
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/all
 
 # Include target in all.
@@ -113,7 +113,7 @@ all: CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles 7
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles 0
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/rule

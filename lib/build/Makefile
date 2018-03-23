@@ -182,6 +182,66 @@ caffe2_detectron_custom_ops_gpu/fast:
 	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build
 .PHONY : caffe2_detectron_custom_ops_gpu/fast
 
+ops/rescale_feature_map_gradient_op.o: ops/rescale_feature_map_gradient_op.cc.o
+
+.PHONY : ops/rescale_feature_map_gradient_op.o
+
+# target to build an object file
+ops/rescale_feature_map_gradient_op.cc.o:
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.o
+.PHONY : ops/rescale_feature_map_gradient_op.cc.o
+
+ops/rescale_feature_map_gradient_op.i: ops/rescale_feature_map_gradient_op.cc.i
+
+.PHONY : ops/rescale_feature_map_gradient_op.i
+
+# target to preprocess a source file
+ops/rescale_feature_map_gradient_op.cc.i:
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.i
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.i
+.PHONY : ops/rescale_feature_map_gradient_op.cc.i
+
+ops/rescale_feature_map_gradient_op.s: ops/rescale_feature_map_gradient_op.cc.s
+
+.PHONY : ops/rescale_feature_map_gradient_op.s
+
+# target to generate assembly for a file
+ops/rescale_feature_map_gradient_op.cc.s:
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.s
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_gradient_op.cc.s
+.PHONY : ops/rescale_feature_map_gradient_op.cc.s
+
+ops/rescale_feature_map_op.o: ops/rescale_feature_map_op.cc.o
+
+.PHONY : ops/rescale_feature_map_op.o
+
+# target to build an object file
+ops/rescale_feature_map_op.cc.o:
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.o
+.PHONY : ops/rescale_feature_map_op.cc.o
+
+ops/rescale_feature_map_op.i: ops/rescale_feature_map_op.cc.i
+
+.PHONY : ops/rescale_feature_map_op.i
+
+# target to preprocess a source file
+ops/rescale_feature_map_op.cc.i:
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.i
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.i
+.PHONY : ops/rescale_feature_map_op.cc.i
+
+ops/rescale_feature_map_op.s: ops/rescale_feature_map_op.cc.s
+
+.PHONY : ops/rescale_feature_map_op.s
+
+# target to generate assembly for a file
+ops/rescale_feature_map_op.cc.s:
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.s
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/build.make CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/rescale_feature_map_op.cc.s
+.PHONY : ops/rescale_feature_map_op.cc.s
+
 ops/zero_even_op.o: ops/zero_even_op.cc.o
 
 .PHONY : ops/zero_even_op.o
@@ -226,6 +286,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... caffe2_detectron_custom_ops"
 	@echo "... caffe2_detectron_custom_ops_gpu"
+	@echo "... ops/rescale_feature_map_gradient_op.o"
+	@echo "... ops/rescale_feature_map_gradient_op.i"
+	@echo "... ops/rescale_feature_map_gradient_op.s"
+	@echo "... ops/rescale_feature_map_op.o"
+	@echo "... ops/rescale_feature_map_op.i"
+	@echo "... ops/rescale_feature_map_op.s"
 	@echo "... ops/zero_even_op.o"
 	@echo "... ops/zero_even_op.i"
 	@echo "... ops/zero_even_op.s"

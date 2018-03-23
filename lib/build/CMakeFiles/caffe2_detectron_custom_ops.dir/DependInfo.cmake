@@ -4,6 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc" "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o"
+  "/home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc" "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o"
   "/home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/zero_even_op.cc" "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

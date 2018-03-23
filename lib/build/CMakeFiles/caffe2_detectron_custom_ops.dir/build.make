@@ -57,9 +57,57 @@ include CMakeFiles/caffe2_detectron_custom_ops.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/caffe2_detectron_custom_ops.dir/flags.make
 
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o: CMakeFiles/caffe2_detectron_custom_ops.dir/flags.make
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o: ../ops/rescale_feature_map_gradient_op.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc > CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.i
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_gradient_op.cc -o CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.s
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.requires:
+
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.requires
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.provides: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.requires
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.provides.build
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.provides
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.provides.build: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o
+
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o: CMakeFiles/caffe2_detectron_custom_ops.dir/flags.make
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o: ../ops/rescale_feature_map_op.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc > CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.i
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/rescale_feature_map_op.cc -o CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.s
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.requires:
+
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.requires
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.provides: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.requires
+	$(MAKE) -f CMakeFiles/caffe2_detectron_custom_ops.dir/build.make CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.provides.build
+.PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.provides
+
+CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.provides.build: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o
+
+
 CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o: CMakeFiles/caffe2_detectron_custom_ops.dir/flags.make
 CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o: ../ops/zero_even_op.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o -c /home/zhangwei/shuqin/MyGit/RefineNet/lib/ops/zero_even_op.cc
 
 CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.i: cmake_force
@@ -83,11 +131,15 @@ CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o.provides.build:
 
 # Object files for target caffe2_detectron_custom_ops
 caffe2_detectron_custom_ops_OBJECTS = \
+"CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o" \
+"CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o" \
 "CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o"
 
 # External object files for target caffe2_detectron_custom_ops
 caffe2_detectron_custom_ops_EXTERNAL_OBJECTS =
 
+libcaffe2_detectron_custom_ops.so: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o
+libcaffe2_detectron_custom_ops.so: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o
 libcaffe2_detectron_custom_ops.so: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o
 libcaffe2_detectron_custom_ops.so: CMakeFiles/caffe2_detectron_custom_ops.dir/build.make
 libcaffe2_detectron_custom_ops.so: /usr/local/lib/libcaffe2.so
@@ -97,7 +149,7 @@ libcaffe2_detectron_custom_ops.so: /usr/lib64/libz.so
 libcaffe2_detectron_custom_ops.so: /usr/local/lib64/libglog.so.0.3.5
 libcaffe2_detectron_custom_ops.so: /usr/local/lib/libgflags.so.2.2.1
 libcaffe2_detectron_custom_ops.so: CMakeFiles/caffe2_detectron_custom_ops.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX shared library libcaffe2_detectron_custom_ops.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX shared library libcaffe2_detectron_custom_ops.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/caffe2_detectron_custom_ops.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -105,6 +157,8 @@ CMakeFiles/caffe2_detectron_custom_ops.dir/build: libcaffe2_detectron_custom_ops
 
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/build
 
+CMakeFiles/caffe2_detectron_custom_ops.dir/requires: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_gradient_op.cc.o.requires
+CMakeFiles/caffe2_detectron_custom_ops.dir/requires: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/rescale_feature_map_op.cc.o.requires
 CMakeFiles/caffe2_detectron_custom_ops.dir/requires: CMakeFiles/caffe2_detectron_custom_ops.dir/ops/zero_even_op.cc.o.requires
 
 .PHONY : CMakeFiles/caffe2_detectron_custom_ops.dir/requires

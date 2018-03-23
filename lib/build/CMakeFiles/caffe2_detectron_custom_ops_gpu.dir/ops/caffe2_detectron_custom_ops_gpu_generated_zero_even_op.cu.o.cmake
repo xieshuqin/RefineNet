@@ -72,7 +72,7 @@ set(generated_file_internal "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMa
 set(generated_cubin_file_internal "/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/./caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.cubin.txt") # path
 
 set(CUDA_NVCC_EXECUTABLE "/usr/local/cuda/bin/nvcc") # path
-set(CUDA_NVCC_FLAGS -D_MWAITXINTRIN_H_INCLUDED;-D__STRICT_ANSI__;-Wno-deprecated-gpu-targets;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-Xcudafe;--diag_suppress=cc_clobber_ignored;-Xcudafe;--diag_suppress=integer_sign_change;-Xcudafe;--diag_suppress=useless_using_declaration;-Xcudafe;--diag_suppress=set_but_not_used;-std=c++11;-Xcompiler -fPIC;--expt-relaxed-constexpr;-D_MWAITXINTRIN_H_INCLUDED;-D__STRICT_ANSI__;-Wno-deprecated-gpu-targets;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-Xcudafe;--diag_suppress=cc_clobber_ignored;-Xcudafe;--diag_suppress=integer_sign_change;-Xcudafe;--diag_suppress=useless_using_declaration;-Xcudafe;--diag_suppress=set_but_not_used;-std=c++11;-Xcompiler -fPIC;--expt-relaxed-constexpr ;; ) # list
+set(CUDA_NVCC_FLAGS -D_MWAITXINTRIN_H_INCLUDED;-D__STRICT_ANSI__;-Wno-deprecated-gpu-targets;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-Xcudafe;--diag_suppress=cc_clobber_ignored;-Xcudafe;--diag_suppress=integer_sign_change;-Xcudafe;--diag_suppress=useless_using_declaration;-Xcudafe;--diag_suppress=set_but_not_used;-std=c++11;-Xcompiler -fPIC;--expt-relaxed-constexpr ;; ) # list
 # Build specific configuration flags
 set(CUDA_NVCC_FLAGS_DEBUG  ; )
 set(CUDA_NVCC_FLAGS_MINSIZEREL  ; )

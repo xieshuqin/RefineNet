@@ -506,7 +506,7 @@ CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 CUDA_64_BIT_DEVICE_CODE-ADVANCED:INTERNAL=1
 //List of intermediate files that are part of the cuda dependency
 // scanning.
-CUDA_ADDITIONAL_CLEAN_FILES:INTERNAL=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.depend
+CUDA_ADDITIONAL_CLEAN_FILES:INTERNAL=/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_gradient_op.cu.o.depend;/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_rescale_feature_map_op.cu.o.depend;/home/zhangwei/shuqin/MyGit/RefineNet/lib/build/CMakeFiles/caffe2_detectron_custom_ops_gpu.dir/ops/caffe2_detectron_custom_ops_gpu_generated_zero_even_op.cu.o.depend
 //ADVANCED property for variable: CUDA_ARCH_NAME
 CUDA_ARCH_NAME-ADVANCED:INTERNAL=1
 //STRINGS property for variable: CUDA_ARCH_NAME
