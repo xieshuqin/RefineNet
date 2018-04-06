@@ -145,6 +145,11 @@ if(NOT CUDA_FOUND)
   return()
 endif()
 
+set(CLEAR TRUE)
+if (${CLEAR})
+  set(CUDA_NVCC_FLAGS "")
+endif()
+
 set(HAVE_CUDA TRUE)
 message(STATUS "CUDA detected: " ${CUDA_VERSION})
 if (${CUDA_VERSION} LESS 7.0)

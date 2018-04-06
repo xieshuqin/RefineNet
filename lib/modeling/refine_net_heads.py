@@ -175,24 +175,28 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
         spatial_scale=spatial_scale
     )
 
-    # Generate mask indicators
-    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
-    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
-    blob_data = core.ScopedBlobReference('data')
-    mask_indicators = model.GenerateLocalMaskIndicators(
-        blobs_in=[blob_data, mask_probs],
-        blob_out='mask_indicators',
-        blob_rois='mask_rois',
-    )
+    if cfg.REFINENET.USE_INDICATOR: # whether to use indicator
+        # Generate mask indicators
+        num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
+        mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+        blob_data = core.ScopedBlobReference('data')
+        mask_indicators = model.GenerateLocalMaskIndicators(
+            blobs_in=[blob_data, mask_probs],
+            blob_out='mask_indicators',
+            blob_rois='mask_rois',
+        )
 
-    # Concatenate along the channel dimension
-    concat_list = [rois_global_feat, mask_indicators]
-    refine_net_input, _ = model.net.Concat(
-        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
-    )
+        # Concatenate along the channel dimension
+        concat_list = [rois_global_feat, mask_indicators]
+        refine_net_input, _ = model.net.Concat(
+            concat_list, ['refine_mask_net_input', '_split_info'], axis=1
+        )
 
-    blob_out = refine_net_input
-    dim_out = dim_in + num_cls
+        blob_out = refine_net_input
+        dim_out = dim_in + num_cls
+    else:
+        blob_out = rois_global_feat
+        dim_out = dim_in
 
     return blob_out, dim_out
 
