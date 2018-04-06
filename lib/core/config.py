@@ -948,6 +948,9 @@ __C.REFINENET.MRCNN_FCN.NUM_CONVS = 4 # default num convs
 # Using Deconv in the MRCNN_FCN head
 __C.REFINENET.MRCNN_FCN.USE_DECONV = False # default is false
 
+# Adding the indicator to the network
+__C.REFINENET.USE_INDICATOR = True
+
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options
