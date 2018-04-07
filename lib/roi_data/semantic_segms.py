@@ -81,4 +81,4 @@ def add_semantic_segms_blobs(blobs, roidb, im_scale, batch_idx, data):
         semantic_segms = -blob_utils.ones((1, num_cls*out_h*out_w), int32=True)
 
     blobs['semantic_segms_int32'] = semantic_segms
-    blobs['img_rois'] = np.array([batch_idx, 0, 0, inp_w-1, inp_h-1])[np.newaxis, :]
+    blobs['img_rois'] = np.array([batch_idx, 0, 0, inp_w-1, inp_h-1], dtype=np.float32)[np.newaxis, :]

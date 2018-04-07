@@ -95,6 +95,7 @@ def main(args):
     merge_cfg_from_file(args.cfg)
     cfg.TEST.WEIGHTS = args.weights
     cfg.NUM_GPUS = 1
+    cfg.TRAIN.IMS_PER_BATCH = 1
     assert_and_infer_cfg()
     model = infer_engine.initialize_model_from_cfg()
     dummy_coco_dataset = dummy_datasets.get_coco_dataset()

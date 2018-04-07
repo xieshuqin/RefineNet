@@ -82,7 +82,9 @@ def get_minibatch(roidb):
         )
     else:
         # Fast R-CNN like models trained on precomputed proposals
-        valid = roi_data.fast_rcnn.add_fast_rcnn_blobs(blobs, im_scales, roidb)
+        valid = roi_data.fast_rcnn.add_fast_rcnn_blobs(
+                blobs, im_scales, roidb, im_blob
+        )
     return blobs, valid
 
 

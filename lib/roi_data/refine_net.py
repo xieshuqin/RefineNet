@@ -115,8 +115,8 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
         # We simply take the first bg roi, given it an all -1's mask (ignore
         # label), and label it with class zero (bg).
         bg_inds = np.where(blobs['labels_int32'] == 0)[0]
-        # rois_fg is actually one background roi, but that's ok because ...
-        rois_fg = sampled_boxes[bg_inds[0]].reshape((1, -1))
+        # pad_rois_fg is actually one background roi, but that's ok because ...
+        pad_rois_fg = sampled_boxes[bg_inds[0]].reshape((1, -1))
         # We give it an -1's blob (ignore label)
         masks = -blob_utils.ones((1, M**2), int32=True)
         # We label it with class = 0 (background)
@@ -128,9 +128,9 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
         masks = _expand_to_class_specific_mask_targets(masks, mask_class_labels)
 
     # Scale rois_fg and format as (batch_idx, x1, y1, x2, y2)
-    pad_rois_fg = ((pad_rois_fg.astype(np.float32))*im_scale).astype(np.int32)
+    pad_rois_fg = (pad_rois_fg.astype(np.float32))*im_scale
     repeated_batch_idx = batch_idx * blob_utils.ones((pad_rois_fg.shape[0], 1))
-    pad_rois_fg = np.hstack((repeated_batch_idx, pad_rois_fg))
+    pad_rois_fg = np.hstack((repeated_batch_idx, pad_rois_fg)).astype(np.int32)
 
     # Update blobs dict with Refine-Net blobs
     blobs['refined_mask_rois'] = pad_rois_fg
