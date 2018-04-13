@@ -134,11 +134,15 @@ class JsonDataset(object):
         num_overlaps = {}
         thresholds = np.arange(9)*0.1 + 0.1
         for _, thres in enumerate(thresholds):
-            num_overlaps[str(thres)] = 0
+            key = "{%.1f}" % thres
+            num_overlaps[key] = 0
+            num_objs = 0
             for i, entry in enumerate(roidb):
-                num_overlaps[str(thres)] += self._calculate_gt_bbox_overlaps(
+                num_overlaps[key] += self._calculate_gt_bbox_overlaps(
                     entry, thres, is_same_cls
                 )
+                num_objs += entry['boxes'].shape[0]
+            num_overlaps[key] /= num_objs
         return num_overlaps
 
     def _prep_roidb_entry(self, entry):
@@ -261,13 +265,13 @@ class JsonDataset(object):
             entry['has_visible_keypoints'] = im_has_visible_keypoints
 
     def _calculate_gt_bbox_overlaps(self, entry, threshold, is_same_cls=True):
-        """ Calculate the overlap between gt bbox, will be used for 
+        """ Calculate the overlap between gt bbox, will be used for
             merging significantly overlaped bbox to one single bbox
         """
         gt_boxes = entry['boxes']
         segms = entry['segms']
         gt_classes = entry['gt_classes']
-        num_valid_objs = boxes.shape[0]
+        num_valid_objs = gt_boxes.shape[0]
         gt_to_gt_overlaps = box_utils.bbox_overlaps(
                 gt_boxes.astype(dtype=np.float32, copy=False),
                 gt_boxes.astype(dtype=np.float32, copy=False)
