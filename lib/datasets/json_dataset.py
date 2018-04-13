@@ -129,6 +129,18 @@ class JsonDataset(object):
         _add_class_assignments(roidb)
         return roidb
 
+    def get_gt_overlap_statistics(self, roidb, is_same_cls=True):
+        """ calculate gt overlap statistics """
+        num_overlaps = {}
+        thresholds = np.arange(9)*0.1 + 0.1
+        for _, thres in enumerate(thresholds):
+            num_overlaps[str(thres)] = 0
+            for i, entry in enumerate(roidb):
+                num_overlaps[str(thres)] += self._calculate_gt_bbox_overlaps(
+                    entry, thres, is_same_cls
+                )
+        return num_overlaps
+
     def _prep_roidb_entry(self, entry):
         """Adds empty metadata fields to an roidb entry."""
         # Reference back to the parent dataset
@@ -247,6 +259,28 @@ class JsonDataset(object):
                 entry['gt_keypoints'], gt_keypoints, axis=0
             )
             entry['has_visible_keypoints'] = im_has_visible_keypoints
+
+    def _calculate_gt_bbox_overlaps(self, entry, threshold, is_same_cls=True):
+        """ Calculate the overlap between gt bbox, will be used for 
+            merging significantly overlaped bbox to one single bbox
+        """
+        gt_boxes = entry['boxes']
+        segms = entry['segms']
+        gt_classes = entry['gt_classes']
+        num_valid_objs = boxes.shape[0]
+        gt_to_gt_overlaps = box_utils.bbox_overlaps(
+                gt_boxes.astype(dtype=np.float32, copy=False),
+                gt_boxes.astype(dtype=np.float32, copy=False)
+        )
+        # keep the up-triangle matrix
+        gt_to_gt_overlaps = np.triu(gt_to_gt_overlaps, k=1)
+        # only cares for overlap in the same class
+        if is_same_cls:
+            mask = ((gt_classes[:, np.newaxis] - gt_classes[np.newaxis, :]) == 0)
+            gt_to_gt_overlaps = gt_to_gt_overlaps[mask]
+        num_overlap = np.sum(gt_to_gt_overlaps > threshold)
+
+        return num_overlap
 
     def _add_proposals_from_file(
         self, roidb, proposal_file, min_proposal_size, top_k, crowd_thresh
