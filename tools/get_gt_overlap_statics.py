@@ -24,6 +24,13 @@ def parse_args():
         default=None,
         type=str
     )
+    # parser.add_argument(
+    #     '--imgIds',
+    #     dest='imgIds',
+    #     help='The imgIds you want to test',
+    #     default=None,
+    #     type=int
+    # )
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -37,11 +44,13 @@ def main():
     assert_and_infer_cfg()
     print('Evaluating datasets: ', cfg.TRAIN.DATASETS[0])
     ds = JsonDataset(cfg.TRAIN.DATASETS[0])
-    roidb = ds.get_roidb(gt=True)
-    num_overlaps = ds.get_gt_overlap_statistics(roidb, is_same_cls=True)
-
-    for k in sorted(num_overlaps):
-        print(k, num_overlaps[k])
+    imgIds = [127286]
+    # roidb = ds.get_roidb(gt=True)
+    # num_overlaps = ds.get_gt_overlap_statistics(roidb, is_same_cls=True)
+    ds.get_gt_overlap_for_imgIds(imgIds)
+    
+    # for k in sorted(num_overlaps):
+    #     print(k, num_overlaps[k])
 
 if __name__ == '__main__':
     main()

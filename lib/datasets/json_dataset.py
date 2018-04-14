@@ -130,7 +130,6 @@ class JsonDataset(object):
         return roidb
 
     def get_gt_overlap_statistics(self, roidb, is_same_cls=True):
-        """ calculate gt overlap statistics """
         num_overlaps = {}
         thresholds = np.arange(9)*0.1 + 0.1
         for _, thres in enumerate(thresholds):
@@ -144,6 +143,23 @@ class JsonDataset(object):
                 num_objs += entry['boxes'].shape[0]
             num_overlaps[key] /= num_objs
         return num_overlaps
+
+    def get_gt_overlap_for_imgIds(self, imgIds=None):
+        """ calculate gt overlap statistics """
+        if imgIds == None:
+            image_ids = self.COCO.getImgIds()
+            image_ids.sort()
+        elif isinstance(imgIds, list) == False:
+            image_ids = [imgIds]
+        else:
+            image_ids = imgIds
+        roidb = copy.deepcopy(self.COCO.loadImgs(image_ids))
+        for entry in roidb:
+            self._prep_roidb_entry(entry)
+            self._add_gt_annotations(entry)
+            overlaps = self._get_gt_bboxes_overlaps(entry)
+            print('The fucking overlaps is ',overlaps)
+
 
     def _prep_roidb_entry(self, entry):
         """Adds empty metadata fields to an roidb entry."""
@@ -263,6 +279,14 @@ class JsonDataset(object):
                 entry['gt_keypoints'], gt_keypoints, axis=0
             )
             entry['has_visible_keypoints'] = im_has_visible_keypoints
+
+    def _get_gt_bboxes_overlaps(self, entry):
+        gt_boxes = entry['boxes']
+        gt_to_gt_overlaps = box_utils.bbox_overlaps(
+            gt_boxes.astype(dtype=np.float32, copy=False),
+            gt_boxes.astype(dtype=np.float32, copy=False)
+        )
+        return gt_to_gt_overlaps
 
     def _calculate_gt_bbox_overlaps(self, entry, threshold, is_same_cls=True):
         """ Calculate the overlap between gt bbox, will be used for
