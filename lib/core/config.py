@@ -219,6 +219,8 @@ __C.TEST.DATASETS = ()
 # inference
 __C.TEST.SCALES = (600, )
 
+__C.TEST.SCALE = 800
+
 # Max pixel size of the longest side of a scaled input image
 __C.TEST.MAX_SIZE = 1000
 
