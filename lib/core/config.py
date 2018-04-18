@@ -953,6 +953,12 @@ __C.REFINENET.MRCNN_FCN.USE_DECONV = False # default is false
 # Adding the indicator to the network
 __C.REFINENET.USE_INDICATOR = True
 
+# Indicator threshold option
+__C.REFINENET.USE_THRES_INDICATOR = False
+
+# Indicator threshold
+__C.REFINENET.INDICATOR_THRES = 0.9
+
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options

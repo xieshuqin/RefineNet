@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 import cv2
+from core.config import cfg
 import utils.boxes as box_utils
 
 class GenerateGlobalMaskIndicatorsOp(object):
@@ -76,6 +77,12 @@ class GenerateLocalMaskIndicatorsOp(object):
         mask_probs = inputs[1].data
         mask_rois = inputs[2].data
 
+        # whether using binary threshold for indicator
+        if cfg.REFINENET.USE_THRES_INDICATOR:
+            mask_binary = np.array(
+                mask_probs > cfg.REFINENET.INDICATOR_THRES, dtype=np.float32
+            )
+            mask_probs *= mask_binary
         # output indicator resolution
         M = self.resolution
         up_scale = self.up_scale
