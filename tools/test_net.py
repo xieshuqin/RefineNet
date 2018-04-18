@@ -148,6 +148,7 @@ if __name__ == '__main__':
     args = parse_args()
     logger.info('Called with args:')
     logger.info(args)
+    cfg.VIS = args.vis
     if args.cfg_file is not None:
         merge_cfg_from_file(args.cfg_file)
     if args.opts is not None:
