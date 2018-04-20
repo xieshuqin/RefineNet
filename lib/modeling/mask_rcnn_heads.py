@@ -92,14 +92,35 @@ def add_mask_rcnn_outputs(model, blob_in, dim):
 
 
 def add_mask_rcnn_losses(model, blob_mask):
-    """Add Mask R-CNN specific losses."""
-    loss_mask = model.net.SigmoidCrossEntropyLoss(
-        [blob_mask, 'masks_int32'],
-        'loss_mask',
-        scale=1. / cfg.NUM_GPUS * cfg.MRCNN.WEIGHT_LOSS_MASK
-    )
-    loss_gradients = blob_utils.get_loss_gradients(model, [loss_mask])
-    model.AddLosses('loss_mask')
+    # If using indicator loss
+    if not cfg.MODEL.INDICATOR_LOSS_ON:
+        """Add Mask R-CNN specific losses."""
+        loss_mask = model.net.SigmoidCrossEntropyLoss(
+            [blob_mask, 'masks_int32'],
+            'loss_mask',
+            scale=1. / cfg.NUM_GPUS * cfg.MRCNN.WEIGHT_LOSS_MASK
+        )
+        loss_gradients = blob_utils.get_loss_gradients(model, [loss_mask])
+        model.AddLosses('loss_mask')
+    else:
+        """Add encouragment losses."""
+        loss_mask = model.net.SigmoidCrossEntropyLoss(
+            [blob_mask, 'masks_int32'],
+            'loss_mask',
+            scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_ENCOURAGE
+        )
+        # Add 
+        loss_indicator = model.net.ThresholdSigmoidCrossEntropyLoss(
+            [blob_mask, 'masks_int32'],
+            'loss_indicator',
+            scale = 1. / cfg.NUM_GPUS,
+            threshold = cfg.REFINENET.INDICATOR_LOSS_THRESHOLD
+        )
+        loss_gradients = blob_utils.get_loss_gradients(
+            model, [loss_mask, loss_indicator]
+        )
+        model.AddLosses(['loss_mask', 'loss_indicator'])
+
     return loss_gradients
 
 

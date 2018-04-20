@@ -505,6 +505,9 @@ __C.MODEL.FREEZE_MASK_RCNN = False
 # Add Semantic Segmentation Net
 __C.MODEL.SEMANTIC_ON = False
 
+# Apply Indicator Loss
+__C.MODEL.INDICATOR_LOSS_ON = False
+
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
 # ---------------------------------------------------------------------------- #
@@ -958,6 +961,12 @@ __C.REFINENET.USE_THRES_INDICATOR = False
 
 # Indicator threshold
 __C.REFINENET.INDICATOR_THRES = 0.9
+
+# Threshold for indicator loss
+__C.REFINENET.INDICATOR_LOSS_THRESHOLD = 0.5
+
+# Weight of loss to encourage activation for indicator
+__C.REFINENET.WEIGHT_LOSS_ENCOURAGE = 0.1
 
 
 # ---------------------------------------------------------------------------- #
