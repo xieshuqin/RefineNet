@@ -73,7 +73,7 @@ bool ThresholdSigmoidCrossEntropyLossOp<float, CUDAContext>::RunOnDevice() {
   auto& T = Input(1);
   auto* avg_loss = Output(0);
 
-  const float logit_threshold = logf(threshold_ / (1. - threshold_))
+  const float logit_threshold = logf(threshold_ / (1. - threshold_));
 
   CAFFE_ENFORCE(
       X.size() == T.size(),
@@ -127,7 +127,7 @@ bool ThresholdSigmoidCrossEntropyLossGradientOp<float, CUDAContext>::RunOnDevice
   auto& d_avg_loss = Input(2);
   auto* dX = Output(0);
 
-  const float logit_threshold = logf(threshold_ / (1. - threshold_))
+  const float logit_threshold = logf(threshold_ / (1. - threshold_));
 
   dX->ResizeLike(X);
   counts_.ResizeLike(X);

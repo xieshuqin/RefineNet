@@ -31,7 +31,7 @@ class ThresholdSigmoidCrossEntropyLossOp final : public Operator<Context> {
       : Operator<Context>(operator_def, ws),
         scale_(OperatorBase::GetSingleArgument<float>("scale", 1.)),
         normalize_(OperatorBase::GetSingleArgument<int>("normalize", 1)),
-        threshold_(OperatorBase::GetSingleArgument<float>("threshold", 0.5)), {
+        threshold_(OperatorBase::GetSingleArgument<float>("threshold", 0.5)) {
     CAFFE_ENFORCE(scale_ >= 0);
     CAFFE_ENFORCE(normalize_ == 0 || normalize_ == 1);
     CAFFE_ENFORCE(threshold_ >= 0 && threshold_ < 1);
@@ -59,7 +59,7 @@ class ThresholdSigmoidCrossEntropyLossGradientOp final : public Operator<Context
       : Operator<Context>(def, ws),
         scale_(OperatorBase::GetSingleArgument<float>("scale", 1.)),
         normalize_(OperatorBase::GetSingleArgument<int>("normalize", 1)),
-        threshold_(OperatorBase::GetSingleArgument<float>("threshold", 0.5)), {
+        threshold_(OperatorBase::GetSingleArgument<float>("threshold", 0.5)) {
     CAFFE_ENFORCE(scale_ >= 0);
     CAFFE_ENFORCE(normalize_ == 0 || normalize_ == 1);
     CAFFE_ENFORCE(threshold_ >= 0 && threshold_ < 1);
