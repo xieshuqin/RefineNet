@@ -968,6 +968,9 @@ __C.REFINENET.INDICATOR_LOSS_THRESHOLD = 0.5
 # Weight of loss to encourage activation for indicator
 __C.REFINENET.WEIGHT_LOSS_ENCOURAGE = 0.1
 
+# Auto learning indicators
+__C.REFINENET.AUTO_LEARNING_INDICATOR = False
+
 
 # ---------------------------------------------------------------------------- #
 # Hourglass options
