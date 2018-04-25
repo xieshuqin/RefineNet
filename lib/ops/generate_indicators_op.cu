@@ -180,7 +180,7 @@ __global__ void GenerateIndicatorsForward(
     const int width,
     const int top_height,
     const int top_width,
-    const int* coordinates,
+    const T* coordinates,
     T* top_data) {
   CUDA_1D_KERNEL_LOOP(index, nthreads) {
     // (n, c, ph, pw) is an element in the pooled output
@@ -189,11 +189,11 @@ __global__ void GenerateIndicatorsForward(
     int c = (index / top_width / top_height) % channels;
     int n = index / top_width / top_height / channels;
 
-    const int* offset_coordinates = coordinates + n * 4;
-    int x1 = offset_coordinates[0];
-    int y1 = offset_coordinates[1];
-    int x2 = offset_coordinates[2];
-    int y2 = offset_coordinates[3];
+    const T* offset_coordinates = coordinates + n * 4;
+    int x1 = (int)offset_coordinates[0];
+    int y1 = (int)offset_coordinates[1];
+    int x2 = (int)offset_coordinates[2];
+    int y2 = (int)offset_coordinates[3];
 
     // zero if outside the coordinate zone
     if (pw < x1 || pw > x2 || ph < y1 || ph > y2) {
@@ -237,7 +237,7 @@ bool GenerateIndicatorsOp<float, CUDAContext>::RunOnDevice() {
     return true;
   }
 
-  int n_rois = R.dim32(0)
+  int n_rois = R.dim32(0);
   // padded the RoIs by the up_scale factor
   TensorCUDA pad_R(R.dims());
   expand_bbox_by_scale<float>
@@ -283,7 +283,7 @@ bool GenerateIndicatorsOp<float, CUDAContext>::RunOnDevice() {
           X.dim32(3),
           resolution_,
           resolution_,
-          coordinates.data<int>(),
+          coordinates.data<float>(),
           Y->mutable_data<float>());
   return true;
 }

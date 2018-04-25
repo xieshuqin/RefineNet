@@ -195,7 +195,7 @@ __global__ void GenerateIndicatorsBackwardFeature(
     const int width,
     const int top_height,
     const int top_width,
-    const int* coordinates,
+    const T* coordinates,
     T* bottom_diff) {
   CUDA_1D_KERNEL_LOOP(index, nthreads) {
     // (n, c, ph, pw) is an element in the pooled output
@@ -204,11 +204,11 @@ __global__ void GenerateIndicatorsBackwardFeature(
     int c = (index / top_width / top_height) % channels;
     int n = index / top_width / top_height / channels;
 
-    const int* offset_coordinates = coordinates + n * 4;
-    int x1 = offset_coordinates[0];
-    int y1 = offset_coordinates[1];
-    int x2 = offset_coordinates[2];
-    int y2 = offset_coordinates[3];
+    const T* offset_coordinates = coordinates + n * 4;
+    int x1 = (int)offset_coordinates[0];
+    int y1 = (int)offset_coordinates[1];
+    int x2 = (int)offset_coordinates[2];
+    int y2 = (int)offset_coordinates[3];
 
     if (pw >= x1 && ph >= y1 && pw <= x2 && ph <= y2) {
       int pooled_width = x2 - x1 + 1;
@@ -277,7 +277,7 @@ bool GenerateIndicatorsGradientOp<float, CUDAContext>::RunOnDevice() {
   int input_height_ = Data.dim32(2);
   int input_width_ = Data.dim32(3);
 
-  int n_rois = R.dim32(0)
+  int n_rois = R.dim32(0);
   // padded the RoIs by the up_scale factor
   TensorCUDA pad_R(R.dims());
   expand_bbox_by_scale<float>
@@ -329,7 +329,7 @@ bool GenerateIndicatorsGradientOp<float, CUDAContext>::RunOnDevice() {
             X.dim32(3),
             resolution_,
             resolution_,
-            coordinates.data<int>(),
+            coordinates.data<float>(),
             dX->mutable_data<float>());
   }
   return true;
