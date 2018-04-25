@@ -19,7 +19,7 @@ inline __device__ float gpu_atomic_add(const float val, float* address) {
 
 template <typename T>
 __global__ void expand_bbox_by_scale(
-  const int n_rois,
+  const int nthreads,
   const T* bottom_rois,
   const int height,
   const int width,
@@ -27,7 +27,8 @@ __global__ void expand_bbox_by_scale(
   T* top_rois,
   int roi_cols)  {
   // expand the bottom rois by up_scale 
-  for (int n = 0; n < n_rois; ++n) {
+  CUDA_1D_KERNEL_LOOP(index, nthreads) {
+    int n = index;
     // roi could have 4 or 5 columns
     const T* offset_bottom_rois = bottom_rois + n * roi_cols;
     int roi_batch_ind = 0;
@@ -56,10 +57,10 @@ __global__ void expand_bbox_by_scale(
     T pad_y2 = center_y + pad_roi_height / 2;
 
     // clip to image boundary
-    pad_x1 = min((T)width-1, max((T)0., pad_x1));
-    pad_x2 = min((T)width-1, max((T)0., pad_x2));
-    pad_y1 = min((T)height-1, max((T)0., pad_y1));
-    pad_y2 = min((T)height-1, max((T)0., pad_y2));
+    pad_x1 = min((T)(width-1), max((T)0., pad_x1));
+    pad_x2 = min((T)(width-1), max((T)0., pad_x2));
+    pad_y1 = min((T)(height-1), max((T)0., pad_y1));
+    pad_y2 = min((T)(height-1), max((T)0., pad_y2));
 
     // write to top_rois
     T* offset_top_rois = top_rois + n * roi_cols;
@@ -77,14 +78,15 @@ __global__ void expand_bbox_by_scale(
 
 template <typename T>
 __global__ void convert_coordinates(
-  int n_rois,
+  const int nthreads,
   const T* bottom_rois,
   const T* top_rois,
   T* coordinates,
   int resolution,
   int roi_cols) {
   // convert the coordinates of bottom_rois to top_rois
-  for (int n = 0; n < n_rois; ++n) {
+  CUDA_1D_KERNEL_LOOP(index, nthreads) {
+    int n = index;
     const T* offset_bottom_rois = bottom_rois + n * roi_cols;
     int roi_batch_ind = 0;
     if (roi_cols == 5) {
@@ -275,28 +277,37 @@ bool GenerateIndicatorsGradientOp<float, CUDAContext>::RunOnDevice() {
   int input_height_ = Data.dim32(2);
   int input_width_ = Data.dim32(3);
 
-  // Padded the RoIs by the up_scale factor
+  int n_rois = R.dim32(0)
+  // padded the RoIs by the up_scale factor
   TensorCUDA pad_R(R.dims());
-  expand_bbox_by_scale<float>(
-    R.dim32(0),
-    R.data<float>(),
-    input_height_,
-    input_width_,
-    up_scale_,
-    pad_R.mutable_data<float>(),
-    R.dim32(1));
+  expand_bbox_by_scale<float>
+      <<<CAFFE_GET_BLOCKS(n_rois),
+         CAFFE_CUDA_NUM_THREADS,
+         0,
+         context_.cuda_stream()>>>(
+          R.dim32(0),
+          R.data<float>(),
+          input_height_,
+          input_width_,
+          up_scale_,
+          pad_R.mutable_data<float>(),
+          R.dim32(1));
 
-  // Convert the coordinates of R to pad_R in resolution_
+  // convert the coordinates of R to pad_R in resolution_
   std::vector<int> dims(2);
   dims[0] = R.dim32(0); dims[1] = 4;
   TensorCUDA coordinates(dims);
-  convert_coordinates<float>(
-    R.dim32(0),
-    R.data<float>(),
-    pad_R.data<float>(),
-    coordinates.mutable_data<float>(),
-    resolution_,
-    R.dim32(1));
+  convert_coordinates<float>
+      <<<CAFFE_GET_BLOCKS(n_rois),
+         CAFFE_CUDA_NUM_THREADS,
+         0,
+         context_.cuda_stream()>>>(
+          R.dim32(0),
+          R.data<float>(),
+          pad_R.data<float>(),
+          coordinates.mutable_data<float>(),
+          resolution_,
+          R.dim32(1));
 
   dX->ResizeLike(X);
 
