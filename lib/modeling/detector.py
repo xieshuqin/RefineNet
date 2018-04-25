@@ -650,16 +650,16 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
 
     def RescaleFeatureMap(
-        self, 
-        blobs_in, 
-        blob_out, 
+        self,
+        blobs_in,
+        blob_out,
         dim_in,
         rescale_factor,
         spatial_scale=1. / 16.,
         sampling_ratio=0
     ):
-        """ Rescale the feature map to a rescale_factor size. 
-        If use FPN, then rescale each FPN to a fixed size and 
+        """ Rescale the feature map to a rescale_factor size.
+        If use FPN, then rescale each FPN to a fixed size and
         concat them together.
 
         Else, pass the feature map.
@@ -712,7 +712,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         self,
         blobs_in,
         blob_out,
-        blob_rois='mask_rois',
+        blob_rois,
         up_scale,
         resolution
     ):
@@ -720,15 +720,18 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         The forward function is similar to GenerateLocalMaskIndicators.
         But This operator adds a backward function to allow e2e learning.
         The indicator here acts as an intermediate feature.
-        blobs_in: [mask_fcn_logits, data]
-        blob_out: mask_indicators 
+        blobs_in: mask_fcn_logits
+        blob_out: mask_indicators
+
+        op input: X, R, Data
+        op output: Y
         """
         method = 'GenerateIndicators'
 
-        blob_in_list = [blobs_in, blob_rois, blob_data]
+        blob_in_list = [blobs_in, blob_rois, 'data']
         blob_out = self.net.__getattr__(method)(
             blob_in_list, [blob_out],
-            up_scale=up_scale,
+            up_scale=float(up_scale),
             resolution=resolution
         )
         return blob_out

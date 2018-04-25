@@ -49,10 +49,10 @@ void expand_bbox_by_scale(
     T pad_y2 = center_y + pad_roi_height / 2;
 
     // clip to image boundary
-    T pad_x1 = std::min(width-1, std::max(0, pad_x1));
-    T pad_x2 = std::min(width-1, std::max(0, pad_x2));
-    T pad_y1 = std::min(height-1, std::max(0, pad_y1));
-    T pad_y2 = std::min(height-1, std::max(0, pad_y2));
+    pad_x1 = std::min((T)width-1, std::max((T)0., pad_x1));
+    pad_x2 = std::min((T)width-1, std::max((T)0., pad_x2));
+    pad_y1 = std::min((T)height-1, std::max((T)0., pad_y1));
+    pad_y2 = std::min((T)height-1, std::max((T)0., pad_y2));
 
     // write to top_rois
     T* offset_top_rois = top_rois + n * roi_cols;
@@ -231,7 +231,7 @@ void GenerateIndicatorsForward(
     int index_n = n * channels * top_width * top_height;
 
     // roi could have 4 or 5 columns
-    const T* offset_coordinates = coordinates + n * 4; 
+    const int* offset_coordinates = coordinates + n * 4; 
     int x1 = offset_coordinates[0];
     int y1 = offset_coordinates[1];
     int x2 = offset_coordinates[2];
@@ -283,42 +283,42 @@ void GenerateIndicatorsForward(
     } // if nchw
 
     if (order == StorageOrder::NHWC) {
-      return false; // Not implement
+      return ; // Not implement
 
-      const T* offset_bottom_data =
-          bottom_data + roi_batch_ind * channels * height * width;
-      int pre_calc_index = 0;
+    //  const T* offset_bottom_data =
+    //      bottom_data + roi_batch_ind * channels * height * width;
+    //  int pre_calc_index = 0;
 
-      for (int ph = 0; ph < pooled_height; ph++) {
-        for (int pw = 0; pw < pooled_width; pw++) {
-          EVecXf output_vals = EVecXf::Zero(channels);
+    //  for (int ph = 0; ph < pooled_height; ph++) {
+    //    for (int pw = 0; pw < pooled_width; pw++) {
+    //      EVecXf output_vals = EVecXf::Zero(channels);
 
-          for (int iy = 0; iy < roi_bin_grid_h; iy++) {
-            for (int ix = 0; ix < roi_bin_grid_w; ix++) {
-              PreCalc<T> pc = pre_calc[pre_calc_index];
+    //      for (int iy = 0; iy < roi_bin_grid_h; iy++) {
+    //        for (int ix = 0; ix < roi_bin_grid_w; ix++) {
+    //          PreCalc<T> pc = pre_calc[pre_calc_index];
 
-              ConstEigenVectorMap<T> data_1(
-                  offset_bottom_data + channels * pc.pos1, channels);
-              ConstEigenVectorMap<T> data_2(
-                  offset_bottom_data + channels * pc.pos2, channels);
-              ConstEigenVectorMap<T> data_3(
-                  offset_bottom_data + channels * pc.pos3, channels);
-              ConstEigenVectorMap<T> data_4(
-                  offset_bottom_data + channels * pc.pos4, channels);
+    //          ConstEigenVectorMap<T> data_1(
+    //              offset_bottom_data + channels * pc.pos1, channels);
+    //          ConstEigenVectorMap<T> data_2(
+    //              offset_bottom_data + channels * pc.pos2, channels);
+    //          ConstEigenVectorMap<T> data_3(
+    //              offset_bottom_data + channels * pc.pos3, channels);
+    //          ConstEigenVectorMap<T> data_4(
+    //              offset_bottom_data + channels * pc.pos4, channels);
 
-              output_vals += pc.w1 * data_1 + pc.w2 * data_2 + pc.w3 * data_3 +
-                  pc.w4 * data_4;
+    //          output_vals += pc.w1 * data_1 + pc.w2 * data_2 + pc.w3 * data_3 +
+    //              pc.w4 * data_4;
 
-              pre_calc_index += 1;
-            }
-          }
-          output_vals /= count;
+    //          pre_calc_index += 1;
+    //        }
+    //      }
+    //      output_vals /= count;
 
-          int index_nhw = index_n + (ph * pooled_width + pw) * channels;
-          std::memcpy(
-              top_data + index_nhw, output_vals.data(), channels * sizeof(T));
-        } // for pw
-      } // for ph
+    //      int index_nhw = index_n + (ph * pooled_width + pw) * channels;
+    //      std::memcpy(
+    //          top_data + index_nhw, output_vals.data(), channels * sizeof(T));
+    //    } // for pw
+    //  } // for ph
     } // if nhwc
 
   } // for n
@@ -394,21 +394,21 @@ bool GenerateIndicatorsOp<float, CPUContext>::RunOnDevice() {
   } else if (order_ == StorageOrder::NHWC) {
     return false; // Not implement error
 
-    Y->Resize(R.dim32(0), resolution_, resolution_, X.dim32(3));
-    int output_size = Y->size();
-    GenerateIndicatorsForward<float>(
-        output_size,
-        X.data<float>(),
-        spatial_scale_,
-        X.dim32(3),
-        X.dim32(1),
-        X.dim32(2),
-        pooled_height,
-        pooled_width,
-        R.data<float>(),
-        R.dim32(1),
-        Y->mutable_data<float>(),
-        order_);
+    //Y->Resize(R.dim32(0), resolution_, resolution_, X.dim32(3));
+    //int output_size = Y->size();
+    //GenerateIndicatorsForward<float>(
+    //    output_size,
+    //    X.data<float>(),
+    //    spatial_scale_,
+    //    X.dim32(3),
+    //    X.dim32(1),
+    //    X.dim32(2),
+    //    pooled_height,
+    //    pooled_width,
+    //    R.data<float>(),
+    //    R.dim32(1),
+    //    Y->mutable_data<float>(),
+    //    order_);
   }
 
   return true;

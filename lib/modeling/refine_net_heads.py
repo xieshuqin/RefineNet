@@ -179,7 +179,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
         # Generate mask indicators
         num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
         # if not using auto-learned indicator
-        if not cfg.REFINENET.AUTO_LEARNING_INDICATOR: 
+        if not cfg.REFINENET.AUTO_LEARNING_INDICATOR:
             mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
             blob_data = core.ScopedBlobReference('data')
             mask_indicators = model.GenerateLocalMaskIndicators(
@@ -190,7 +190,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
         else:
             # auto learning indicator
             mask_indicators = model.GenerateAutoLearningIndicators(
-                blobs_in=['mask_fcn_logits', 'data'],
+                blobs_in='mask_fcn_logits',
                 blob_out='mask_indicators',
                 blob_rois='mask_rois',
                 up_scale=cfg.REFINENET.UP_SCALE,

@@ -18,7 +18,7 @@ inline __device__ float gpu_atomic_add(const float val, float* address) {
 }
 
 template <typename T>
-void expand_bbox_by_scale(
+__global__ void expand_bbox_by_scale(
   const int n_rois,
   const T* bottom_rois,
   const int height,
@@ -56,10 +56,10 @@ void expand_bbox_by_scale(
     T pad_y2 = center_y + pad_roi_height / 2;
 
     // clip to image boundary
-    T pad_x1 = std::min(width-1, std::max(0, pad_x1));
-    T pad_x2 = std::min(width-1, std::max(0, pad_x2));
-    T pad_y1 = std::min(height-1, std::max(0, pad_y1));
-    T pad_y2 = std::min(height-1, std::max(0, pad_y2));
+    pad_x1 = min((T)width-1, max((T)0., pad_x1));
+    pad_x2 = min((T)width-1, max((T)0., pad_x2));
+    pad_y1 = min((T)height-1, max((T)0., pad_y1));
+    pad_y2 = min((T)height-1, max((T)0., pad_y2));
 
     // write to top_rois
     T* offset_top_rois = top_rois + n * roi_cols;
@@ -76,7 +76,7 @@ void expand_bbox_by_scale(
 }
 
 template <typename T>
-void convert_coordinates(
+__global__ void convert_coordinates(
   int n_rois,
   const T* bottom_rois,
   const T* top_rois,
@@ -202,7 +202,7 @@ __global__ void GenerateIndicatorsBackwardFeature(
     int c = (index / top_width / top_height) % channels;
     int n = index / top_width / top_height / channels;
 
-    const T* offset_coordinates = coordinates + n * 4;
+    const int* offset_coordinates = coordinates + n * 4;
     int x1 = offset_coordinates[0];
     int y1 = offset_coordinates[1];
     int x2 = offset_coordinates[2];
@@ -318,7 +318,7 @@ bool GenerateIndicatorsGradientOp<float, CUDAContext>::RunOnDevice() {
             X.dim32(3),
             resolution_,
             resolution_,
-            coordinate.data<int>(),
+            coordinates.data<int>(),
             dX->mutable_data<float>());
   }
   return true;

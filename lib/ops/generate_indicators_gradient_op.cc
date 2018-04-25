@@ -45,10 +45,10 @@ void expand_bbox_by_scale(
     T pad_y2 = center_y + pad_roi_height / 2;
 
     // clip to image boundary
-    T pad_x1 = std::min(width-1, std::max(0, pad_x1));
-    T pad_x2 = std::min(width-1, std::max(0, pad_x2));
-    T pad_y1 = std::min(height-1, std::max(0, pad_y1));
-    T pad_y2 = std::min(height-1, std::max(0, pad_y2));
+    pad_x1 = std::min((T)width-1, std::max((T)0., pad_x1));
+    pad_x2 = std::min((T)width-1, std::max((T)0., pad_x2));
+    pad_y1 = std::min((T)height-1, std::max((T)0., pad_y1));
+    pad_y2 = std::min((T)height-1, std::max((T)0., pad_y2));
 
     // write to top_rois
     T* offset_top_rois = top_rois + n * roi_cols;
@@ -187,17 +187,17 @@ void GenerateIndicatorsBackwardFeature(
     const int width,
     const int top_height,
     const int top_width,
-    const int* coordinates
+    const int* coordinates,
     T* bottom_diff) {
 
   for (int index = 0; index < nthreads; index++) {
     // (n, c, ph, pw) is an element in the pooled output
-    int pw = index % pooled_width;
-    int ph = (index / pooled_width) % pooled_height;
-    int c = (index / pooled_width / pooled_height) % channels;
-    int n = index / pooled_width / pooled_height / channels;
+    int pw = index % top_width;
+    int ph = (index / top_width) % top_height;
+    int c = (index / top_width / top_height) % channels;
+    int n = index / top_width / top_height / channels;
 
-    const T* offset_coordinates = coordinates + n * 4;
+    const int* offset_coordinates = coordinates + n * 4;
     int x1 = offset_coordinates[0];
     int y1 = offset_coordinates[1];
     int x2 = offset_coordinates[2];
@@ -239,10 +239,10 @@ void GenerateIndicatorsBackwardFeature(
           y_high,
           index);
 
-      T g1 = top_diff_this_bin * w1 / count;
-      T g2 = top_diff_this_bin * w2 / count;
-      T g3 = top_diff_this_bin * w3 / count;
-      T g4 = top_diff_this_bin * w4 / count;
+      T g1 = top_diff_this_bin * w1 ;
+      T g2 = top_diff_this_bin * w2 ;
+      T g3 = top_diff_this_bin * w3 ;
+      T g4 = top_diff_this_bin * w4 ;
 
       if (x_low >= 0 && x_high >= 0 && y_low >= 0 && y_high >= 0) {
         // atomic add is not needed for now since it is single threaded
