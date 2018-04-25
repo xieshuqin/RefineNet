@@ -708,6 +708,31 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         return xform_out, dim_out
 
 
+    def GenerateAutoLearningIndicators(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois='mask_rois',
+        up_scale,
+        resolution
+    ):
+        """ Generate Indicators. Implemented in C++ and CUDA.
+        The forward function is similar to GenerateLocalMaskIndicators.
+        But This operator adds a backward function to allow e2e learning.
+        The indicator here acts as an intermediate feature.
+        blobs_in: [mask_fcn_logits, data]
+        blob_out: mask_indicators 
+        """
+        method = 'GenerateIndicators'
+
+        blob_in_list = [blobs_in, blob_rois, blob_data]
+        blob_out = self.net.__getattr__(method)(
+            blob_in_list, [blob_out],
+            up_scale=up_scale,
+            resolution=resolution
+        )
+        return blob_out
+
 # ---------------------------------------------------------------------------- #
 # End of shuqin's code
 # ---------------------------------------------------------------------------- #

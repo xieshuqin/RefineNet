@@ -36,6 +36,7 @@ MRCNN:
   ROI_XFORM_SAMPLING_RATIO: 2  # default 0
   DILATION: 1  # default 2
   CONV_INIT: MSRAFill  # default GaussianFill
+  WEIGHT_LOSS_MASK: 0.0
 REFINENET:
   HEAD: MRCNN_FCN   # default is HOURGLASS
   INDICATOR_TYPE: Mask # Indicator type, mask or keypoint
@@ -52,8 +53,7 @@ REFINENET:
   MRCNN_FCN:
     NUM_CONVS: 8  # default 4
     USE_DECONV: True # Use deconv to the head
-  USE_THRES_INDICATOR: True
-  INDICATOR_THRES: 0.9
+  AUTO_LEARNING_INDICATOR: True
 SEMANTIC_NET:
   ROI_XFORM_METHOD: RoIAlign
   ROI_XFORM_SAMPLING_RATIO: 0
