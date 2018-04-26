@@ -56,7 +56,8 @@ def convert_coordinate(box_from, box_to, M):
     converted_br_norm = (box_from_br - box_to_ul) / box_to_size
 
     convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
-    convert_coord = (convert_coord_norm * M).astype(np.int32)
+    convert_coord = (convert_coord_norm * M)
+    convert_coord = np.rint(convert_coord).astype(np.int32)
 
     return convert_coord
 
@@ -108,9 +109,9 @@ def generate_indicators_ref(*inputs):
 
 class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
 
-    @given(proposal_count=st.integers(min_value=4, max_value=16),
+    @given(proposal_count=st.integers(min_value=2, max_value=16),
            roi_canonical_scale=st.integers(min_value=100, max_value=300),
-           up_scale=st.floats(2,2),
+           up_scale=st.floats(1,6),
            resolution=st.integers(min_value=28, max_value=28),
            **hu.gcs)
     def test_generate_indicators(
@@ -122,10 +123,10 @@ class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
         gc, dc):
 
         assume(gc.device_type == caffe2_pb2.CUDA)
-        np.random.seed(0)
+        # np.random.seed(0)
 
         Data = np.zeros(shape=(2,3,800,1000), dtype=np.float32)
-        X = np.random.rand(proposal_count, 2, 28, 28).astype(np.float32)
+        X = np.random.rand(proposal_count, 4, 28, 28).astype(np.float32)
         #print('X: ', X[1][1])
         roi = (
             roi_canonical_scale *
@@ -164,7 +165,7 @@ class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
 
         # Check over multiple devices
         if (gc.device_type == caffe2_pb2.CUDA):
-            self.assertGradientChecks(gc, op, [X, roi, Data], 0, [0])
+             self.assertGradientChecks(gc, op, [X, roi, Data], 0, [0])
 
 if __name__ == "__main__":
     import unittest
