@@ -49,10 +49,10 @@ __global__ void expand_bbox_by_scale(
     T pad_y2 = center_y + pad_roi_height / 2;
 
     // clip to image boundary
-    pad_x1 = min((T)(width-1), max((T)0., pad_x1));
-    pad_x2 = min((T)(width-1), max((T)0., pad_x2));
-    pad_y1 = min((T)(height-1), max((T)0., pad_y1));
-    pad_y2 = min((T)(height-1), max((T)0., pad_y2));
+    pad_x1 = min((T)width, max((T)0., pad_x1));
+    pad_x2 = min((T)width, max((T)0., pad_x2));
+    pad_y1 = min((T)height, max((T)0., pad_y1));
+    pad_y2 = min((T)height, max((T)0., pad_y2));
 
     // write to top_rois
     T* offset_top_rois = top_rois + n * roi_cols;
@@ -98,8 +98,8 @@ __global__ void convert_coordinates(
     T pad_x2 = offset_top_rois[2];
     T pad_y2 = offset_top_rois[3];
 
-    T pad_width = pad_x2 - pad_x1 + 1;
-    T pad_height = pad_y2 - pad_y1 + 1;
+    T pad_width = pad_x2 - pad_x1;
+    T pad_height = pad_y2 - pad_y1;
 
     T converted_x1 = (x1 - pad_x1) / pad_width * resolution;
     T converted_x2 = (x2 - pad_x1) / pad_width * resolution;
@@ -196,7 +196,7 @@ __global__ void GenerateIndicatorsForward(
     int y2 = (int)offset_coordinates[3];
 
     // zero if outside the coordinate zone
-    if (pw < x1 || pw > x2 || ph < y1 || ph > y2) {
+    if (pw < x1 || pw >= x2 || ph < y1 || ph >= y2) {
         top_data[index] = 0;
     }
     else {
@@ -208,10 +208,30 @@ __global__ void GenerateIndicatorsForward(
         const T* offset_bottom_data = 
             bottom_data + (n * channels + c) * height * width;
 
-        const T x = (pw - x1) * bin_size_w;
-        const T y = (ph - y1) * bin_size_h;
-        T val = bilinear_interpolate(
-            offset_bottom_data, height, width, y, x, index);
+        int roi_bin_grid_h = ceil(height / pooled_height); // e.g., = 2
+        int roi_bin_grid_w = ceil(width / pooled_width);
+
+        // We do average (integral) pooling inside a bin
+        const T count = roi_bin_grid_h * roi_bin_grid_w; // e.g. = 4
+
+        T output_val = 0.;
+        for (int iy = 0; iy < roi_bin_grid_h; iy++) // e.g., iy = 0, 1
+        {
+          const T y = (ph - y1) * bin_size_h +
+              static_cast<T>(iy + .5f) * bin_size_h /
+                  static_cast<T>(roi_bin_grid_h); // e.g., 0.5, 1.5
+          for (int ix = 0; ix < roi_bin_grid_w; ix++) {
+            const T x = (pw - x1) * bin_size_w +
+                static_cast<T>(ix + .5f) * bin_size_w /
+                    static_cast<T>(roi_bin_grid_w);
+
+            T val = bilinear_interpolate(
+                offset_bottom_data, height, width, y, x, index);
+            output_val += val;
+          }
+        }
+        output_val /= count;
+
         top_data[index] = val;
     }
   }
