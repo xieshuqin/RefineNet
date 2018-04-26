@@ -190,10 +190,10 @@ __global__ void GenerateIndicatorsForward(
     int n = index / top_width / top_height / channels;
 
     const T* offset_coordinates = coordinates + n * 4;
-    int x1 = (int)offset_coordinates[0];
-    int y1 = (int)offset_coordinates[1];
-    int x2 = (int)offset_coordinates[2];
-    int y2 = (int)offset_coordinates[3];
+    int x1 = round(offset_coordinates[0]);
+    int y1 = round(offset_coordinates[1]);
+    int x2 = round(offset_coordinates[2]);
+    int y2 = round(offset_coordinates[3]);
 
     // zero if outside the coordinate zone
     if (pw < x1 || pw >= x2 || ph < y1 || ph >= y2) {
