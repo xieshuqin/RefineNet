@@ -3,8 +3,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from caffe2.python import core
-from hypothesis import given
+from caffe2.proto import caffe2_pb2
+from caffe2.python import core, utils
+from hypothesis import assume, given, settings
 import caffe2.python.hypothesis_test_util as hu
 import hypothesis.strategies as st
 import numpy as np
@@ -99,6 +100,7 @@ def generate_indicators_ref(*inputs):
 
     swap_order = (0, 3, 1, 2)
     mask_indicators = mask_indicators.transpose(swap_order)
+    #print('mask_indicators:', mask_indicators[1][1])
 
     outputs = [mask_indicators]
     return outputs
@@ -108,19 +110,23 @@ class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
 
     @given(proposal_count=st.integers(min_value=128, max_value=1024),
            roi_canonical_scale=st.integers(min_value=100, max_value=300),
-           up_scale=st.floats(1,5),
-           resolution=st.integers(min_value=28, max_value=64),
+           up_scale=st.floats(2,2),
+           resolution=st.integers(min_value=28, max_value=28),
            **hu.gcs)
     def test_generate_indicators(
-        self, 
+        self,
         proposal_count,
         roi_canonical_scale,
         up_scale,
         resolution,
         gc, dc):
 
+        assume(gc.device_type == caffe2_pb2.CUDA)
+        np.random.seed(0)
+
         Data = np.zeros(shape=(2,3,800,1000), dtype=np.float32)
-        X = np.random.rand(proposal_count, 81, 28, 28).astype(np.float32)
+        X = np.random.rand(proposal_count, 2, 28, 28).astype(np.float32)
+        #print('X: ', X[1][1])
         roi = (
             roi_canonical_scale *
             np.random.rand(proposal_count, 5).astype(np.float32)
@@ -130,15 +136,18 @@ class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
             # are in the format [[batch_idx, x0, y0, x1, y2], ...]
             roi[i][3] += roi[i][1]
             roi[i][4] += roi[i][2]
+        roi = clip_boxes_to_image(roi, Data.shape[2], Data.shape[3])
 
         op = core.CreateOperator(
             "GenerateIndicators",
-            ["X", "Data", "R"],
-            ['Y'],
-            arg=[
-                utils.MakeArgument("up_scale", up_scale),
-                utils.MakeArgument("resolution", resolution),
-            ],
+            ["X", "R", "Data"],
+            ["Y"],
+            #arg=[
+            #    utils.MakeArgument("up_scale", up_scale),
+            #    utils.MakeArgument("resolution", resolution),
+            #],
+            up_scale=up_scale,
+            resolution=resolution,
             device_option=gc
         )
         args = {
@@ -149,14 +158,14 @@ class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
         self.assertReferenceChecks(
             device_option=gc,
             op=op,
-            inputs=[X, roi, Data] + args,
+            inputs=[X, roi, Data] + [args],
             reference=generate_indicators_ref,
         )
 
         # Check over multiple devices
-        self.assertDeviceChecks(dc, op, [X, roi, Data] + args, [0])
+        self.assertDeviceChecks(dc, op, [X, roi, Data] + [args], [0])
 
-        self.assertGradientChecks(gc, op, [X, roi, Data] + args, 0, [0])
+        self.assertGradientChecks(gc, op, [X, roi, Data] + [args], 0, [0])
 
 if __name__ == "__main__":
     import unittest
