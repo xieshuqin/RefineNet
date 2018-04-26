@@ -208,31 +208,40 @@ __global__ void GenerateIndicatorsForward(
         const T* offset_bottom_data = 
             bottom_data + (n * channels + c) * height * width;
 
-        int roi_bin_grid_h = ceil(static_cast<T>(height) / pooled_height); // e.g., = 2
-        int roi_bin_grid_w = ceil(static_cast<T>(width) / pooled_width);
+        // const T y = (ph - y1) * bin_size_h
+        // const T x = (pw - x1) * bin_size_w
+        const T y = (ph - y1 + 0.5) * bin_size_h - 0.5; // some magic trick
+        const T x = (pw - x1 + 0.5) * bin_size_w - 0.5;
 
-        // We do average (integral) pooling inside a bin
-        const T count = roi_bin_grid_h * roi_bin_grid_w; // e.g. = 4
-
-        T output_val = 0.;
-        for (int iy = 0; iy < roi_bin_grid_h; iy++) // e.g., iy = 0, 1
-        {
-          const T y = (ph - y1) * bin_size_h +
-              static_cast<T>(iy) * bin_size_h /
-                  static_cast<T>(roi_bin_grid_h); // e.g., 0.5, 1.5
-          for (int ix = 0; ix < roi_bin_grid_w; ix++) {
-            const T x = (pw - x1) * bin_size_w +
-                static_cast<T>(ix) * bin_size_w /
-                    static_cast<T>(roi_bin_grid_w);
-
-            T val = bilinear_interpolate(
-                offset_bottom_data, height, width, y, x, index);
-            output_val += val;
-          }
-        }
-        output_val /= count;
-
+        T output_val = bilinear_interpolate(
+            offset_bottom_data, height, width, y, x, index);
         top_data[index] = output_val;
+
+        // int roi_bin_grid_h = ceil(static_cast<T>(height) / pooled_height); // e.g., = 2
+        // int roi_bin_grid_w = ceil(static_cast<T>(width) / pooled_width);
+
+        // // We do average (integral) pooling inside a bin
+        // const T count = roi_bin_grid_h * roi_bin_grid_w; // e.g. = 4
+
+        // T output_val = 0.;
+        // for (int iy = 0; iy < roi_bin_grid_h; iy++) // e.g., iy = 0, 1
+        // {
+        //   const T y = (ph - y1) * bin_size_h +
+        //       static_cast<T>(iy) * bin_size_h /
+        //           static_cast<T>(roi_bin_grid_h); // e.g., 0.5, 1.5
+        //   for (int ix = 0; ix < roi_bin_grid_w; ix++) {
+        //     const T x = (pw - x1) * bin_size_w +
+        //         static_cast<T>(ix) * bin_size_w /
+        //             static_cast<T>(roi_bin_grid_w);
+
+        //     T val = bilinear_interpolate(
+        //         offset_bottom_data, height, width, y, x, index);
+        //     output_val += val;
+        //   }
+        // }
+        // output_val /= count;
+
+        // top_data[index] = output_val;
     }
   }
 }
