@@ -57,10 +57,10 @@ __global__ void expand_bbox_by_scale(
     T pad_y2 = center_y + pad_roi_height / 2;
 
     // clip to image boundary
-    pad_x1 = min((T)(width-1), max((T)0., pad_x1));
-    pad_x2 = min((T)(width-1), max((T)0., pad_x2));
-    pad_y1 = min((T)(height-1), max((T)0., pad_y1));
-    pad_y2 = min((T)(height-1), max((T)0., pad_y2));
+    pad_x1 = min((T)width, max((T)0., pad_x1));
+    pad_x2 = min((T)width, max((T)0., pad_x2));
+    pad_y1 = min((T)height, max((T)0., pad_y1));
+    pad_y2 = min((T)height, max((T)0., pad_y2));
 
     // write to top_rois
     T* offset_top_rois = top_rois + n * roi_cols;
@@ -106,8 +106,8 @@ __global__ void convert_coordinates(
     T pad_x2 = offset_top_rois[2];
     T pad_y2 = offset_top_rois[3];
 
-    T pad_width = pad_x2 - pad_x1 + 1;
-    T pad_height = pad_y2 - pad_y1 + 1;
+    T pad_width = pad_x2 - pad_x1;
+    T pad_height = pad_y2 - pad_y1;
 
     T converted_x1 = (x1 - pad_x1) / pad_width * resolution;
     T converted_x2 = (x2 - pad_x1) / pad_width * resolution;
@@ -205,14 +205,14 @@ __global__ void GenerateIndicatorsBackwardFeature(
     int n = index / top_width / top_height / channels;
 
     const T* offset_coordinates = coordinates + n * 4;
-    int x1 = (int)offset_coordinates[0];
-    int y1 = (int)offset_coordinates[1];
-    int x2 = (int)offset_coordinates[2];
-    int y2 = (int)offset_coordinates[3];
+    int x1 = round(offset_coordinates[0]);
+    int y1 = round(offset_coordinates[1]);
+    int x2 = round(offset_coordinates[2]);
+    int y2 = round(offset_coordinates[3]);
 
-    if (pw >= x1 && ph >= y1 && pw <= x2 && ph <= y2) {
-      int pooled_width = x2 - x1 + 1;
-      int pooled_height = y2 - y1 + 1;
+    if (pw >= x1 && ph >= y1 && pw < x2 && ph < y2) {
+      int pooled_width = x2 - x1;
+      int pooled_height = y2 - y1;
       T bin_size_h = static_cast<T>(height) / static_cast<T>(pooled_height);
       T bin_size_w = static_cast<T>(width) / static_cast<T>(pooled_width);
 
@@ -223,8 +223,10 @@ __global__ void GenerateIndicatorsBackwardFeature(
       const T* offset_top_diff = top_diff + top_offset;
       const T top_diff_this_bin = offset_top_diff[ph * top_width + pw];
 
-      const T x = (pw - x1) * bin_size_w;
-      const T y = (ph - y1) * bin_size_h;
+      //const T x = (pw - x1) * bin_size_w;
+      //const T y = (ph - y1) * bin_size_h;
+      const T y = (ph - y1 + 0.5) * bin_size_h - 0.5; // some magic trick
+      const T x = (pw - x1 + 0.5) * bin_size_w - 0.5;
 
       T w1, w2, w3, w4;
       int x_low, x_high, y_low, y_high;
