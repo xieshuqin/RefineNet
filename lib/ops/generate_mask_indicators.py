@@ -101,11 +101,11 @@ class GenerateLocalMaskIndicatorsOp(object):
         for i in range(num_rois):
             mask_prob = mask_probs_NHWC[i]
             coords = converted_coords[i]
-            shape = (coords[2]-coords[0]+1, coords[3]-coords[1]+1) # w,h
+            shape = (coords[2]-coords[0], coords[3]-coords[1]) # w,h
             mask_prob_resize = cv2.resize(mask_prob, shape)
             if mask_prob_resize.shape[2] == 1:
                 mask_prob_resize = mask_prob_resize[:, :, np.newaxis]
-            mask_indicators[i, coords[1]:coords[3]+1, coords[0]:coords[2]+1] = \
+            mask_indicators[i, coords[1]:coords[3], coords[0]:coords[2]] = \
                 mask_prob_resize
 
         swap_order = (0, 3, 1, 2)
