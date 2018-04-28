@@ -48,6 +48,7 @@ class MaskSigmoidFocalLossOp final : public Operator<Context> {
   int normalize_;
   Tensor<Context> losses_;
   Tensor<Context> counts_;
+  Tensor<Context> normalizer_;
 };
 
 template <typename T, class Context>
@@ -73,7 +74,7 @@ class MaskSigmoidFocalLossGradientOp final : public Operator<Context> {
   float gamma_;
   int normalize_;
   Tensor<Context> counts_;
-  Tensor<Context> weights_; // unignored weights
+  Tensor<Context> normalizer_; // unignored weights
 };
 
 } // namespace caffe2

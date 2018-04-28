@@ -346,8 +346,8 @@ def add_refine_net_losses(model, blob_refined, refined_output_type):
 
 def add_refine_net_mask_losses(model, blob_refined_mask):
     """ Add RefineNet mask specific losses. """
-    if not cfg.MODEL.PIXEL_FOCAL_LOSS_ON: 
-        # using normal sigmoid cross entropy loss 
+    if not cfg.MODEL.PIXEL_FOCAL_LOSS_ON:
+        # using normal sigmoid cross entropy loss
         loss_refined_mask = model.net.SigmoidCrossEntropyLoss(
             [blob_refined_mask, 'refined_masks_int32'],
             'loss_refined_mask',
