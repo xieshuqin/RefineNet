@@ -92,18 +92,29 @@ def add_mask_rcnn_outputs(model, blob_in, dim):
 
 
 def add_mask_rcnn_losses(model, blob_mask):
-    # If using indicator loss
+    """Add Mask R-CNN specific losses."""
     if not cfg.MODEL.INDICATOR_LOSS_ON:
-        """Add Mask R-CNN specific losses."""
-        loss_mask = model.net.SigmoidCrossEntropyLoss(
-            [blob_mask, 'masks_int32'],
-            'loss_mask',
-            scale=1. / cfg.NUM_GPUS * cfg.MRCNN.WEIGHT_LOSS_MASK
-        )
+        # Whether using pixel level focal loss
+        if not cfg.MODEL.PIXEL_FOCAL_LOSS_ON: 
+            # using normal sigmoid cross entropy loss
+            loss_mask = model.net.SigmoidCrossEntropyLoss(
+                [blob_mask, 'masks_int32'],
+                'loss_mask',
+                scale=1. / cfg.NUM_GPUS * cfg.MRCNN.WEIGHT_LOSS_MASK
+            )
+        else:
+            # using pixel focal sigmoid cross entropy loss
+            loss_mask = model.net.MaskSigmoidFocalLoss(
+                [blob_mask, 'masks_int32'],
+                'loss_mask',
+                scale=1. / cfg.NUM_GPUS * cfg.MRCNN.WEIGHT_LOSS_MASK,
+                gamma=cfg.PIXEL_FOCAL_LOSS.LOSS_GAMMA
+            )
         loss_gradients = blob_utils.get_loss_gradients(model, [loss_mask])
         model.AddLosses('loss_mask')
     else:
-        """Add encouragment losses."""
+        # using indicator loss
+        # Add encouragment losses.
         loss_mask = model.net.SigmoidCrossEntropyLoss(
             [blob_mask, 'masks_int32'],
             'loss_mask',

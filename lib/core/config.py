@@ -508,6 +508,9 @@ __C.MODEL.SEMANTIC_ON = False
 # Apply Indicator Loss
 __C.MODEL.INDICATOR_LOSS_ON = False
 
+# Apply pixel level focal loss
+__C.MODEL.PIXEL_FOCAL_LOSS_ON = False
+
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
 # ---------------------------------------------------------------------------- #
@@ -973,7 +976,16 @@ __C.REFINENET.AUTO_LEARNING_INDICATOR = False
 
 
 # ---------------------------------------------------------------------------- #
-# Hourglass options
+# Model options
+# ---------------------------------------------------------------------------- #
+__C.PIXEL_FOCAL_LOSS = AttrDict()
+
+# Pixel focal loss hyper-parameters gamma 
+__C.PIXEL_FOCAL_LOSS.LOSS_GAMMA = 2.0
+
+
+# ---------------------------------------------------------------------------- #
+# Semantic Net options
 # ---------------------------------------------------------------------------- #
 
 # Option for Semantic Net

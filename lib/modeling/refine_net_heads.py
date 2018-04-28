@@ -346,11 +346,21 @@ def add_refine_net_losses(model, blob_refined, refined_output_type):
 
 def add_refine_net_mask_losses(model, blob_refined_mask):
     """ Add RefineNet mask specific losses. """
-    loss_refined_mask = model.net.SigmoidCrossEntropyLoss(
-        [blob_refined_mask, 'refined_masks_int32'],
-        'loss_refined_mask',
-        scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK
-    )
+    if not cfg.MODEL.PIXEL_FOCAL_LOSS_ON: 
+        # using normal sigmoid cross entropy loss 
+        loss_refined_mask = model.net.SigmoidCrossEntropyLoss(
+            [blob_refined_mask, 'refined_masks_int32'],
+            'loss_refined_mask',
+            scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK
+        )
+    else:
+        # using pixel level focal sigmoid cross entropy loss
+        loss_refined_mask = model.net.MaskSigmoidFocalLoss(
+            [blob_refined_mask, 'refined_masks_int32'],
+            'loss_refined_mask',
+            scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK,
+            gamma=cfg.PIXEL_FOCAL_LOSS.LOSS_GAMMA
+        )
     loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_mask])
     model.AddLosses('loss_refined_mask')
     return loss_gradients
