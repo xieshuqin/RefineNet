@@ -17,7 +17,7 @@
 #include <cfloat>
 
 #include "caffe2/core/context_gpu.h"
-#include "sigmoid_focal_loss_op.h"
+#include "mask_sigmoid_focal_loss_op.h"
 
 namespace caffe2 {
 
@@ -74,7 +74,7 @@ __global__ void MaskSigmoidFocalLossGradientKernel(
     } else {
       float c1 = targets[index];
       float c2 = (1. - targets[index]);
-      float p = 1. / (1. + expf(-logits[i]));
+      float p = 1. / (1. + expf(-logits[index]));
 
       // (1-p)**g * (1 - p - g*p*log(p))
       float term1 = 
@@ -83,8 +83,8 @@ __global__ void MaskSigmoidFocalLossGradientKernel(
       // (p**g) * (g*(1-p)*log(1-p) - p)
       float term2 =
         powf(p, gamma) *
-        ((-1. * logits[i] * (logits[i] >= 0) -
-         logf(1. + expf(logits[i] - 2. * logits[i] * (logits[i] >= 0)))) *
+        ((-1. * logits[index] * (logits[index] >= 0) -
+         logf(1. + expf(logits[index] - 2. * logits[index] * (logits[index] >= 0)))) *
          (1. - p) * gamma - p);
 
       d_logits[index] = -(c1 * term1 + c2 * term2);
@@ -112,7 +112,7 @@ bool MaskSigmoidFocalLossOp<float, CUDAContext>::RunOnDevice() {
   counts_.ResizeLike(X);
   losses_.ResizeLike(X);
   normalizer_.Resize(vector<TIndex>());
-  MaskSigmoidCrossEntropyLossKernel<<<
+  MaskSigmoidFocalLossKernel<<<
       CAFFE_GET_BLOCKS(X.size()),
       CAFFE_CUDA_NUM_THREADS,
       0,
@@ -146,7 +146,7 @@ bool MaskSigmoidFocalLossOp<float, CUDAContext>::RunOnDevice() {
 }
 
 template <>
-bool MaskSigmoidCrossEntropyLossGradientOp<float, CUDAContext>::RunOnDevice() {
+bool MaskSigmoidFocalLossGradientOp<float, CUDAContext>::RunOnDevice() {
   auto& X = Input(0);
   auto& T = Input(1);
   auto& d_avg_loss = Input(2);
@@ -155,7 +155,7 @@ bool MaskSigmoidCrossEntropyLossGradientOp<float, CUDAContext>::RunOnDevice() {
   dX->ResizeLike(X);
   counts_.ResizeLike(X);
   normalizer_.Resize(vector<TIndex>());
-  MaskSigmoidCrossEntropyLossGradientKernel<<<
+  MaskSigmoidFocalLossGradientKernel<<<
       CAFFE_GET_BLOCKS(X.size()),
       CAFFE_CUDA_NUM_THREADS,
       0,
