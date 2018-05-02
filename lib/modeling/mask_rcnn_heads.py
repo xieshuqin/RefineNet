@@ -36,6 +36,7 @@ from core.config import cfg
 from utils.c2 import const_fill
 from utils.c2 import gauss_fill
 import modeling.ResNet as ResNet
+import modeling.Hourglass as Hourglass
 import utils.blob as blob_utils
 
 
@@ -138,6 +139,25 @@ def add_mask_rcnn_losses(model, blob_mask):
 # ---------------------------------------------------------------------------- #
 # Mask heads
 # ---------------------------------------------------------------------------- #
+
+def mask_rcnn_hourglass_head(model, blob_in, dim_in, spatial_scale):
+    current = model.RoIFeatureTransform(
+        blob_in,
+        blob_out='_[mask]_roi_feat',
+        blob_rois='mask_rois',
+        method=cfg.MRCNN.ROI_XFORM_METHOD,
+        resolution=cfg.MRCNN.ROI_XFORM_RESOLUTION,
+        sampling_ratio=cfg.MRCNN.ROI_XFORM_SAMPLING_RATIO,
+        spatial_scale=spatial_scale
+    )
+
+    prefix = 'mask_head_hg'
+    n = cfg.MRCNN.NUM_HG_MODULES
+    blob_out, dim_out = Hourglass.add_hourglass_head(
+            model, current, 'conv5_mask', dim_in, prefix, n
+    )
+    return blob_out, dim_out
+
 
 def mask_rcnn_fcn_head_v1up4convs(model, blob_in, dim_in, spatial_scale):
     """v1up design: 4 * (conv 3x3), convT 2x2."""

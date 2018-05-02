@@ -384,8 +384,9 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
         'prefix must be mask/keypoints'
     blob_out = 'refine_' + prefix + '_net_feat'
     if cfg.REFINENET.HEAD == 'HOURGLASS':
+        n = cfg.REFINENET.NUM_HG_MODULES
         blob_out, dim_out = Hourglass.add_hourglass_head(
-            model, blob_in, blob_out, dim_in, prefix
+            model, blob_in, blob_out, dim_in, prefix, n
         )
         return blob_out, dim_out
     elif cfg.REFINENET.HEAD == 'MRCNN_FCN':

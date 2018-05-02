@@ -796,6 +796,9 @@ __C.MRCNN.WEIGHT_LOSS_MASK = 1.0
 # Binarization threshold for converting soft masks to hard masks
 __C.MRCNN.THRESH_BINARIZE = 0.5
 
+# number of hourglass module in Hourglass head
+__C.MRCNN.NUM_HG_MODULES = 3 
+
 
 # ---------------------------------------------------------------------------- #
 # Keyoint Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
@@ -974,6 +977,8 @@ __C.REFINENET.WEIGHT_LOSS_ENCOURAGE = 0.1
 # Auto learning indicators
 __C.REFINENET.AUTO_LEARNING_INDICATOR = False
 
+# number of hourglass module in Hourglass head
+__C.REFINENET.NUM_HG_MODULES = 4
 
 # ---------------------------------------------------------------------------- #
 # Model options
