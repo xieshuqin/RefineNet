@@ -16,7 +16,7 @@ import modeling.ResNet as ResNet
 # The blobs are terribly named. So is the code struct.
 # Re-implement it in the future.
 
-def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
+def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix, n):
     """ add stacked-hourglass head to feature map"""
     """ Only allow 1 stacked hourglass"""
     assert cfg.HG.NUM_STACKS == 1, 'Only 1 stacked hourglass is allowed'
@@ -31,7 +31,7 @@ def add_hourglass_head(model, blob_in, blob_out, dim_in, prefix):
 
     i = 0
     prefix = prefix + '_stack{}'.format(i)
-    hg = add_hourglass_unit(model, blob_in, prefix, 4)
+    hg = add_hourglass_unit(model, blob_in, prefix, n)
 
     # Residual layers at output resolution
     ll = add_residual_block(
