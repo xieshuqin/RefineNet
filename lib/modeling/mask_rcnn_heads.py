@@ -120,13 +120,22 @@ def add_mask_rcnn_losses(model, blob_mask):
             'loss_mask',
             scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_ENCOURAGE
         )
-        # Add 
-        loss_indicator = model.net.ThresholdSigmoidCrossEntropyLoss(
-            [blob_mask, 'masks_int32'],
-            'loss_indicator',
-            scale = 1. / cfg.NUM_GPUS,
-            threshold = cfg.REFINENET.INDICATOR_LOSS_THRESHOLD
-        )
+        # Add
+        if not cfg.MODEL.INDICATOR_HINGLE_LOSS_ON: 
+            loss_indicator = model.net.ThresholdSigmoidCrossEntropyLoss(
+                [blob_mask, 'masks_int32'],
+                'loss_indicator',
+                scale = 1. / cfg.NUM_GPUS,
+                threshold = cfg.REFINENET.INDICATOR_LOSS_THRESHOLD
+            )
+        else:
+            loss_indicator = model.net.ThresholdSigmoidHingleLoss(
+                [blob_mask, 'masks_int32'],
+                'loss_indicator',
+                scale = 1. / cfg.NUM_GPUS,
+                low_threshold = cfg.REFINENET.INDICATOR_HINGLE_LOSS_LOW_THRESHOLD,
+                high_threshold = cfg.REFINENET.INDICATOR_HINGLE_LOSS_HIGH_THRESHOLD
+            )
         loss_gradients = blob_utils.get_loss_gradients(
             model, [loss_mask, loss_indicator]
         )

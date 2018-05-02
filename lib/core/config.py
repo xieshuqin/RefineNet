@@ -508,6 +508,9 @@ __C.MODEL.SEMANTIC_ON = False
 # Apply Indicator Loss
 __C.MODEL.INDICATOR_LOSS_ON = False
 
+# Apply Indicator hingle loss
+__C.MODEL.INDICATOR_HINGLE_LOSS_ON = False
+
 # Apply pixel level focal loss
 __C.MODEL.PIXEL_FOCAL_LOSS_ON = False
 
@@ -967,6 +970,12 @@ __C.REFINENET.INDICATOR_THRES = 0.9
 
 # Threshold for indicator loss
 __C.REFINENET.INDICATOR_LOSS_THRESHOLD = 0.5
+
+# Low threshold for indicator hingle loss
+__C.REFINENET.INDICATOR_HINGLE_LOSS_LOW_THRESHOLD = 0.01
+
+# High threshold for indicator hingle loss
+__C.REFINENET.INDICATOR_HINGLE_LOSS_HIGH_THRESHOLD = 0.99
 
 # Weight of loss to encourage activation for indicator
 __C.REFINENET.WEIGHT_LOSS_ENCOURAGE = 0.1
