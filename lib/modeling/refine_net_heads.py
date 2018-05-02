@@ -385,10 +385,22 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
     blob_out = 'refine_' + prefix + '_net_feat'
     if cfg.REFINENET.HEAD == 'HOURGLASS':
         n = cfg.REFINENET.NUM_HG_MODULES
-        blob_out, dim_out = Hourglass.add_hourglass_head(
-            model, blob_in, blob_out, dim_in, prefix, n
+        current, dim_inner = Hourglass.add_hourglass_head(
+            model, blob_in, 'refined_hg_out', dim_in, prefix, n
         )
-        return blob_out, dim_out
+        # upsample layer
+        model.ConvTranspose(
+            current,
+            blob_out,
+            dim_inner,
+            dim_inner,
+            kernel=2,
+            pad=0,
+            stride=2,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=const_fill(0.0)
+        )
+        return blob_out, dim_inner
     elif cfg.REFINENET.HEAD == 'MRCNN_FCN':
         # Use similar heads as Mask head, but changed the names.
         num_convs = cfg.REFINENET.MRCNN_FCN.NUM_CONVS

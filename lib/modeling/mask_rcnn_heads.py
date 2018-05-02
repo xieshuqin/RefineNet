@@ -153,10 +153,25 @@ def mask_rcnn_hourglass_head(model, blob_in, dim_in, spatial_scale):
 
     prefix = 'mask_head_hg'
     n = cfg.MRCNN.NUM_HG_MODULES
-    blob_out, dim_out = Hourglass.add_hourglass_head(
-            model, current, 'conv5_mask', dim_in, prefix, n
+    current, dim_inner = Hourglass.add_hourglass_head(
+            model, current, 'mask_head_hg_out', dim_in, prefix, n
     )
-    return blob_out, dim_out
+
+    # upsample layer
+    model.ConvTranspose(
+        current,
+        'conv5_mask',
+        dim_inner,
+        dim_inner,
+        kernel=2,
+        pad=0,
+        stride=2,
+        weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+        bias_init=const_fill(0.0)
+    )
+    blob_mask = model.Relu('conv5_mask', 'conv5_mask')
+
+    return blob_mask, dim_inner
 
 
 def mask_rcnn_fcn_head_v1up4convs(model, blob_in, dim_in, spatial_scale):
