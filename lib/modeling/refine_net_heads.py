@@ -187,8 +187,18 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
                 blob_out='mask_indicators',
                 blob_rois='mask_rois',
             )
+        elif cfg.REFINENET.GRADIENT_INTO_INDICATOR_ON:
+            # Allow gradient to flow from Refinenet to indicators
+            mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+            mask_indicators = model.GenerateAutoLearningIndicators(
+                blobs_in=mask_probs,
+                blob_out='mask_indicators',
+                blob_rois='mask_rois',
+                up_scale=cfg.REFINENET.UP_SCALE,
+                resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
+            )
         else:
-            # auto learning indicator
+            # Auto learning indicator
             mask_indicators = model.GenerateAutoLearningIndicators(
                 blobs_in='mask_fcn_logits',
                 blob_out='mask_indicators',
