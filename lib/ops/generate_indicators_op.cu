@@ -43,10 +43,10 @@ __global__ void expand_bbox_by_scale(
     // expand the size by up_scale factor 
     T pad_roi_width = roi_width * up_scale;
     T pad_roi_height = roi_height * up_scale;
-    T pad_x1 = int(center_x - pad_roi_width / 2);
-    T pad_y1 = int(center_y - pad_roi_height / 2);
-    T pad_x2 = int(center_x + pad_roi_width / 2);
-    T pad_y2 = int(center_y + pad_roi_height / 2);
+    T pad_x1 = floor(center_x - pad_roi_width / 2);
+    T pad_y1 = floor(center_y - pad_roi_height / 2);
+    T pad_x2 = floor(center_x + pad_roi_width / 2);
+    T pad_y2 = floor(center_y + pad_roi_height / 2);
 
     // clip to image boundary
     pad_x1 = min((T)(width-1), max((T)0., pad_x1));
