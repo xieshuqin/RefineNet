@@ -17,24 +17,24 @@ def expand_boxes_by_scale(xyxy, scale):
     if isinstance(xyxy, (list, tuple)):
         # Single box given as a list of coordinates
         assert len(xyxy) == 4
-        w, h = xyxy[2] - xyxy[0], xyxy[3] - xyxy[1]
+        w, h = xyxy[2] - xyxy[0]+1, xyxy[3] - xyxy[1]+1
         ctr_x, ctr_y = xyxy[0] + 0.5*w, xyxy[1] + 0.5*h
-        x1, x2 = ctr_x - w*scale/2, ctr_x + w*scale/2
-        y1, y2 = ctr_y - h*scale/2, ctr_y + h*scale/2
+        x1, x2 = int(ctr_x - w*scale/2), int(ctr_x + w*scale/2)
+        y1, y2 = int(ctr_y - h*scale/2), int(ctr_y + h*scale/2)
         return (x1, y1, x2, y2)
     elif isinstance(xyxy, np.ndarray):
         # Multiple boxes given as a 2D ndarray
-        size = xyxy[:, 2:4] - xyxy[:, 0:2]
+        size = xyxy[:, 2:4] - xyxy[:, 0:2] + 1
         ctr = xyxy[:, 0:2] + 0.5*size
-        return np.hstack((ctr-size*scale/2, ctr+size*scale/2))
+        return np.hstack((ctr-size*scale/2, ctr+size*scale/2)).astype(np.int32)
     else:
         raise TypeError('Argument xyxy must be a list, typle or numpy array.')
 
 
 def clip_boxes_to_image(boxes, height, width):
     """Clip an array of boxes to an image with the given height and width."""
-    boxes[:, [0, 2]] = np.minimum(width, np.maximum(0., boxes[:, [0, 2]]))
-    boxes[:, [1, 3]] = np.minimum(height, np.maximum(0., boxes[:, [1, 3]]))
+    boxes[:, [0, 2]] = np.minimum(width-1, np.maximum(0., boxes[:, [0, 2]]))
+    boxes[:, [1, 3]] = np.minimum(height-1, np.maximum(0., boxes[:, [1, 3]]))
     return boxes
 
 
@@ -47,7 +47,7 @@ def convert_coordinate(box_from, box_to, M):
     box_to = box_to.astype(np.float32)
 
     box_to_ul = box_to[:, 0:2]
-    box_to_size = box_to[:, 2:4] - box_to[:, 0:2]
+    box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
 
     box_from_ul = box_from[:, 0:2]
     box_from_br = box_from[:, 2:4]
@@ -56,8 +56,7 @@ def convert_coordinate(box_from, box_to, M):
     converted_br_norm = (box_from_br - box_to_ul) / box_to_size
 
     convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
-    convert_coord = (convert_coord_norm * M)
-    convert_coord = np.rint(convert_coord).astype(np.int32)
+    convert_coord = (convert_coord_norm * M).astype(np.int32)
 
     return convert_coord
 
@@ -92,11 +91,11 @@ def generate_indicators_ref(*inputs):
     for i in range(num_rois):
         mask_prob = mask_probs_NHWC[i]
         coords = converted_coords[i]
-        shape = (coords[2]-coords[0], coords[3]-coords[1]) # w,h
+        shape = (coords[2]-coords[0]+1, coords[3]-coords[1]+1) # w,h
         mask_prob_resize = cv2.resize(mask_prob, shape)
         if mask_prob_resize.shape[2] == 1:
             mask_prob_resize = mask_prob_resize[:, :, np.newaxis]
-        mask_indicators[i, coords[1]:coords[3], coords[0]:coords[2]] = \
+        mask_indicators[i, coords[1]:coords[3]+1, coords[0]:coords[2]+1] = \
             mask_prob_resize
 
     swap_order = (0, 3, 1, 2)
@@ -138,6 +137,7 @@ class TestGenerateIndicatorsOp(hu.HypothesisTestCase):
             roi[i][3] += roi[i][1]
             roi[i][4] += roi[i][2]
         roi = clip_boxes_to_image(roi, Data.shape[2], Data.shape[3])
+        roi = roi.astype(np.int32).astype(np.float32)
 
         op = core.CreateOperator(
             "GenerateIndicators",
