@@ -43,10 +43,10 @@ __global__ void expand_bbox_by_scale(
     // expand the size by up_scale factor 
     T pad_roi_width = roi_width * up_scale;
     T pad_roi_height = roi_height * up_scale;
-    T pad_x1 = floor(center_x - pad_roi_width / 2);
-    T pad_y1 = floor(center_y - pad_roi_height / 2);
-    T pad_x2 = floor(center_x + pad_roi_width / 2);
-    T pad_y2 = floor(center_y + pad_roi_height / 2);
+    T pad_x1 = floorf(center_x - pad_roi_width / 2);
+    T pad_y1 = floorf(center_y - pad_roi_height / 2);
+    T pad_x2 = floorf(center_x + pad_roi_width / 2);
+    T pad_y2 = floorf(center_y + pad_roi_height / 2);
 
     // clip to image boundary
     pad_x1 = min((T)(width-1), max((T)0., pad_x1));
@@ -101,10 +101,10 @@ __global__ void convert_coordinates(
     T pad_width = pad_x2 - pad_x1 + 1;
     T pad_height = pad_y2 - pad_y1 + 1;
 
-    T converted_x1 = floor((x1 - pad_x1) / pad_width * resolution);
-    T converted_x2 = floor((x2 - pad_x1) / pad_width * resolution);
-    T converted_y1 = floor((y1 - pad_y1) / pad_height * resolution);
-    T converted_y2 = floor((y2 - pad_y1) / pad_height * resolution);
+    T converted_x1 = floorf((x1 - pad_x1) / pad_width * resolution);
+    T converted_x2 = floorf((x2 - pad_x1) / pad_width * resolution);
+    T converted_y1 = floorf((y1 - pad_y1) / pad_height * resolution);
+    T converted_y2 = floorf((y2 - pad_y1) / pad_height * resolution);
 
     T* offset_coordinates = coordinates + n * 4;
     offset_coordinates[0] = converted_x1;
@@ -190,10 +190,10 @@ __global__ void GenerateIndicatorsForward(
     int n = index / top_width / top_height / channels;
 
     const T* offset_coordinates = coordinates + n * 4;
-    int x1 = floor(offset_coordinates[0]);
-    int y1 = floor(offset_coordinates[1]);
-    int x2 = floor(offset_coordinates[2]);
-    int y2 = floor(offset_coordinates[3]);
+    int x1 = floorf(offset_coordinates[0]);
+    int y1 = floorf(offset_coordinates[1]);
+    int x2 = floorf(offset_coordinates[2]);
+    int y2 = floorf(offset_coordinates[3]);
 
     // zero if outside the coordinate zone
     if (pw < x1 || pw > x2 || ph < y1 || ph > y2) {
