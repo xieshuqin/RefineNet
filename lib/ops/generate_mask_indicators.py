@@ -88,7 +88,7 @@ class GenerateLocalMaskIndicatorsOp(object):
         up_scale = self.up_scale
         num_cls = mask_probs.shape[1]
         num_rois = mask_rois.shape[0]
-        mask_indicators = np.zeros((num_rois, M, M, num_cls), dtype='float32')
+        mask_indicators = np.zeros((num_rois, M, M, num_cls), dtype=np.float32)
 
         # preparing data
         height, width = data.shape[2], data.shape[3]
@@ -96,16 +96,17 @@ class GenerateLocalMaskIndicatorsOp(object):
         rois = mask_rois[:, 1:5] # ignore batch_id
         pad_rois = box_utils.expand_boxes_by_scale(rois, up_scale)
         pad_rois = box_utils.clip_boxes_to_image(pad_rois, height, width)
+
         # calculate converted coordinates
         converted_coords = box_utils.convert_coordinate(rois, pad_rois, M)
         for i in range(num_rois):
             mask_prob = mask_probs_NHWC[i]
             coords = converted_coords[i]
-            shape = (coords[2]-coords[0], coords[3]-coords[1]) # w,h
+            shape = (coords[2] - coords[0] + 1, coords[3] - coords[1] + 1) # w,h
             mask_prob_resize = cv2.resize(mask_prob, shape)
             if mask_prob_resize.shape[2] == 1:
                 mask_prob_resize = mask_prob_resize[:, :, np.newaxis]
-            mask_indicators[i, coords[1]:coords[3], coords[0]:coords[2]] = \
+            mask_indicators[i, coords[1]:coords[3]+1, coords[0]:coords[2]+1] = \
                 mask_prob_resize
 
         swap_order = (0, 3, 1, 2)

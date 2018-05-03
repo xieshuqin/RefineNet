@@ -35,8 +35,8 @@ __global__ void expand_bbox_by_scale(
     T x2 = offset_bottom_rois[2];
     T y2 = offset_bottom_rois[3];
 
-    T roi_width = x2 - x1;
-    T roi_height = y2 - y1;
+    T roi_width = x2 - x1 + 1;
+    T roi_height = y2 - y1 + 1;
     T center_x = (x1 + x2) / 2;
     T center_y = (y1 + y2) / 2;
 
@@ -98,8 +98,8 @@ __global__ void convert_coordinates(
     T pad_x2 = offset_top_rois[2];
     T pad_y2 = offset_top_rois[3];
 
-    T pad_width = pad_x2 - pad_x1;
-    T pad_height = pad_y2 - pad_y1;
+    T pad_width = pad_x2 - pad_x1 + 1;
+    T pad_height = pad_y2 - pad_y1 + 1;
 
     T converted_x1 = (x1 - pad_x1) / pad_width * resolution;
     T converted_x2 = (x2 - pad_x1) / pad_width * resolution;
@@ -196,12 +196,12 @@ __global__ void GenerateIndicatorsForward(
     int y2 = round(offset_coordinates[3]);
 
     // zero if outside the coordinate zone
-    if (pw < x1 || pw >= x2 || ph < y1 || ph >= y2) {
+    if (pw < x1 || pw > x2 || ph < y1 || ph > y2) {
         top_data[index] = 0;
     }
     else {
-        int pooled_height = y2 - y1;
-        int pooled_width = x2 - x1;
+        int pooled_height = y2 - y1 + 1;
+        int pooled_width = x2 - x1 + 1;
         T bin_size_h = static_cast<T>(height) / static_cast<T>(pooled_height);
         T bin_size_w = static_cast<T>(width) / static_cast<T>(pooled_width);
 

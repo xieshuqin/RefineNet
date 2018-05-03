@@ -110,16 +110,16 @@ def expand_boxes_by_scale(xyxy, scale):
     if isinstance(xyxy, (list, tuple)):
         # Single box given as a list of coordinates
         assert len(xyxy) == 4
-        w, h = xyxy[2] - xyxy[0], xyxy[3] - xyxy[1]
-        ctr_x, ctr_y = xyxy[0] + 0.5*w, xyxy[1] + 0.5*h
-        x1, x2 = ctr_x - w*scale/2, ctr_x + w*scale/2
-        y1, y2 = ctr_y - h*scale/2, ctr_y + h*scale/2
+        w, h = xyxy[2] - xyxy[0] + 1, xyxy[3] - xyxy[1] + 1
+        ctr_x, ctr_y = xyxy[0] + 0.5 * w, xyxy[1] + 0.5 * h
+        x1, x2 = ctr_x - w * scale / 2, ctr_x + w * scale / 2
+        y1, y2 = ctr_y - h * scale / 2, ctr_y + h * scale / 2
         return (x1, y1, x2, y2)
     elif isinstance(xyxy, np.ndarray):
         # Multiple boxes given as a 2D ndarray
-        size = xyxy[:, 2:4] - xyxy[:, 0:2]
-        ctr = xyxy[:, 0:2] + 0.5*size
-        return np.hstack((ctr-size*scale/2, ctr+size*scale/2))
+        size = xyxy[:, 2:4] - xyxy[:, 0:2] + 1
+        ctr = xyxy[:, 0:2] + 0.5 * size
+        return np.hstack((ctr - size * scale / 2, ctr + size * scale / 2))
     else:
         raise TypeError('Argument xyxy must be a list, typle or numpy array.')
 
@@ -133,7 +133,7 @@ def convert_coordinate(box_from, box_to, M):
     box_to = box_to.astype(np.float32)
 
     box_to_ul = box_to[:, 0:2]
-    box_to_size = box_to[:, 2:4] - box_to[:, 0:2]
+    box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
 
     box_from_ul = box_from[:, 0:2]
     box_from_br = box_from[:, 2:4]
