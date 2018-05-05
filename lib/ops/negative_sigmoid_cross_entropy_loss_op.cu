@@ -123,8 +123,6 @@ bool NegativeSigmoidCrossEntropyLossGradientOp<float, CUDAContext>::RunOnDevice(
   auto& d_avg_loss = Input(2);
   auto* dX = Output(0);
 
-  const float logit_threshold = logf(threshold_ / (1. - threshold_));
-
   dX->ResizeLike(X);
   counts_.ResizeLike(X);
   normalizer_.Resize(vector<TIndex>());
