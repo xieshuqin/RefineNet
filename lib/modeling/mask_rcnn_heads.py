@@ -121,15 +121,10 @@ def add_mask_rcnn_losses(model, blob_mask):
             'loss_mask',
             scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_ENCOURAGE
         )
-        # Add
-        if not cfg.MODEL.INDICATOR_HINGLE_LOSS_ON: 
-            loss_indicator = model.net.ThresholdSigmoidCrossEntropyLoss(
-                [blob_mask, 'masks_int32'],
-                'loss_indicator',
-                scale = 1. / cfg.NUM_GPUS,
-                threshold = cfg.REFINENET.INDICATOR_LOSS_THRESHOLD
-            )
-        else:
+        
+        # Add Indicator loss
+        if cfg.MODEL.INDICATOR_HINGLE_LOSS_ON: 
+            # Use Hinge Loss 
             loss_indicator = model.net.ThresholdSigmoidHingleLoss(
                 [blob_mask, 'masks_int32'],
                 'loss_indicator',
@@ -137,6 +132,23 @@ def add_mask_rcnn_losses(model, blob_mask):
                 low_threshold = cfg.REFINENET.INDICATOR_HINGLE_LOSS_LOW_THRESHOLD,
                 high_threshold = cfg.REFINENET.INDICATOR_HINGLE_LOSS_HIGH_THRESHOLD
             )
+        elif cfg.MODEL.INDICATOR_NEGATIVE_SIGMOID_LOSS_ON: 
+            # Use Negative Sigmoid Cross Entropy Loss: 
+            loss_indicator = model.net.NegativeSigmoidCrossEntropyLoss(
+                [blob_mask, 'masks_int32'],
+                'loss_indicator',
+                scale = 1. / cfg.NUM_GPUS
+            )
+        else:
+            # Use threshold sigmoid cross entropy loss
+            loss_indicator = model.net.ThresholdSigmoidCrossEntropyLoss(
+                [blob_mask, 'masks_int32'],
+                'loss_indicator',
+                scale = 1. / cfg.NUM_GPUS,
+                threshold = cfg.REFINENET.INDICATOR_LOSS_THRESHOLD
+            )
+            
+            
         loss_gradients = blob_utils.get_loss_gradients(
             model, [loss_mask, loss_indicator]
         )

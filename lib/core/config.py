@@ -511,8 +511,12 @@ __C.MODEL.INDICATOR_LOSS_ON = False
 # Apply Indicator hingle loss
 __C.MODEL.INDICATOR_HINGLE_LOSS_ON = False
 
+# Apply Indicator Negative Sigmoid Cross Entropy 
+__C.MODEL.INDICATOR_NEGATIVE_SIGMOID_LOSS_ON = False
+
 # Apply pixel level focal loss
 __C.MODEL.PIXEL_FOCAL_LOSS_ON = False
+
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
