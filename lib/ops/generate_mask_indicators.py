@@ -78,7 +78,19 @@ class GenerateLocalMaskIndicatorsOp(object):
         mask_rois = inputs[2].data
 
         # whether using binary threshold for indicator
-        if cfg.REFINENET.USE_THRES_INDICATOR:
+        if cfg.REFINENET.USE_PERCENTTHRES_INDICATOR:
+            mask_probs_reshape = mask_probs.reshape(mask_probs.shape[0],
+                                                    mask_probs.shape[1],-1)
+            thres = int(cfg.REFINENET.PERCENTINDICATOR_THRES * \
+                        mask_probs_reshape.shape[2])
+            mask_probs_sort = np.argsort(-mask_probs_reshape, axis=2)[:,:,:thres]
+            mask_binary = np.zeros(mask_probs_reshape.shape, dtype=np.float32)
+            for i in range(mask_probs_sort.shape[0]):
+                for j in range(mask_probs_sort.shape[1]):  
+                    mask_binary[i,j,mask_probs_sort[i,j]] = 1.
+            mask_binary = mask_binary.reshape(mask_probs.shape)
+            mask_probs *= mask_binary
+        elif cfg.REFINENET.USE_THRES_INDICATOR:
             mask_binary = np.array(
                 mask_probs > cfg.REFINENET.INDICATOR_THRES, dtype=np.float32
             )

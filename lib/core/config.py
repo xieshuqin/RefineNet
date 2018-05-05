@@ -975,6 +975,12 @@ __C.REFINENET.USE_THRES_INDICATOR = False
 # Indicator threshold
 __C.REFINENET.INDICATOR_THRES = 0.9
 
+# Indicator top percent threshold option
+__C.REFINENET.USE_PERCENTTHRES_INDICATOR = False
+
+# Indicator top percent threshold
+__C.REFINENET.PERCENTINDICATOR_THRES = 0.9
+
 # Threshold for indicator loss
 __C.REFINENET.INDICATOR_LOSS_THRESHOLD = 0.5
 
