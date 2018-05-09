@@ -806,6 +806,8 @@ __C.MRCNN.THRESH_BINARIZE = 0.5
 # number of hourglass module in Hourglass head
 __C.MRCNN.NUM_HG_MODULES = 3
 
+# label other same-class instances mask as -2 instead of 0 in an instance mask 
+__C.MRCNN.OTHER_INSTANCE_LABELED = False
 
 # ---------------------------------------------------------------------------- #
 # Keyoint Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
