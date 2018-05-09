@@ -80,10 +80,6 @@ def add_mask_rcnn_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx):
                 #mask = segm_utils.polys_to_mask_wrt_box(poly_gt, roi_fg, M)
                 mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
                 cls = mask_class_labels[i]
-                if not cls in cls_all_instance.keys():
-                    cls_all_instance[cls] = [{'idx':i,'poly_gt':poly_gt}]
-                else:
-                    cls_all_instance[cls].append({'idx':i,'poly_gt':poly_gt})
                 if not cls in cls_all_mask.keys():
                     cls_all_mask[cls] = mask * (i+1)
                 else:
@@ -94,6 +90,10 @@ def add_mask_rcnn_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx):
                             break
                     if flag:
                         cls_all_mask[cls] += mask * (i+1)
+                if not cls in cls_all_instance.keys():
+                    cls_all_instance[cls] = [{'idx':i,'poly_gt':poly_gt}]
+                else:
+                    cls_all_instance[cls].append({'idx':i,'poly_gt':poly_gt})
             for i in range(rois_fg.shape[0]):
                 fg_polys_ind = fg_polys_inds[i]
                 poly_gt = polys_gt[fg_polys_ind]
