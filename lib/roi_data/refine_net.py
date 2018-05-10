@@ -139,7 +139,7 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
                     if poly_gt == ins['poly_gt']:
                         same_ins.append(ins['idx'])
                 min_idx = min(same_ins)
-                mask_bbox = cls_all_mask[cls][int(pad_roi_fg[1]):int(pad_roi_fg[3]),int(pad_roi_fg[0]):int(pad_roi_fg[2])]
+                mask_bbox = cls_all_mask[cls][int(pad_roi_fg[1]):int(pad_roi_fg[3])+1,int(pad_roi_fg[0]):int(pad_roi_fg[2])+1]
                 mask_reduce = np.copy(mask_bbox)
                 mask_reduce[np.where(np.logical_and(mask_reduce != min_idx+1,mask_reduce != 0))] = -2
                 mask_reduce[np.where(mask_reduce == min_idx+1)] = 1
