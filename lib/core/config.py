@@ -517,6 +517,9 @@ __C.MODEL.INDICATOR_NEGATIVE_SIGMOID_LOSS_ON = False
 # Apply pixel level focal loss
 __C.MODEL.PIXEL_FOCAL_LOSS_ON = False
 
+# Apply weighted sigmoid cross entropy loss
+__C.MODEL.WEIGHTED_SIGMOID_LOSS_ON = False
+
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
@@ -1005,12 +1008,24 @@ __C.REFINENET.GRADIENT_INTO_INDICATOR_ON = False
 __C.REFINENET.NUM_HG_MODULES = 4
 
 # ---------------------------------------------------------------------------- #
-# Model options
+# Pixel Focal Loss options
 # ---------------------------------------------------------------------------- #
 __C.PIXEL_FOCAL_LOSS = AttrDict()
 
 # Pixel focal loss hyper-parameters gamma
 __C.PIXEL_FOCAL_LOSS.LOSS_GAMMA = 2.0
+
+
+# ---------------------------------------------------------------------------- #
+# Weighted Sigmoid Loss options
+# ---------------------------------------------------------------------------- #
+__C.WEIGHTED_SIGMOID_LOSS = AttrDict()
+
+# Weight for positive label in weighted_sigmoid_cross_entropy_loss
+__C.WEIGHTED_SIGMOID_LOSS.POSITIVE_WEIGHT = 1.0
+
+# Weight for negative label in weighted_sigmoid_cross_entropy_loss
+__C.WEIGHTED_SIGMOID_LOSS.NEGATIVE_WEIGHT = 1.0
 
 
 # ---------------------------------------------------------------------------- #
