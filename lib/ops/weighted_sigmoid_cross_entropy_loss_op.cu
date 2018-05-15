@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <cfloat>
+
 #include "caffe2/core/context_gpu.h"
 #include "weighted_sigmoid_cross_entropy_loss_op.h"
 
