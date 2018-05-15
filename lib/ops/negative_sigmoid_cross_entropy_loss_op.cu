@@ -33,7 +33,7 @@ __global__ void NegativeSigmoidCrossEntropyLossKernel(
     float* losses,
     float* counts) {
   CUDA_1D_KERNEL_LOOP(index, n) {
-    if (targets[index] != 0) {
+    if (targets[index] != 0 and targets[index] != -2) {
       // Not negative target, just return 0
       losses[index] = 0.;
       counts[index] = 0.;
@@ -55,7 +55,7 @@ __global__ void NegativeSigmoidCrossEntropyLossGradientKernel(
     float* d_logits,
     float* counts) {
   CUDA_1D_KERNEL_LOOP(index, n) {
-    if (targets[index] != 0) {
+    if (targets[index] != 0 and targets[index] != -2) {
       d_logits[index] = 0.;
       counts[index] = 0.;
     } else {

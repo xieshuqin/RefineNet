@@ -69,6 +69,7 @@ def getStat(args):
 	log_file = "\\\\".join(args.log_file.split('\\'))
 	assert path.isdir(log_file) or path.isfile(log_file), \
 		log_file + " is not a file or path!"
+	_range = None
 	if args.range:
 		assert len(args.range) >= 2, args.range+" is an invalid range!"
 		assert args.range[-1] == ')' and args.range[0] == '(', \

@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 import logging
 import numpy as np
+import cv2
 
 from core.config import cfg
 import utils.blob as blob_utils
@@ -64,16 +65,67 @@ def add_mask_rcnn_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx):
         # (measured by bbox overlap)
         fg_polys_inds = np.argmax(overlaps_bbfg_bbpolys, axis=1)
 
-        # add fg targets
-        for i in range(rois_fg.shape[0]):
-            fg_polys_ind = fg_polys_inds[i]
-            poly_gt = polys_gt[fg_polys_ind]
-            roi_fg = rois_fg[i]
-            # Rasterize the portion of the polygon mask within the given fg roi
-            # to an M x M binary image
-            mask = segm_utils.polys_to_mask_wrt_box(poly_gt, roi_fg, M)
-            mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
-            masks[i, :] = np.reshape(mask, M**2)
+        if cfg.MRCNN.OTHER_INSTANCE_LABELED:
+            # here we record all instances' idx, poly_gt and 0-{$idx+1} all_mask in same class
+            # as type {$cls:[{idx:?,poly_gt:?},{},...],...} and {$cls:all_mask}
+            cls_all_mask = {}
+            cls_all_instance = {}
+            # add fg targets
+            for i in range(rois_fg.shape[0]):
+                fg_polys_ind = fg_polys_inds[i]
+                poly_gt = polys_gt[fg_polys_ind]
+                # Rasterize the portion of the polygon mask within the given fg roi
+                # to an M x M binary image
+                mask = segm_utils.polys_to_mask(poly_gt, roidb['height'], roidb['width'])
+                #mask = segm_utils.polys_to_mask_wrt_box(poly_gt, roi_fg, M)
+                mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
+                cls = mask_class_labels[i]
+                if not cls in cls_all_mask.keys():
+                    cls_all_mask[cls] = mask * (i+1)
+                else:
+                    flag = True
+                    for ins in cls_all_instance[cls]: #if this instance has appeared
+                        if poly_gt == ins['poly_gt']:
+                            flag = False
+                            break
+                    if flag:
+                        cls_all_mask[cls] += mask * (i+1)
+                if not cls in cls_all_instance.keys():
+                    cls_all_instance[cls] = [{'idx':i,'poly_gt':poly_gt}]
+                else:
+                    cls_all_instance[cls].append({'idx':i,'poly_gt':poly_gt})
+            for i in range(rois_fg.shape[0]):
+                fg_polys_ind = fg_polys_inds[i]
+                poly_gt = polys_gt[fg_polys_ind]
+                roi_fg = rois_fg[i]
+                cls = mask_class_labels[i]
+                same_ins = []
+                for ins in cls_all_instance[cls]:
+                    if poly_gt == ins['poly_gt']:
+                        same_ins.append(ins['idx'])
+                min_idx = min(same_ins)
+                mask_bbox = cls_all_mask[cls][int(roi_fg[1]):int(roi_fg[3])+1,int(roi_fg[0]):int(roi_fg[2])+1]
+                mask_reduce = np.copy(mask_bbox)
+                mask_reduce[np.where(np.logical_and(mask_reduce != min_idx+1,mask_reduce != 0))] = -2
+                mask_reduce[np.where(mask_reduce == min_idx+1)] = 1
+
+                mask = cv2.resize(mask_reduce.astype(np.float32),(M,M))
+                mask[np.where(mask > 0.)] = 1.
+                mask[np.where(mask < 0.)] = -2.
+                mask = mask.astype(np.int32)
+
+                masks[i, :] = np.reshape(mask, M**2)
+        else:
+            # add fg targets
+            for i in range(rois_fg.shape[0]):
+                fg_polys_ind = fg_polys_inds[i]
+                poly_gt = polys_gt[fg_polys_ind]
+                roi_fg = rois_fg[i]
+                # Rasterize the portion of the polygon mask within the given fg roi
+                # to an M x M binary image
+                mask = segm_utils.polys_to_mask_wrt_box(poly_gt, roi_fg, M)
+                mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
+                masks[i, :] = np.reshape(mask, M**2)
 
     else:  # If there are no fg masks (it does happen)
         # The network cannot handle empty blobs, so we must provide a mask
