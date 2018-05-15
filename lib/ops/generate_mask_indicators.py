@@ -86,7 +86,7 @@ class GenerateLocalMaskIndicatorsOp(object):
             mask_probs_sort = np.argsort(-mask_probs_reshape, axis=2)[:,:,:thres]
             mask_binary = np.zeros(mask_probs_reshape.shape, dtype=np.float32)
             for i in range(mask_probs_sort.shape[0]):
-                for j in range(mask_probs_sort.shape[1]):  
+                for j in range(mask_probs_sort.shape[1]):
                     mask_binary[i,j,mask_probs_sort[i,j]] = 1.
             mask_binary = mask_binary.reshape(mask_probs.shape)
             mask_probs *= mask_binary
@@ -115,6 +115,8 @@ class GenerateLocalMaskIndicatorsOp(object):
             mask_prob = mask_probs_NHWC[i]
             coords = converted_coords[i]
             shape = (coords[2]-coords[0]+1, coords[3]-coords[1]+1) # w,h
+            if shape[0] < 1 or shape[1] < 1:
+                continue
             mask_prob_resize = cv2.resize(mask_prob, shape)
             if mask_prob_resize.shape[2] == 1:
                 mask_prob_resize = mask_prob_resize[:, :, np.newaxis]
