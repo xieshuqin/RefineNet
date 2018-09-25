@@ -537,7 +537,8 @@ def add_resnet_head(
             dim_in=dim_in,
             dim_out=dim_inner,
             dim_inner=dim_inner,
-            dilation=dilation
+            dilation=dilation,
+            inplace_sum=True
         )
         dim_in = dim_inner
 
@@ -550,13 +551,14 @@ def add_resnet_head(
             prefix+'_[refined]_resnet_up' + str(n_downsampling - i),
             dim_in=dim_in,
             dim_out=dim_inner,
-            kernel=3,
-            pad=1,
+            kernel=2,
+            pad=0,
+            out_pad=0,
             stride=2,
             weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
             bias_init=const_fill(0.0)
         )
-        current = brew.spatial_bn(model, current, current+'_bn', int(dim_inner / 2), is_test= not model.train)
+        current = brew.spatial_bn(model, current, current+'_bn', dim_inner, is_test= not model.train)
         current = model.Relu(current, current)
 
         dim_in = dim_inner
