@@ -384,7 +384,7 @@ def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
 # RefineNet heads
 # ---------------------------------------------------------------------------- #
 def add_refine_net_head(model, blob_in, dim_in, prefix):
-    """  
+    """
     Function that abstracts away different choices of fcn model.
     Note that the refine head is free of indicator type.
     """
@@ -412,7 +412,7 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
         return blob_out, dim_inner
     elif cfg.REFINENET.HEAD == 'MRCNN_FCN':
         # Use similar heads as Mask head, but changed the names.
-        # Note that this head occupies huge GPU memories(~7GB for batch 512). 
+        # Note that this head occupies huge GPU memories(~7GB for batch 512).
         num_convs = cfg.REFINENET.MRCNN_FCN.NUM_CONVS
         use_deconv = cfg.REFINENET.MRCNN_FCN.USE_DECONV
         blob_out, dim_out = add_fcn_head(
@@ -420,13 +420,13 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
         )
         return blob_out, dim_out
     elif cfg.REFINENET.HEAD == 'RESNET_FCN':
-        # Use resnet-like structures as the head, this should be memory 
+        # Use resnet-like structures as the head, this should be memory
         # efficiency. (~ 1GB for batch 512)
         n_downsampling = cfg.REFINENET.RESNET_FCN.NUM_DOWNSAMPLING_LAYERS
         num_res_blocks = cfg.REFINENET.RESNET_FCN.NUM_RES_BLOCKS
         use_deconv = cfg.REFINENET.RESNET_FCN.USE_DECONV
         blob_out, dim_out = add_resnet_head(
-            model, blob_in, blob_out, dim_in, prefix, 
+            model, blob_in, blob_out, dim_in, prefix,
             n_downsampling, num_res_blocks, use_deconv
         )
         return blob_out, dim_out
@@ -503,7 +503,7 @@ def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
 
 
 def add_resnet_head(
-    model, blob_in, blob_out, dim_in, prefix, 
+    model, blob_in, blob_out, dim_in, prefix,
     n_downsampling, num_res_blocks, use_deconv
 ):
     dilation = cfg.REFINENET.RESNET_FCN.DILATION
@@ -511,12 +511,12 @@ def add_resnet_head(
 
     current = blob_in
 
-    # Downsampling 
+    # Downsampling
     for i in range(n_downsampling):
         if i > 0:
             dim_inner *= 2
         current = model.Conv(
-            current, 
+            current,
             prefix+'_[refined]_resnet_down' + str(i + 1),
             dim_in,
             dim_inner,
@@ -530,7 +530,7 @@ def add_resnet_head(
 
     # residual blocks
     for i in range(num_res_blocks):
-        current = add_residual_blocks(
+        current = add_residual_block(
             model,
             prefix+'_[refined]_resnet_res' + str(i + 1),
             current,
@@ -541,14 +541,14 @@ def add_resnet_head(
         )
         dim_in = dim_inner
 
-    # Upsampling 
+    # Upsampling
     for i in range(n_downsampling):
         if i < n_downsampling - 1:
             dim_inner = int(dim_inner / 2)
         current = model.ConvTranspose(
             current,
             prefix+'_[refined]_resnet_up' + str(n_downsampling - i),
-            dim_in=dim_in, 
+            dim_in=dim_in,
             dim_out=dim_inner,
             kernel=3,
             pad=1,
@@ -556,7 +556,7 @@ def add_resnet_head(
             weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
             bias_init=const_fill(0.0)
         )
-        current = brew.spatial_bn(model, current, int(dim_inner / 2))
+        current = brew.spatial_bn(model, current, current+'_bn', int(dim_inner / 2), is_test= not model.train)
         current = model.Relu(current, current)
 
         dim_in = dim_inner
@@ -623,9 +623,9 @@ def add_residual_block(
     # transformation blob
     # conv3x3 -> BN -> Relu
     cur = model.ConvBN(
-        blob_in, 
-        prefix + '_branch2a'
-        dim_in, 
+        blob_in,
+        prefix + '_branch2a',
+        dim_in,
         dim_inner,
         kernel=3,
         stride=1,
@@ -635,9 +635,9 @@ def add_residual_block(
     cur = model.Relu(cur, cur)
     # conv 3x3 -> BN
     tr = model.ConvBN(
-        cur, 
-        prefix + '_branch2b'
-        dim_inner, 
+        cur,
+        prefix + '_branch2b',
+        dim_inner,
         dim_out,
         kernel=3,
         stride=1,
