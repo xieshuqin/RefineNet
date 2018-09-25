@@ -21,7 +21,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from caffe2.python import core
+from caffe2.python import core, brew
 from core.config import cfg
 from utils.c2 import const_fill
 from utils.c2 import gauss_fill
@@ -384,9 +384,8 @@ def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
 # RefineNet heads
 # ---------------------------------------------------------------------------- #
 def add_refine_net_head(model, blob_in, dim_in, prefix):
-    """ Currently, we only consider using Hourglass as the RefineNet head,
-    however it can be expanded to other types of network. Therefore we
-    will leave a function to allow different choices of fcn model.
+    """  
+    Function that abstracts away different choices of fcn model.
     Note that the refine head is free of indicator type.
     """
     # note that prefix must be 'mask' or 'keypoint'
@@ -413,10 +412,22 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
         return blob_out, dim_inner
     elif cfg.REFINENET.HEAD == 'MRCNN_FCN':
         # Use similar heads as Mask head, but changed the names.
+        # Note that this head occupies huge GPU memories(~7GB for batch 512). 
         num_convs = cfg.REFINENET.MRCNN_FCN.NUM_CONVS
         use_deconv = cfg.REFINENET.MRCNN_FCN.USE_DECONV
         blob_out, dim_out = add_fcn_head(
             model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
+        )
+        return blob_out, dim_out
+    elif cfg.REFINENET.HEAD == 'RESNET_FCN':
+        # Use resnet-like structures as the head, this should be memory 
+        # efficiency. (~ 1GB for batch 512)
+        n_downsampling = cfg.REFINENET.RESNET_FCN.NUM_DOWNSAMPLING_LAYERS
+        num_res_blocks = cfg.REFINENET.RESNET_FCN.NUM_RES_BLOCKS
+        use_deconv = cfg.REFINENET.RESNET_FCN.USE_DECONV
+        blob_out, dim_out = add_resnet_head(
+            model, blob_in, blob_out, dim_in, prefix, 
+            n_downsampling, num_res_blocks, use_deconv
         )
         return blob_out, dim_out
     else:
@@ -489,3 +500,157 @@ def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
     dim_out = dim_inner
 
     return blob_out, dim_out
+
+
+def add_resnet_head(
+    model, blob_in, blob_out, dim_in, prefix, 
+    n_downsampling, num_res_blocks, use_deconv
+):
+    dilation = cfg.REFINENET.RESNET_FCN.DILATION
+    dim_inner = cfg.REFINENET.RESNET_FCN.DIM_REDUCED
+
+    current = blob_in
+
+    # Downsampling 
+    for i in range(n_downsampling):
+        if i > 0:
+            dim_inner *= 2
+        current = model.Conv(
+            current, 
+            prefix+'_[refined]_resnet_down' + str(i + 1),
+            dim_in,
+            dim_inner,
+            kernel=3,
+            pad=1 * dilation,
+            stride=2,weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
+        current = model.Relu(current, current)
+        dim_in = dim_inner
+
+    # residual blocks
+    for i in range(num_res_blocks):
+        current = add_residual_blocks(
+            model,
+            prefix+'_[refined]_resnet_res' + str(i + 1),
+            current,
+            dim_in=dim_in,
+            dim_out=dim_inner,
+            dim_inner=dim_inner,
+            dilation=dilation
+        )
+        dim_in = dim_inner
+
+    # Upsampling 
+    for i in range(n_downsampling):
+        if i < n_downsampling - 1:
+            dim_inner = int(dim_inner / 2)
+        current = model.ConvTranspose(
+            current,
+            prefix+'_[refined]_resnet_up' + str(n_downsampling - i),
+            dim_in=dim_in, 
+            dim_out=dim_inner,
+            kernel=3,
+            pad=1,
+            stride=2,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=const_fill(0.0)
+        )
+        current = brew.spatial_bn(model, current, int(dim_inner / 2))
+        current = model.Relu(current, current)
+
+        dim_in = dim_inner
+
+    if use_deconv:
+        current = model.Conv(
+            current,
+            prefix+'_[refined]_resnet_conv' + str(1),
+            dim_in,
+            dim_inner,
+            kernel=3,
+            pad=1 * dilation,
+            stride=1,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
+        current = model.Relu(current, current)
+        dim_in = dim_inner
+
+        model.ConvTranspose(
+            current,
+            blob_out,
+            dim_in,
+            dim_inner,
+            kernel=2,
+            pad=0,
+            stride=2,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=const_fill(0.0)
+        )
+    else:
+        model.Conv(
+            current,
+            blob_out,
+            dim_in,
+            dim_inner,
+            kernel=3,
+            pad=1 * dilation,
+            stride=1,
+            weight_init=(cfg.MRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
+
+    blob_out = model.Relu(blob_out, blob_out)
+    dim_out = dim_inner
+
+    return blob_out, dim_out
+
+
+def add_residual_block(
+    model,
+    prefix,
+    blob_in,
+    dim_in,
+    dim_out,
+    dim_inner,
+    dilation,
+    stride=1,
+    inplace_sum=False
+):
+    """Add a residual block to the model."""
+    # prefix = res<stage>_<sub_stage>, e.g., res2_3
+
+    # transformation blob
+    # conv3x3 -> BN -> Relu
+    cur = model.ConvBN(
+        blob_in, 
+        prefix + '_branch2a'
+        dim_in, 
+        dim_inner,
+        kernel=3,
+        stride=1,
+        pad=1 * dilation,
+        dilation=dilation
+    )
+    cur = model.Relu(cur, cur)
+    # conv 3x3 -> BN
+    tr = model.ConvBN(
+        cur, 
+        prefix + '_branch2b'
+        dim_inner, 
+        dim_out,
+        kernel=3,
+        stride=1,
+        pad=1 * dilation,
+        dilation=dilation
+    )
+
+    # shortcut
+    sc = blob_in
+    # sum -> Relu
+    if inplace_sum:
+        s = model.net.Sum([tr, sc], tr)
+    else:
+        s = model.net.Sum([tr, sc], prefix + '_sum')
+
+    return model.Relu(s, s)

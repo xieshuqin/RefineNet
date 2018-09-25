@@ -962,13 +962,41 @@ __C.REFINENET.USE_GPU = False
 # Using local mask as indicator
 __C.REFINENET.LOCAL_MASK = False #
 
-# Using similar heads like MRCNN_FPN
+
+# ---------------------------------------------------------------------------- #
+# RefineNet Mask RCNN-like head options
+# ---------------------------------------------------------------------------- #
 __C.REFINENET.MRCNN_FCN = AttrDict()
 
 # Num of conv layer to use
 __C.REFINENET.MRCNN_FCN.NUM_CONVS = 4 # default num convs
 
 # Using Deconv in the MRCNN_FCN head
+__C.REFINENET.MRCNN_FCN.USE_DECONV = False # default is false
+
+
+# ---------------------------------------------------------------------------- #
+# RefineNet Resnet-like head options
+# ---------------------------------------------------------------------------- #
+__C.REFINENET.RESNET_FCN = AttrDict()
+
+# Num of down sampling layers
+__C.REFINENET.RESNET_FCN.NUM_DOWNSAMPLING_LAYERS = 2 # down sample twice
+
+# Use dialated convolution
+__C.REFINENET.RESNET_FCN.DILATION = 2
+
+# Reduced dimmensions
+__C.REFINENET.RESNET_FCN.DIM_REDUCED = 256
+
+# Number of residual blocks
+__C.REFINENET.RESNET_FCN.NUM_RES_BLOCKS = 4
+
+# Using deconv or not
+__C.REFINENET.RESNET_FCN.USE_DECONV = False
+
+
+
 __C.REFINENET.MRCNN_FCN.USE_DECONV = False # default is false
 
 # Adding the indicator to the network

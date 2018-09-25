@@ -26,6 +26,7 @@ import logging
 from caffe2.python import cnn
 from caffe2.python import core
 from caffe2.python import workspace
+from caffe2.python import brew
 
 from core.config import cfg
 from ops.collect_and_distribute_fpn_rpn_proposals \
@@ -913,6 +914,33 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         )
         blob_out = self.AffineChannel(
             conv_blob, prefix + suffix, inplace=inplace
+        )
+        return blob_out
+
+    def ConvBN(  # args in the same order of Conv()
+        self, blob_in, prefix, dim_in, dim_out, kernel, stride, pad,
+        group=1, dilation=1,
+        weight_init=None,
+        bias_init=None,
+        suffix='_bn'
+    ):
+        """ ConvBN adds a Conv op followed by a SpatialBN op. """
+        conv_blob = self.Conv(
+            blob_in,
+            prefix,
+            dim_in,
+            dim_out,
+            kernel,
+            stride=stride,
+            pad=pad,
+            group=group,
+            dilation=dilation,
+            weight_init=weight_init,
+            bias_init=bias_init,
+            no_bias=1
+        )
+        blob_out = brew.spatial_bn(
+            self, conv_blob, prefix + suffix, dim_out, is_test= not self.train
         )
         return blob_out
 
