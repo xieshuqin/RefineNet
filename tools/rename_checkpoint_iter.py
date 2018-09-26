@@ -45,12 +45,12 @@ def rename_checkpoint(folder, old_n_gpus, new_n_gpus):
     folder = "\\\\".join(folder.split('\\'))
     assert os.path.isdir(folder), folder + " is not a dir "
 
-    # Find and rename all checkpoints 
+    # Find and rename all checkpoints
     files = os.listdir(folder)
     for f in files:
         iter_string = re.findall(r'(?<=model_iter)\d+(?=\.pkl)', f)
         if len(iter_string) > 0:
-            old_iter = int(iter_string[0])
+            old_iter = int(iter_string[0]) + 1
             new_iter = int(old_iter * old_n_gpus / new_n_gpus) - 1
             new_name = 'model_iter' + str(new_iter) + '.pkl'
             os.rename(os.path.join(folder, f), os.path.join(folder, new_name))
