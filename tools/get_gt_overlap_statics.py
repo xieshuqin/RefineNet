@@ -24,6 +24,18 @@ def parse_args():
         default=None,
         type=str
     )
+    parser.add_argument(
+        '--is_train',
+        dest='is_train',
+        help='Using training set for calculating statistics',
+        action='store_true'
+    )
+    parser.add_argument(
+        '--is_same_cls',
+        dest='is_same_cls',
+        help='Calculating statics in the same class or not',
+        action='store_true'
+    )
     # parser.add_argument(
     #     '--imgIds',
     #     dest='imgIds',
@@ -42,15 +54,21 @@ def main():
     if args.cfg_file is not None:
         merge_cfg_from_file(args.cfg_file)
     assert_and_infer_cfg()
-    print('Evaluating datasets: ', cfg.TRAIN.DATASETS[0])
-    ds = JsonDataset(cfg.TRAIN.DATASETS[0])
-    imgIds = [127286]
-    # roidb = ds.get_roidb(gt=True)
-    # num_overlaps = ds.get_gt_overlap_statistics(roidb, is_same_cls=True)
-    ds.get_gt_overlap_for_imgIds(imgIds)
-    
-    # for k in sorted(num_overlaps):
-    #     print(k, num_overlaps[k])
+    if args.is_train:
+        print('Evaluating datasets: ', cfg.TRAIN.DATASETS[0])
+        ds = JsonDataset(cfg.TRAIN.DATASETS[0])
+    else:
+        print('Evaluating datasets: ', cfg.TEST.DATASETS[0])
+        ds = JsonDataset(cfg.TEST.DATASETS[0])
+    # imgIds = [127286]
+    roidb = ds.get_roidb(gt=True)
+    num_overlaps = ds.get_gt_overlap_statistics(roidb, is_same_cls=args.is_same_cls)
+    # ds.get_gt_overlap_for_imgIds(imgIds)
+
+    string_of_class = 'the same class ' if args.is_same_cls else 'all class'
+    print('Reporting overlapping statics on ' + string_of_class)
+    for k in sorted(num_overlaps):
+        print(k, num_overlaps[k])
 
 if __name__ == '__main__':
     main()
