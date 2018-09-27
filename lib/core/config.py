@@ -809,7 +809,7 @@ __C.MRCNN.THRESH_BINARIZE = 0.5
 # number of hourglass module in Hourglass head
 __C.MRCNN.NUM_HG_MODULES = 3
 
-# label other same-class instances mask as -2 instead of 0 in an instance mask 
+# label other same-class instances mask as -2 instead of 0 in an instance mask
 __C.MRCNN.OTHER_INSTANCE_LABELED = False
 
 # ---------------------------------------------------------------------------- #
@@ -1037,6 +1037,9 @@ __C.REFINENET.NUM_HG_MODULES = 4
 
 # Only use crowded samples to train the RefineNet
 __C.REFINENET.ONLY_USE_CROWDED_SAMPLES = False
+
+# Overlapped threshold
+__C.REFINENET.OVERLAP_THRESHOLD = 0.1
 
 # ---------------------------------------------------------------------------- #
 # Pixel Focal Loss options
