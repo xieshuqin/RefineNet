@@ -1035,6 +1035,9 @@ __C.REFINENET.GRADIENT_INTO_INDICATOR_ON = False
 # number of hourglass module in Hourglass head
 __C.REFINENET.NUM_HG_MODULES = 4
 
+# Only use crowded samples to train the RefineNet
+__C.REFINENET.ONLY_USE_CROWDED_SAMPLES = False
+
 # ---------------------------------------------------------------------------- #
 # Pixel Focal Loss options
 # ---------------------------------------------------------------------------- #

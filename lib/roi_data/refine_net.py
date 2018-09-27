@@ -150,6 +150,25 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
                 mask = mask.astype(np.int32)
 
                 masks[i, :] = np.reshape(mask, M**2)
+        elif cfg.REFINENET.ONLY_USE_CROWDED_SAMPLES:
+            # Only use crowded samples to train the RefineNet
+            for i in range(rois_fg.shape[0]):
+                overlap = overlaps_bbfg_bbpolys[i]
+                if np.sum(overlap > 0) > 1:
+                    # if has multiple instances overlapped, use it for training
+                    fg_polys_ind = fg_polys_inds[i]
+                    poly_gt = polys_gt[fg_polys_ind]
+                    pad_roi_fg = pad_rois_fg[i]
+                    # Rasterize the portion of the polygon mask within the given fg roi
+                    # to an M x M binary image
+                    mask = segm_utils.polys_to_mask_wrt_box(poly_gt, pad_roi_fg, M)
+                    mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
+                    masks[i, :] = np.reshape(mask, M**2)  
+
+                else:   # Only one instance, then set label to be -1 (ignored)
+                    masks[i, :] = -1
+                    mask_class_labels[i] = 0
+
         else:
             # add fg targets
             for i in range(rois_fg.shape[0]):
