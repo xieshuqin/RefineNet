@@ -1,5 +1,5 @@
-""" Construct minibatches for PRN training. Handles the minibatch blobs 
-that are specific to IoUNet. Other blobs that are generic to Fast/er R-CNN, 
+""" Construct minibatches for PRN training. Handles the minibatch blobs
+that are specific to IoUNet. Other blobs that are generic to Fast/er R-CNN,
 etc are handled by their respective roi_data modules.
 """
 
@@ -12,6 +12,7 @@ import logging
 import numpy as np
 
 from core.config import cfg
+import utils.blob as blob_utils
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,10 @@ def add_prn_blobs(blobs_out, blobs_in):
         prn_labels = (blobs_in['mask_ious'] < iou_thres).astype(np.int32)
         # and set roi_needs_refine same as prn_labels
         roi_needs_refine = prn_labels.copy()
+        # sometimes the prn_labels might be all false, but we still need
+        # a non-all-false roi_needs_refine. So set the first one as True
+        if np.sum(roi_needs_refine) == 0:
+            roi_needs_refine[0] = 1
 
     else:  # If there are no fg masks (it does happen)
         # The network cannot handle empty blobs, so we must provide a mask

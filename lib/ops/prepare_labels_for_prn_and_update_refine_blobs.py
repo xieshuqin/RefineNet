@@ -41,7 +41,7 @@ class PrepareLabelsForPRNAndUpdateRefineBlobsOp(object):
 def convert_inputs_to_dict(inputs):
     blobs_in_names = get_op_blob_in_names()
     blobs_in = {k: [] for k in blobs_in_names}
-    for i, k in enumerate(blobs_in):
+    for i, k in enumerate(blobs_in_names):
         blobs_in[k] = inputs[i].data
 
     return blobs_in

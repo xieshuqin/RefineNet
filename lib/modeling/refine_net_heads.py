@@ -379,6 +379,13 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
         )
     loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_mask])
     model.AddLosses('loss_refined_mask')
+    # And adds MaskIoU ops
+    model.net.Sigmoid(blob_refined_mask, 'refined_mask_probs')
+    model.net.MaskIoU(
+        ['refined_mask_probs', 'refined_masks_int32'],
+        ['refined_mask_ious', 'mean_refined_mask_ious']
+    )
+    model.AddMetrics('mean_refined_mask_ious')
     return loss_gradients
 
 

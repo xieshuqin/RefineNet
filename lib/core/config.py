@@ -950,8 +950,11 @@ __C.PRN.ROI_XFORM_SAMPLING_RATIO = 0
 # pretrained FC layers like in VGG16, and will ignore this option
 __C.PRN.ROI_XFORM_RESOLUTION = 14
 
+# Class specific labels
+__C.PRN.CLS_SPECIFIC_LABEL = True
+
 # IoU threshold for generating the label
-__C.PRN.THRESHOLD = 0.5 
+__C.PRN.IOU_THRESHOLD = 0.5
 
 # ---------------------------------------------------------------------------- #
 # RefineNet options

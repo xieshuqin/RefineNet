@@ -62,7 +62,7 @@ bool MaskIoUOp<float, CUDAContext>::RunOnDevice() {
       ")");
   
   int batch_size = X.dim32(0);
-  vector<TIndex> out_shape(batch_size);
+  vector<TIndex> out_shape(1, batch_size);
 
   pixels_inter_.ResizeLike(X);
   pixels_union_.ResizeLike(X);

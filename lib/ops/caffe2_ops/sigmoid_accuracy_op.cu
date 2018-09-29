@@ -59,9 +59,14 @@ bool SigmoidAccuracyOp<float, CUDAContext>::RunOnDevice() {
       " vs. ",
       T.size(),
       ")");
-  accuracy->Resize(vector<TIndex>());
-  counts_.ResizeLike(X);
+  // Resize 
   true_positives_.ResizeLike(X);
+  counts_.ResizeLike(X);
+  match_.Resize(vector<TIndex>());
+  total_.Resize(vector<TIndex>());
+
+  accuracy->Resize(vector<TIndex>());
+
   SigmoidAccuracyKernel<<<
       CAFFE_GET_BLOCKS(X.size()),
       CAFFE_CUDA_NUM_THREADS,
