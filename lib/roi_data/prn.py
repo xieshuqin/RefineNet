@@ -20,6 +20,7 @@ def get_prn_blob_names(is_training=True):
     blob_names = []
     if is_training:
         blob_names += ['prn_labels_int32', 'roi_needs_refine_int32']
+        blob_names += ['refine_ratio']
 
     return blob_names
 
@@ -37,7 +38,10 @@ def add_prn_blobs(blobs_out, blobs_in):
         # if below threshold, then set labels to 1, otherwise 0
         prn_labels = (blobs_in['mask_ious'] < iou_thres).astype(np.int32)
         # and set roi_needs_refine same as prn_labels
-        roi_needs_refine = prn_labels.copy()
+        roi_needs_refine = (blobs_in['mask_ious'] < iou_thres).astype(np.int32)
+        # calculate refine ratio
+        refine_ratio = np.sum(roi_needs_refine, keep_dims=True).astype(np.float32)
+        refine_ratio /= fg_inds.shape[0]
         # sometimes the prn_labels might be all false, but we still need
         # a non-all-false roi_needs_refine. So set the first one as True
         if np.sum(roi_needs_refine) == 0:
@@ -54,12 +58,15 @@ def add_prn_blobs(blobs_out, blobs_in):
         fg_labels = blob_utils.zeros((1, ))
         # and set roi_needs_refine to be 1
         roi_needs_refine = blob_utils.ones((1, ), int32=True)
+        # set refine_ratio to be 0
+        refine_ratio = blob_utils.zeros((1, ))
 
     if cfg.PRN.CLS_SPECIFIC_LABEL:
         prn_labels = _expand_to_class_specific_prn_targets(prn_labels, fg_labels)
 
     blobs_out['prn_labels_int32'] = prn_labels
     blobs_out['roi_needs_refine_int32'] = roi_needs_refine
+    blobs_out['refine_ratio'] = refine_ratio
 
 
 def _expand_to_class_specific_prn_targets(prn_labels, class_labels):

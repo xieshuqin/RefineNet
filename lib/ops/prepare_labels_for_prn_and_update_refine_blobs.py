@@ -17,8 +17,9 @@ class PrepareLabelsForPRNAndUpdateRefineBlobsOp(object):
         if training, then inputs include labels for refinement task,
         such as [refined_masks_int32]
 
-        outputs is [prn_labels_int32, roi_needs_refine_int32] and also
-        includes labels for refinement task, such as [refined_masks_int32]
+        outputs is [prn_labels_int32, roi_needs_refine_int32, refine_ratio] 
+        and also includes labels for refinement task, such as 
+        [refined_masks_int32]
     """
     def __init__(self):
         pass
@@ -46,16 +47,6 @@ def convert_inputs_to_dict(inputs):
 
     return blobs_in
 
-
-def update_refine_blobs(blobs_out, blobs_in):
-    # convert roi_needs_refine_int32 to bool
-    roi_needs_refine = blobs_out['roi_needs_refine_int32'].astype(np.bool)
-    # update the refine blobs
-    blob_names = get_refine_blob_names()
-    for k in blob_names:
-        blobs_out[k] = blobs_in[k][roi_needs_refine]
-
-
 def get_refine_blob_names():
     blob_names = []
     if cfg.MODEL.REFINE_MASK_ON:
@@ -71,6 +62,15 @@ def get_op_blob_out_names():
     blob_names = roi_data.prn.get_prn_blob_names()
     blob_names += get_refine_blob_names()
     return blob_names
+
+def update_refine_blobs(blobs_out, blobs_in):
+    # convert roi_needs_refine_int32 to bool
+    roi_needs_refine = blobs_out['roi_needs_refine_int32'].astype(np.bool)
+    # update the refine blobs
+    blob_names = get_refine_blob_names()
+    for k in blob_names:
+        blobs_out[k] = blobs_in[k][roi_needs_refine]
+
 
 
 

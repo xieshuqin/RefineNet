@@ -56,6 +56,8 @@ def add_prn_losses(model):
     model.SigmoidAccuracy(['prn_probs', 'prn_labels_int32'], 'accuracy_prn')
     model.AddLosses(['loss_prn'])
     model.AddMetrics('accuracy_prn')
+    # And add the refine ratio too
+    model.AddMetrics('refine_ratio')
     return loss_gradients
 
 
