@@ -44,11 +44,15 @@ from ops.pooling_feature import PoolingIndicatorFeatureSingleOp
 from ops.pooling_feature import PoolingIndicatorFeatureFPNOp
 
 from ops.scale_rois import ScaleRoIsSingleOp, ScaleRoIsFPNOp
+from ops.prepare_labels_for_prn_and_update_refine_blobs import \
+    PrepareLabelsForPRNAndUpdateRefineBlobsOp
+from ops.generate_roi_needs_refine import GenerateRoIsNeedRefineOp
 
 from ops.generate_mask_indicators import GenerateGlobalMaskIndicatorsOp
 from ops.generate_mask_indicators import GenerateLocalMaskIndicatorsOp
 from utils import lr_policy
 import roi_data.fast_rcnn
+import ops.prepare_labels_for_prn_and_update_refine_blobs as prn_label_op
 import utils.c2 as c2_utils
 
 logger = logging.getLogger(__name__)
@@ -251,296 +255,6 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 # ---------------------------------------------------------------------------- #
 # Beginning of shuqin's code
 # ---------------------------------------------------------------------------- #
-    def RescaleAndDumplicateFeatureFPN(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois,
-        src_spatial_scales,
-        dst_spatial_scale
-    ):
-        """ Dumplicate FPN feature maps for the refiner network.
-        If use FPN, then call. Then concancate the feature maps
-        along the batch dimension
-
-        Input blobs: [fpn_<min>, ..., fpn_<max>]
-        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
-
-        Output blobs: rois_global_feature
-        """
-        dst_sc = dst_spatial_scale
-
-        k_max = cfg.FPN.ROI_MAX_LEVEL
-        k_min = cfg.FPN.ROI_MIN_LEVEL
-        blob_fpn_rois = [
-            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl))
-            for lvl in range(k_min, k_max+1)
-        ]
-
-        src_sc = []
-        blobs_in_list = []
-        for lvl in range(k_min, k_max+1):
-            blob_in = blobs_in[k_max - lvl] # reversed order
-            src_sc.append(src_spatial_scales[k_max - lvl]) # reversed order
-            blob_fpn_roi = blob_fpn_rois[lvl - k_min]
-            blobs_in_list.append(blob_in)
-            blobs_in_list.append(blob_fpn_roi)
-
-        name = 'RescaleAndDumplcateFeatureFPNOp: ' + ','.join(
-                [str(b) for b in blobs_in_list]
-            )
-        # ignore gradient for 'blob_rois'
-        grad_input_indices = [2*(i-k_min) for i in range(k_min, k_max+1)]
-        #grad_input_indices=[]
-
-        blob_fpn_dumplicate_out = [
-            core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
-            for lvl in range(k_min, k_max+1)
-        ]
-
-        #Rescale and Dumplicate FPN feature
-        blob_dumplicate_list = self.net.Python(
-            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).forward,
-            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).backward,
-            grad_input_indices=grad_input_indices
-        )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
-
-        # The pooled features from all levels are concatenated along the
-            # batch dimension into a single 4D tensor.
-        xform_shuffled, _ = self.net.Concat(
-            blob_dumplicate_list, [blob_out + '_shuffled', '_concat_' + blob_out],
-            axis=0
-        )
-        # Unshuffle to match rois from dataloader
-        restore_bl = core.ScopedBlobReference(blob_rois + '_idx_restore_int32')
-        xform_out = self.net.BatchPermutation(
-            [xform_shuffled, restore_bl], blob_out
-        )
-
-        return xform_out
-
-
-    def RescaleAndDumplicateFeatureSingle(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois,
-        src_spatial_scales,
-        dst_spatial_scale
-    ):
-        """ Dumplicate feature maps for the refiner network.
-        If use FPN, then rescale the different FPN level feature
-        to a dst_spatial_scale. Then concancate the feature maps
-        along the batch dimension
-
-        Input blobs: res_...
-        Input rois: mask_rois_fpn
-
-        Output blobs: rois_global_feature
-        """
-        # Single scale feature
-        src_sc = src_spatial_scales
-        dst_sc = dst_spatial_scale
-        blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
-        name = 'RescaleAndDumplicateOp:' + ','.join(
-            [str(b) for b in blobs_in_list]
-        )
-
-        blob_out = core.ScopedBlobReference(blob_out)
-
-        xform_out = self.net.Python(
-            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).forward,
-            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).backward,
-            grad_input_indices=[0]
-        )(blobs_in_list, blob_out, name=name)
-
-        return xform_out
-
-
-    def RescaleAndDumplicateFeatureOld(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois,
-        src_spatial_scales,
-        dst_spatial_scale
-    ):
-        """ Dumplicate feature maps for the refiner network.
-        If use FPN, then rescale the different FPN level feature
-        to a dst_spatial_scale. Then concancate the feature maps
-        along the batch dimension
-
-        Input blobs: [fpn_<min>, ..., fpn_<max>]
-        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
-
-        Output blobs: rois_global_feature
-        """
-        # Add scoped blob
-
-        if isinstance(blobs_in, list):
-            # FPN cases: add RescaleAndDumplcateFeatureOp to each level
-            # Since .net.Python can only use existing blob as input,
-            # we create a blob to maintain some temporary parameters
-            # and pass the blob to custom_op
-            k_max = cfg.FPN.ROI_MAX_LEVEL
-            k_min = cfg.FPN.ROI_MIN_LEVEL
-            assert len(blobs_in) == k_max - k_min + 1
-            dst_sc = dst_spatial_scale
-            bl_out_list = []
-            for lvl in range(k_min, k_max + 1):
-                src_sc = src_spatial_scales[k_max - lvl] # reversed order
-                dst_sc = dst_spatial_scale
-
-                bl_in = blobs_in[k_max - lvl] # came in reversed order
-                bl_rois = core.ScopedBlobReference(blob_rois + '_fpn' + str(lvl))
-                bl_in_list = [bl_in, bl_rois]
-                name = 'RescaleAndDumplicateFeatureOp:' + ','.join(
-                    [str(b) for b in bl_in_list]
-                )
-
-                bl_out = core.ScopedBlobReference(blob_out + '_fpn' + str(lvl))
-                bl_out_list.append(bl_out)
-                self.net.Python(
-                    RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
-                )(bl_in_list, bl_out, name=name)
-
-            # The pooled features from all levels are concatenated along the
-            # batch dimension into a single 4D tensor.
-            xform_shuffled, _ = self.net.Concat(
-                bl_out_list, [blob_out + '_shuffled', '_concat_' + blob_out],
-                axis=0
-            )
-            blob_rois = core.ScopedBlobReference(blob_rois)
-            # Unshuffle to match rois from dataloader
-            restore_bl = blob_rois + '_idx_restore_int32'
-            xform_out = self.net.BatchPermutation(
-                [xform_shuffled, restore_bl], blob_out
-            )
-        else:
-            # Single scale feature
-            src_sc = src_spatial_scales
-            dst_sc = dst_spatial_scale
-            blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
-            name = 'RescaleAndDumplicateOp:' + ','.join(
-                [str(b) for b in blobs_in_list]
-            )
-
-            blob_out = core.ScopedBlobReference(blob_out)
-
-            xform_out = self.net.Python(
-                RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
-            )(blobs_in_list, blob_out, name=name)
-
-        # Only return the first blob (the transformed features)
-        return xform_out
-
-
-    def PoolingIndicatorFeatureSingle(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois,
-        spatial_scale
-    ):
-        """ Pool indicator feature for the rois. Scale the roi with a
-        factor and then create a feature map with size MxM.
-
-        Input blobs: res_...
-        Input rois: mask_rois_fpn
-
-        Output blobs: rois_global_feature
-
-        """
-        M = cfg.REFINENET.RESOLUTION
-        up_scale = cfg.REFINENET.UP_SCALE
-
-        blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
-        name = 'PoolingIndicatorFeatureSingleOp:' + ','.join(
-            [str(b) for b in blobs_in_list]
-        )
-
-        blob_out = core.ScopedBlobReference(blob_out)
-
-        xform_out = self.net.Python(
-            PoolingIndicatorFeatureSingleOp(spatial_scale, up_scale, M).forward,
-            PoolingIndicatorFeatureSingleOp(spatial_scale, up_scale, M).backward,
-            grad_input_indices=[0]
-        )(blobs_in_list, blob_out, name=name)
-
-        return xform_out
-
-
-    def PoolingIndicatorFeatureFPN(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois,
-        spatial_scales
-    ):
-        """
-        Pool indicator feature for the rois. Scale the roi with a
-        factor and then create a feature map with size MxM.
-        If use FPN, then call. Then concancate the feature maps
-        along the batch dimension
-
-        Input blobs: [fpn_<min>, ..., fpn_<max>]
-        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
-
-        Output blobs: rois_global_feature
-        """
-        M = cfg.REFINENET.RESOLUTION
-        up_scale = cfg.REFINENET.UP_SCALE
-
-        k_max = cfg.FPN.ROI_MAX_LEVEL
-        k_min = cfg.FPN.ROI_MIN_LEVEL
-        blob_fpn_rois = [
-            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl))
-            for lvl in range(k_min, k_max+1)
-        ]
-
-        scales = []
-        blobs_in_list = []
-        for lvl in range(k_min, k_max+1):
-            blob_in = blobs_in[k_max - lvl] # reversed order
-            scales.append(spatial_scales[k_max - lvl]) # reversed order
-            blob_fpn_roi = blob_fpn_rois[lvl - k_min]
-            blobs_in_list.append(blob_in)
-            blobs_in_list.append(blob_fpn_roi)
-
-        name = 'PoolingIndicatorFeatureFPNOp: ' + ','.join(
-                [str(b) for b in blobs_in_list]
-            )
-        # ignore gradient for 'blob_rois'
-        grad_input_indices = [2*(i-k_min) for i in range(k_min, k_max+1)]
-        #grad_input_indices=[]
-
-        blob_fpn_dumplicate_out = [
-            core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
-            for lvl in range(k_min, k_max+1)
-        ]
-
-        #Rescale and Dumplicate FPN feature
-        blob_dumplicate_list = self.net.Python(
-            PoolingIndicatorFeatureFPNOp(k_min,k_max,scales,up_scale,M).forward,
-            PoolingIndicatorFeatureFPNOp(k_min,k_max,scales,up_scale,M).backward,
-            grad_input_indices=grad_input_indices
-        )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
-
-        # The pooled features from all levels are concatenated along the
-            # batch dimension into a single 4D tensor.
-        xform_shuffled, _ = self.net.Concat(
-            blob_dumplicate_list, [blob_out + '_shuffled', '_concat_' + blob_out],
-            axis=0
-        )
-        # Unshuffle to match rois from dataloader
-        restore_bl = core.ScopedBlobReference(blob_rois + '_idx_restore_int32')
-        xform_out = self.net.BatchPermutation(
-            [xform_shuffled, restore_bl], blob_out
-        )
-
-        return xform_out
-
-
     def ScaleRoIs(self, blob_rois, blob_scale_rois, up_scale):
         """ Scale the blob_rois by a up_scale factor.
             abstract the use of FPN here.
@@ -585,38 +299,6 @@ class DetectionModelHelper(cnn.CNNModelHelper):
 
         return xform_out
 
-
-    def GenerateGlobalMaskIndicators(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois='mask_rois',
-        dst_spatial_scale=1/16.
-    ):
-        """ Add mask indicators to the refine network. It maps the
-        'mask_probs' into the input images' space, and narrow it down
-        by the value 'scale'
-
-        Input blobs: [data, mask_probs]
-        Input rois: mask_rois
-        Output blob: mask_indicators
-        """
-        blob_rois = core.ScopedBlobReference(blob_rois) # refer blob_rois
-        blobs_in_list = blobs_in + [blob_rois]
-        name = 'GenerateMaskIndicatorsOp:' + ','.join(
-            [str(b) for b in blobs_in_list]
-        )
-        blob_out = core.ScopedBlobReference(blob_out)
-        grad_input_indices=[0] # ignore gradient for blob_rois
-
-        xform_out = self.net.Python(
-            GenerateGlobalMaskIndicatorsOp(scale=dst_spatial_scale).forward,
-            GenerateGlobalMaskIndicatorsOp(scale=dst_spatial_scale).backward,
-            grad_input_indices=grad_input_indices
-        )(blobs_in_list, blob_out, name=name)
-        return xform_out
-
-
     def GenerateLocalMaskIndicators(
         self,
         blobs_in,
@@ -649,98 +331,108 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         )(blobs_in_list, blob_out, name=name)
         return xform_out
 
+    def PrepareLabelsForPRNAndUpdateRefineBlobs(self):
+        """ Prepare labels for PRN and update blobs for RefineNet.
 
-    def RescaleFeatureMap(
-        self,
-        blobs_in,
-        blob_out,
-        dim_in,
-        rescale_factor,
-        spatial_scale=1. / 16.,
-        sampling_ratio=0
-    ):
-        """ Rescale the feature map to a rescale_factor size.
-        If use FPN, then rescale each FPN to a fixed size and
-        concat them together.
+        Input blobs: ['mask_ious', 'labels_int32']
+          - labels_int32 is the cls label for rois
 
-        Else, pass the feature map.
+        If used during training, adds the related blobs for the specific 
+        refinement task, such as ['refined_masks_int32']. 
+
+        Output blob: ['prn_labels_int32', 'roi_needs_refine_int32']
+          - prn_labels_int32 is the labels for prn. 
+          - roi_needs_refine_int32 is a binary label indicates whether
+          further refinement is needed or not. 
+
+        And if used during training, also doing inplace-update for the 
+        labels of refinement tasks. Such as update ['refined_masks_int32']
         """
+        # Prepare input blobs
+        blobs_in = prn_label_op.get_op_blob_in_names()
+        blobs_in = [core.ScopedBlobReference(b) for b in blobs_in]
+        name = 'PrepareLabelsForPRNAndUpdateRefineBlobsOp: ' + ','.join([str(b) for b in blobs_in])
+        # Prepare output blobs
+        blobs_out = prn_label_op.get_op_blob_out_names()
+        blobs_out = [core.ScopedBlobReference(b) for b in blobs_out]
+        # Execute op
+        output = self.net.Python(
+            PrepareLabelsForPRNAndUpdateRefineBlobsOp().forward
+        )(blobs_in, blobs_out, name=name)
+        return output
 
-        method = 'RescaleFeatureMap'
-        # get the output size
-        dim_out = 0
-        blob_data = core.ScopedBlobReference('data')
+    def GenerateRoIsNeedRefine(self):
+        ### IMPORTANT! Unused op!!!
 
-        if isinstance(blobs_in, list):
-            # FPN case
-            k_max = cfg.FPN.ROI_MAX_LEVEL  # coarsest level of pyramid
-            k_min = cfg.FPN.ROI_MIN_LEVEL  # finest level of pyramid
-            assert len(blobs_in) == k_max - k_min + 1
+        """ Generate a binary label to decide whether the prediction needs 
+        further refinement. And also update the corresponding prediction
+        here.
+        
+        Input blobs: ['prn_probs']
+          - prn_probs is the probability of the mask/keypoint 
+          prediction needs further refinement
 
-            bl_out_list = []
-            for lvl in range(k_min, k_max+1):
-                dim_out += dim_in
-                bl_in = blobs_in[k_max - lvl] # reversed order
-                sc = spatial_scale[k_max - lvl] # reversed order
-                bl_rois = 'img_rois'
-                bl_out = blob_out + '_fpn' + str(lvl)
-                bl_out_list.append(bl_out)
-                self.net.__getattr__(method)(
-                    [bl_in, bl_rois, blob_data], [bl_out],
-                    spatial_scale=sc,
-                    rescale_factor=rescale_factor,
-                    sampling_ratio=sampling_ratio
-                )
-            xform_out, _ = self.net.Concat(
-                bl_out_list, [blob_out, '_concat_' + blob_out],
-                axis=1
-            )
-        else:
-            # Single feature level
-            dim_out = dim_in
-            # sampling_ratio is ignored for RoIPoolF
-            xform_out = self.net.__getattr__(method)(
-                [blobs_in, blob_rois], [blob_out],
-                spatial_scale=spatial_scale,
-                rescale_factor=rescale_factor,
-                sampling_ratio=sampling_ratio
-            )
+        If used during training, includes the labels for PredictNeedRefine 
+        and use it as the output. ['prn_labels_int32']
+        And also adds the related blobs for the specific refinement task,
+        such as ['refined_masks_int32']. 
 
-        return xform_out, dim_out
+        Output blob: ['roi_needs_refine_int32']
+          - roi_needs_refine_int32 is a binary label indicates whether
+          further refinement is needed or not. 
 
-
-    def GenerateAutoLearningIndicators(
-        self,
-        blobs_in,
-        blob_out,
-        blob_rois,
-        up_scale,
-        resolution
-    ):
-        """ Generate Indicators. Implemented in C++ and CUDA.
-        The forward function is similar to GenerateLocalMaskIndicators.
-        But This operator adds a backward function to allow e2e learning.
-        The indicator here acts as an intermediate feature.
-        blobs_in: mask_fcn_logits
-        blob_out: mask_indicators
-
-        op input: X, R, Data
-        op output: Y
+        And if used during training, also doing inplace-update for the 
+        labels of refinement tasks. Such as update ['refined_masks_int32']
         """
-        method = 'GenerateIndicators'
+        # Prepare input blobs
+        blobs_in = ['prn_probs'] 
+        if self.train:
+            # adds labels of prn
+            blobs_in += ['prn_labels_int32']
+            # adds refinement tasks specific blobs
+            if cfg.MODEL.REFINE_MASK_ON:
+                blobs_in += ['refined_masks_int32'] 
 
-        blob_in_list = [blobs_in, blob_rois, 'data']
-        blob_out = self.net.__getattr__(method)(
-            blob_in_list, [blob_out],
-            up_scale=float(up_scale),
-            resolution=resolution
+        blobs_in = [core.ScopedBlobReference(b) for b in blobs_in]
+        name = 'GenerateRoIsNeedRefineOp: ' + ','.join(
+            str(b) for b in blobs_in
         )
-        return blob_out
+
+        # Prepare output blobs
+        blobs_out = ['roi_needs_refine_int32']
+        if self.train:
+            # add refinement tasks specific blobs
+            if cfg.MODEL.REFINE_MASK_ON:
+                blobs_out += ['refined_masks_int32']
+
+        blobs_out = [core.ScopedBlobReference(b) for b in blobs_out]
+        
+        # Execute op
+        # Note that this op will overwrite the label for the specific task
+        outputs = self.net.Python(
+            GenerateRoIsNeedRefineOp(self.train).forward
+        )(blobs_in, blobs_out, name=name)
+
+        return outputs[0] # only return the binary label
+
+    def MaskIoUs(self, blobs_in, blob_label, blob_out):
+        """ Calculate Mask IoUs. 
+            Input blobs: ['mask_probs', 'masks_int32']
+            Output blobs: ['mask_ious']
+        """
+        blobs_in = [core.ScopedBlobReference(b) for b in blobs_in]
+        name = 'MaskIoUsOp: ' + ','.join([str(b) for b in blobs_in])
+
+        blob_out = core.ScopedBlobReference(blob_out)
+
+        output = self.net.Python(
+            MaskIoUsOp().forward
+        )(blobs_in, blob_out, name=name)
+        return output
 
 # ---------------------------------------------------------------------------- #
 # End of shuqin's code
 # ---------------------------------------------------------------------------- #
-
     def RoIFeatureTransform(
         self,
         blobs_in,
@@ -1017,6 +709,410 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         if not isinstance(metrics, list):
             metrics = [metrics]
         self.metrics = list(set(self.metrics + metrics))
+
+# ---------------------------------------------------------------------------- #
+# Old codes that no longer used 
+# ---------------------------------------------------------------------------- #
+    def RescaleAndDumplicateFeatureFPN(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        src_spatial_scales,
+        dst_spatial_scale
+    ):
+        """ Dumplicate FPN feature maps for the refiner network.
+        If use FPN, then call. Then concancate the feature maps
+        along the batch dimension
+
+        Input blobs: [fpn_<min>, ..., fpn_<max>]
+        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
+
+        Output blobs: rois_global_feature
+        """
+        dst_sc = dst_spatial_scale
+
+        k_max = cfg.FPN.ROI_MAX_LEVEL
+        k_min = cfg.FPN.ROI_MIN_LEVEL
+        blob_fpn_rois = [
+            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl))
+            for lvl in range(k_min, k_max+1)
+        ]
+
+        src_sc = []
+        blobs_in_list = []
+        for lvl in range(k_min, k_max+1):
+            blob_in = blobs_in[k_max - lvl] # reversed order
+            src_sc.append(src_spatial_scales[k_max - lvl]) # reversed order
+            blob_fpn_roi = blob_fpn_rois[lvl - k_min]
+            blobs_in_list.append(blob_in)
+            blobs_in_list.append(blob_fpn_roi)
+
+        name = 'RescaleAndDumplcateFeatureFPNOp: ' + ','.join(
+                [str(b) for b in blobs_in_list]
+            )
+        # ignore gradient for 'blob_rois'
+        grad_input_indices = [2*(i-k_min) for i in range(k_min, k_max+1)]
+        #grad_input_indices=[]
+
+        blob_fpn_dumplicate_out = [
+            core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
+            for lvl in range(k_min, k_max+1)
+        ]
+
+        #Rescale and Dumplicate FPN feature
+        blob_dumplicate_list = self.net.Python(
+            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).forward,
+            RescaleAndDumplicateFeatureFPNOp(k_min,k_max,src_sc,dst_sc).backward,
+            grad_input_indices=grad_input_indices
+        )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
+
+        # The pooled features from all levels are concatenated along the
+            # batch dimension into a single 4D tensor.
+        xform_shuffled, _ = self.net.Concat(
+            blob_dumplicate_list, [blob_out + '_shuffled', '_concat_' + blob_out],
+            axis=0
+        )
+        # Unshuffle to match rois from dataloader
+        restore_bl = core.ScopedBlobReference(blob_rois + '_idx_restore_int32')
+        xform_out = self.net.BatchPermutation(
+            [xform_shuffled, restore_bl], blob_out
+        )
+
+        return xform_out
+
+    def RescaleAndDumplicateFeatureSingle(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        src_spatial_scales,
+        dst_spatial_scale
+    ):
+        """ Dumplicate feature maps for the refiner network.
+        If use FPN, then rescale the different FPN level feature
+        to a dst_spatial_scale. Then concancate the feature maps
+        along the batch dimension
+
+        Input blobs: res_...
+        Input rois: mask_rois_fpn
+
+        Output blobs: rois_global_feature
+        """
+        # Single scale feature
+        src_sc = src_spatial_scales
+        dst_sc = dst_spatial_scale
+        blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
+        name = 'RescaleAndDumplicateOp:' + ','.join(
+            [str(b) for b in blobs_in_list]
+        )
+
+        blob_out = core.ScopedBlobReference(blob_out)
+
+        xform_out = self.net.Python(
+            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).forward,
+            RescaleAndDumplicateFeatureSingleOp(src_sc, dst_sc).backward,
+            grad_input_indices=[0]
+        )(blobs_in_list, blob_out, name=name)
+
+        return xform_out
+
+    def RescaleAndDumplicateFeatureOld(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        src_spatial_scales,
+        dst_spatial_scale
+    ):
+        """ Dumplicate feature maps for the refiner network.
+        If use FPN, then rescale the different FPN level feature
+        to a dst_spatial_scale. Then concancate the feature maps
+        along the batch dimension
+
+        Input blobs: [fpn_<min>, ..., fpn_<max>]
+        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
+
+        Output blobs: rois_global_feature
+        """
+        # Add scoped blob
+
+        if isinstance(blobs_in, list):
+            # FPN cases: add RescaleAndDumplcateFeatureOp to each level
+            # Since .net.Python can only use existing blob as input,
+            # we create a blob to maintain some temporary parameters
+            # and pass the blob to custom_op
+            k_max = cfg.FPN.ROI_MAX_LEVEL
+            k_min = cfg.FPN.ROI_MIN_LEVEL
+            assert len(blobs_in) == k_max - k_min + 1
+            dst_sc = dst_spatial_scale
+            bl_out_list = []
+            for lvl in range(k_min, k_max + 1):
+                src_sc = src_spatial_scales[k_max - lvl] # reversed order
+                dst_sc = dst_spatial_scale
+
+                bl_in = blobs_in[k_max - lvl] # came in reversed order
+                bl_rois = core.ScopedBlobReference(blob_rois + '_fpn' + str(lvl))
+                bl_in_list = [bl_in, bl_rois]
+                name = 'RescaleAndDumplicateFeatureOp:' + ','.join(
+                    [str(b) for b in bl_in_list]
+                )
+
+                bl_out = core.ScopedBlobReference(blob_out + '_fpn' + str(lvl))
+                bl_out_list.append(bl_out)
+                self.net.Python(
+                    RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
+                )(bl_in_list, bl_out, name=name)
+
+            # The pooled features from all levels are concatenated along the
+            # batch dimension into a single 4D tensor.
+            xform_shuffled, _ = self.net.Concat(
+                bl_out_list, [blob_out + '_shuffled', '_concat_' + blob_out],
+                axis=0
+            )
+            blob_rois = core.ScopedBlobReference(blob_rois)
+            # Unshuffle to match rois from dataloader
+            restore_bl = blob_rois + '_idx_restore_int32'
+            xform_out = self.net.BatchPermutation(
+                [xform_shuffled, restore_bl], blob_out
+            )
+        else:
+            # Single scale feature
+            src_sc = src_spatial_scales
+            dst_sc = dst_spatial_scale
+            blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
+            name = 'RescaleAndDumplicateOp:' + ','.join(
+                [str(b) for b in blobs_in_list]
+            )
+
+            blob_out = core.ScopedBlobReference(blob_out)
+
+            xform_out = self.net.Python(
+                RescaleAndDumplicateFeatureOp(src_sc, dst_sc).forward
+            )(blobs_in_list, blob_out, name=name)
+
+        # Only return the first blob (the transformed features)
+        return xform_out
+
+    def PoolingIndicatorFeatureSingle(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        spatial_scale
+    ):
+        """ Pool indicator feature for the rois. Scale the roi with a
+        factor and then create a feature map with size MxM.
+
+        Input blobs: res_...
+        Input rois: mask_rois_fpn
+
+        Output blobs: rois_global_feature
+
+        """
+        M = cfg.REFINENET.RESOLUTION
+        up_scale = cfg.REFINENET.UP_SCALE
+
+        blobs_in_list = [blobs_in, core.ScopedBlobReference(blob_rois)]
+        name = 'PoolingIndicatorFeatureSingleOp:' + ','.join(
+            [str(b) for b in blobs_in_list]
+        )
+
+        blob_out = core.ScopedBlobReference(blob_out)
+
+        xform_out = self.net.Python(
+            PoolingIndicatorFeatureSingleOp(spatial_scale, up_scale, M).forward,
+            PoolingIndicatorFeatureSingleOp(spatial_scale, up_scale, M).backward,
+            grad_input_indices=[0]
+        )(blobs_in_list, blob_out, name=name)
+
+        return xform_out
+
+    def PoolingIndicatorFeatureFPN(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        spatial_scales
+    ):
+        """
+        Pool indicator feature for the rois. Scale the roi with a
+        factor and then create a feature map with size MxM.
+        If use FPN, then call. Then concancate the feature maps
+        along the batch dimension
+
+        Input blobs: [fpn_<min>, ..., fpn_<max>]
+        Input rois: [mask_rois_fpn<min>, ..., mask_rois_fpn<max>]
+
+        Output blobs: rois_global_feature
+        """
+        M = cfg.REFINENET.RESOLUTION
+        up_scale = cfg.REFINENET.UP_SCALE
+
+        k_max = cfg.FPN.ROI_MAX_LEVEL
+        k_min = cfg.FPN.ROI_MIN_LEVEL
+        blob_fpn_rois = [
+            core.ScopedBlobReference(blob_rois+'_fpn'+str(lvl))
+            for lvl in range(k_min, k_max+1)
+        ]
+
+        scales = []
+        blobs_in_list = []
+        for lvl in range(k_min, k_max+1):
+            blob_in = blobs_in[k_max - lvl] # reversed order
+            scales.append(spatial_scales[k_max - lvl]) # reversed order
+            blob_fpn_roi = blob_fpn_rois[lvl - k_min]
+            blobs_in_list.append(blob_in)
+            blobs_in_list.append(blob_fpn_roi)
+
+        name = 'PoolingIndicatorFeatureFPNOp: ' + ','.join(
+                [str(b) for b in blobs_in_list]
+            )
+        # ignore gradient for 'blob_rois'
+        grad_input_indices = [2*(i-k_min) for i in range(k_min, k_max+1)]
+        #grad_input_indices=[]
+
+        blob_fpn_dumplicate_out = [
+            core.ScopedBlobReference(blob_out+'_fpn'+str(lvl))
+            for lvl in range(k_min, k_max+1)
+        ]
+
+        #Rescale and Dumplicate FPN feature
+        blob_dumplicate_list = self.net.Python(
+            PoolingIndicatorFeatureFPNOp(k_min,k_max,scales,up_scale,M).forward,
+            PoolingIndicatorFeatureFPNOp(k_min,k_max,scales,up_scale,M).backward,
+            grad_input_indices=grad_input_indices
+        )(blobs_in_list, blob_fpn_dumplicate_out, name=name)
+
+        # The pooled features from all levels are concatenated along the
+            # batch dimension into a single 4D tensor.
+        xform_shuffled, _ = self.net.Concat(
+            blob_dumplicate_list, [blob_out + '_shuffled', '_concat_' + blob_out],
+            axis=0
+        )
+        # Unshuffle to match rois from dataloader
+        restore_bl = core.ScopedBlobReference(blob_rois + '_idx_restore_int32')
+        xform_out = self.net.BatchPermutation(
+            [xform_shuffled, restore_bl], blob_out
+        )
+
+        return xform_out
+
+    def RescaleFeatureMap(
+        self,
+        blobs_in,
+        blob_out,
+        dim_in,
+        rescale_factor,
+        spatial_scale=1. / 16.,
+        sampling_ratio=0
+    ):
+        """ Rescale the feature map to a rescale_factor size.
+        If use FPN, then rescale each FPN to a fixed size and
+        concat them together.
+
+        Else, pass the feature map.
+        """
+
+        method = 'RescaleFeatureMap'
+        # get the output size
+        dim_out = 0
+        blob_data = core.ScopedBlobReference('data')
+
+        if isinstance(blobs_in, list):
+            # FPN case
+            k_max = cfg.FPN.ROI_MAX_LEVEL  # coarsest level of pyramid
+            k_min = cfg.FPN.ROI_MIN_LEVEL  # finest level of pyramid
+            assert len(blobs_in) == k_max - k_min + 1
+
+            bl_out_list = []
+            for lvl in range(k_min, k_max+1):
+                dim_out += dim_in
+                bl_in = blobs_in[k_max - lvl] # reversed order
+                sc = spatial_scale[k_max - lvl] # reversed order
+                bl_rois = 'img_rois'
+                bl_out = blob_out + '_fpn' + str(lvl)
+                bl_out_list.append(bl_out)
+                self.net.__getattr__(method)(
+                    [bl_in, bl_rois, blob_data], [bl_out],
+                    spatial_scale=sc,
+                    rescale_factor=rescale_factor,
+                    sampling_ratio=sampling_ratio
+                )
+            xform_out, _ = self.net.Concat(
+                bl_out_list, [blob_out, '_concat_' + blob_out],
+                axis=1
+            )
+        else:
+            # Single feature level
+            dim_out = dim_in
+            # sampling_ratio is ignored for RoIPoolF
+            xform_out = self.net.__getattr__(method)(
+                [blobs_in, blob_rois], [blob_out],
+                spatial_scale=spatial_scale,
+                rescale_factor=rescale_factor,
+                sampling_ratio=sampling_ratio
+            )
+
+        return xform_out, dim_out
+
+    def GenerateAutoLearningIndicators(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        up_scale,
+        resolution
+    ):
+        """ Generate Indicators. Implemented in C++ and CUDA.
+        The forward function is similar to GenerateLocalMaskIndicators.
+        But This operator adds a backward function to allow e2e learning.
+        The indicator here acts as an intermediate feature.
+        blobs_in: mask_fcn_logits
+        blob_out: mask_indicators
+
+        op input: X, R, Data
+        op output: Y
+        """
+        method = 'GenerateIndicators'
+
+        blob_in_list = [blobs_in, blob_rois, 'data']
+        blob_out = self.net.__getattr__(method)(
+            blob_in_list, [blob_out],
+            up_scale=float(up_scale),
+            resolution=resolution
+        )
+        return blob_out
+
+    def GenerateGlobalMaskIndicators(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois='mask_rois',
+        dst_spatial_scale=1/16.
+    ):
+        """ Add mask indicators to the refine network. It maps the
+        'mask_probs' into the input images' space, and narrow it down
+        by the value 'scale'
+
+        Input blobs: [data, mask_probs]
+        Input rois: mask_rois
+        Output blob: mask_indicators
+        """
+        blob_rois = core.ScopedBlobReference(blob_rois) # refer blob_rois
+        blobs_in_list = blobs_in + [blob_rois]
+        name = 'GenerateMaskIndicatorsOp:' + ','.join(
+            [str(b) for b in blobs_in_list]
+        )
+        blob_out = core.ScopedBlobReference(blob_out)
+        grad_input_indices=[0] # ignore gradient for blob_rois
+
+        xform_out = self.net.Python(
+            GenerateGlobalMaskIndicatorsOp(scale=dst_spatial_scale).forward,
+            GenerateGlobalMaskIndicatorsOp(scale=dst_spatial_scale).backward,
+            grad_input_indices=grad_input_indices
+        )(blobs_in_list, blob_out, name=name)
+        return xform_out
 
 
 def _get_lr_change_ratio(cur_lr, new_lr):

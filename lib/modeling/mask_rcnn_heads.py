@@ -165,6 +165,14 @@ def add_mask_rcnn_losses(model, blob_mask):
         )
         model.AddLosses(['loss_mask', 'loss_indicator'])
 
+    # Add a mask iou op to metrics
+    model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    model.net.MaskIoU(
+        ['mask_probs', 'masks_int32'], 
+        ['mask_ious', 'mean_mask_ious']
+    )
+    model.AddMetrics('mean_mask_ious')
+
     return loss_gradients
 
 

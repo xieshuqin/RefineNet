@@ -505,6 +505,9 @@ __C.MODEL.FREEZE_MASK_RCNN = False
 # Add Semantic Segmentation Net
 __C.MODEL.SEMANTIC_ON = False
 
+# Add IoU Net
+__C.MODEL.PRN_ON = False
+
 # Apply Indicator Loss
 __C.MODEL.INDICATOR_LOSS_ON = False
 
@@ -920,6 +923,35 @@ __C.RESNETS.TRANS_FUNC = b'bottleneck_transformation'
 # Apply dilation in stage "res5"
 __C.RESNETS.RES5_DILATION = 1
 
+
+# ---------------------------------------------------------------------------- #
+# PRN options
+# ---------------------------------------------------------------------------- #
+__C.PRN = AttrDict()
+
+# The type of RoI head to use for bounding box classification and regression
+# The string must match a function this is imported in modeling.model_builder
+# (e.g., 'head_builder.add_roi_2mlp_head' to specify a two hidden layer MLP)
+__C.PRN.ROI_BOX_HEAD = b''
+
+# Hidden layer dimension when using an MLP for the RoI box head
+__C.PRN.MLP_HEAD_DIM = 1024
+
+# RoI transformation function (e.g., RoIPool or RoIAlign)
+# (RoIPoolF is the same as RoIPool; ignore the trailing 'F')
+__C.PRN.ROI_XFORM_METHOD = b'RoIPoolF'
+
+# Number of grid sampling points in RoIAlign (usually use 2)
+# Only applies to RoIAlign
+__C.PRN.ROI_XFORM_SAMPLING_RATIO = 0
+
+# RoI transform output resolution
+# Note: some models may have constraints on what they can use, e.g. they use
+# pretrained FC layers like in VGG16, and will ignore this option
+__C.PRN.ROI_XFORM_RESOLUTION = 14
+
+# IoU threshold for generating the label
+__C.PRN.THRESHOLD = 0.5 
 
 # ---------------------------------------------------------------------------- #
 # RefineNet options

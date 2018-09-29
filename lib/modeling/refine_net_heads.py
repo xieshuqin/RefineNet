@@ -219,6 +219,12 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
         blob_out = rois_global_feat
         dim_out = dim_in
 
+    if cfg.MODEL.PRN_ON:
+        # use IoU Net, sample according to the roi_needs_refine
+        blob_out = model.net.SampleAs(
+            [blob_out, 'roi_needs_refine_int32'], [blob_out + '_slice']
+        )
+
     return blob_out, dim_out
 
 
