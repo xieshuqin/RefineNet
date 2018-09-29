@@ -40,7 +40,7 @@ def add_prn_blobs(blobs_out, blobs_in):
         # and set roi_needs_refine same as prn_labels
         roi_needs_refine = (blobs_in['mask_ious'] < iou_thres).astype(np.int32)
         # calculate refine ratio
-        refine_ratio = np.sum(roi_needs_refine, keep_dims=True).astype(np.float32)
+        refine_ratio = np.sum(roi_needs_refine, keepdims=True).astype(np.float32)
         refine_ratio /= fg_inds.shape[0]
         # sometimes the prn_labels might be all false, but we still need
         # a non-all-false roi_needs_refine. So set the first one as True
