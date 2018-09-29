@@ -35,10 +35,10 @@ __global__ void PixelIoUKernel(
   CUDA_1D_KERNEL_LOOP(index, n) {
     if (targets[index] == -1) {
       intersections[index] = 0.;
-      unions[index] = 0.
+      unions[index] = 0.;
     } else {
-      intersections[index] = (probs[index] >= 0.5 && targets[index] == 1.)
-      unions[index] = (probs[index] >= 0.5 || targets[index] == 1.)
+      intersections[index] = (probs[index] >= 0.5 && targets[index] == 1.);
+      unions[index] = (probs[index] >= 0.5 || targets[index] == 1.);
     }
   }
 }
@@ -85,7 +85,7 @@ bool MaskIoUOp<float, CUDAContext>::RunOnDevice() {
       pixels_union_.mutable_data<float>());
 
   // Reduce pixel inter to object inter
-  float* reduced_data = pixels_inter_.data<float>();
+  const float* reduced_data = pixels_inter_.data<float>();
   float* collect_data = object_inter_.mutable_data<float>();
   int reduced_len = pixels_inter_.size() / batch_size;
   for (int i = 0; i < batch_size; i++) {

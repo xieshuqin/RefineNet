@@ -38,7 +38,7 @@ __global__ void SigmoidAccuracyKernel(
       counts[index] = 0.;
     } else {
       true_positives[index] = (targets[index] == 1. && probs[index] >= 0.5) + 
-          (targets[index] == 0 && probs[index] < 0.5)
+          (targets[index] == 0 && probs[index] < 0.5);
       counts[index] = 1.;
     }
   }
@@ -74,7 +74,7 @@ bool SigmoidAccuracyOp<float, CUDAContext>::RunOnDevice() {
       counts_.mutable_data<float>());
 
   // Sum true_positives to match
-  float* match_data = match_->mutable_data<float>();
+  float* match_data = match_.mutable_data<float>();
   math::Sum<float, CUDAContext>(
       true_positives_.size(), true_positives_.data<float>(), 
       match_data, &context_);
@@ -91,9 +91,9 @@ bool SigmoidAccuracyOp<float, CUDAContext>::RunOnDevice() {
       context_.cuda_stream()>>>(total_.size(), total_data, 1e-5);
 
   // Get accuracy
-  accuracy_data = accuracy->mutable_data<float>()
   math::Div<float, CUDAContext>(
-      1, match_data, total_data, accuracy_data, &context_);
+      1, match_data, total_data, 
+      accuracy->mutable_data<float>(), &context_);
 
   return true;
 }

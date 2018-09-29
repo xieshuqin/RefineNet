@@ -61,15 +61,6 @@ def add_refine_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data
 
 
 def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data):
-    if cfg.REFINENET.RESAMPLE:
-        # Use resample like cascade R-CNN
-    else:
-        add_refine_local_identity_mask_blobs(
-            blobs, sampled_boxes, roidb, im_scale, batch_idx, data
-        )
-
-
-def add_refine_local_identity_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data):
     """Add RefineNet Mask specific blobs to the input blob dictionary."""
     # Prepare the mask targets by associating one gt mask to each training roi
     # that has a fg (non-bg) class label.

@@ -225,7 +225,7 @@ def build_generic_detection_model(
 
         if cfg.MODEL.PRN_ON:
             # Add the iou head
-            head_loss_gradients['iou'] = _add_iou_head(
+            head_loss_gradients['prn'] = _add_prn_head(
                 model, blob_conv, dim_conv, spatial_scale_conv
             )
 
@@ -358,7 +358,7 @@ def _add_prn_head(
 ):
     """ Add a classification head to predict whether the roi needs further
     refinement
-    prn mean predict refinement-needed 
+    prn mean predict refinement-needed
     """
     # Capture the model graph before adding the prn head
     bbox_net = copy.deepcopy(model.net.Proto())
@@ -369,14 +369,14 @@ def _add_prn_head(
     # Add the prediction heads
     prefix = 'mask'
     blob_prn_head, dim_prn_head = prn_heads.add_prn_head(
-        model, blob_conv, dim_in, spatial_scale_in, prefix 
+        model, blob_in, dim_in, spatial_scale_in, prefix
     )
     # Add the prediction output
     blob_prn_out = prn_heads.add_prn_outputs(
         model, blob_prn_head, dim_prn_head
     )
 
-    if not model.train: # == inference 
+    if not model.train: # == inference
         # Inference uses a cascade of box predictions, then roi mask predictions
         # then refine mask prediction. This requires separate nets for box and
         # mask and refine mask prediction.
@@ -388,9 +388,7 @@ def _add_prn_head(
         model.net._net = bbox_net
         loss_gradients = None
     else:
-        loss_gradients = prn_heads.add_prn_losses(
-            model, blob_prn_out
-        )
+        loss_gradients = prn_heads.add_prn_losses(model)
     return loss_gradients
 
 def _add_generic_refine_mask_net_head(

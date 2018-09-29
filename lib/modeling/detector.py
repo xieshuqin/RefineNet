@@ -46,7 +46,7 @@ from ops.pooling_feature import PoolingIndicatorFeatureFPNOp
 from ops.scale_rois import ScaleRoIsSingleOp, ScaleRoIsFPNOp
 from ops.prepare_labels_for_prn_and_update_refine_blobs import \
     PrepareLabelsForPRNAndUpdateRefineBlobsOp
-from ops.generate_roi_needs_refine import GenerateRoIsNeedRefineOp
+from ops.generate_rois_need_refine import GenerateRoIsNeedRefineOp
 
 from ops.generate_mask_indicators import GenerateGlobalMaskIndicatorsOp
 from ops.generate_mask_indicators import GenerateLocalMaskIndicatorsOp
@@ -337,15 +337,15 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         Input blobs: ['mask_ious', 'labels_int32']
           - labels_int32 is the cls label for rois
 
-        If used during training, adds the related blobs for the specific 
-        refinement task, such as ['refined_masks_int32']. 
+        If used during training, adds the related blobs for the specific
+        refinement task, such as ['refined_masks_int32'].
 
         Output blob: ['prn_labels_int32', 'roi_needs_refine_int32']
-          - prn_labels_int32 is the labels for prn. 
+          - prn_labels_int32 is the labels for prn.
           - roi_needs_refine_int32 is a binary label indicates whether
-          further refinement is needed or not. 
+          further refinement is needed or not.
 
-        And if used during training, also doing inplace-update for the 
+        And if used during training, also doing inplace-update for the
         labels of refinement tasks. Such as update ['refined_masks_int32']
         """
         # Prepare input blobs
@@ -364,34 +364,34 @@ class DetectionModelHelper(cnn.CNNModelHelper):
     def GenerateRoIsNeedRefine(self):
         ### IMPORTANT! Unused op!!!
 
-        """ Generate a binary label to decide whether the prediction needs 
+        """ Generate a binary label to decide whether the prediction needs
         further refinement. And also update the corresponding prediction
         here.
-        
+
         Input blobs: ['prn_probs']
-          - prn_probs is the probability of the mask/keypoint 
+          - prn_probs is the probability of the mask/keypoint
           prediction needs further refinement
 
-        If used during training, includes the labels for PredictNeedRefine 
+        If used during training, includes the labels for PredictNeedRefine
         and use it as the output. ['prn_labels_int32']
         And also adds the related blobs for the specific refinement task,
-        such as ['refined_masks_int32']. 
+        such as ['refined_masks_int32'].
 
         Output blob: ['roi_needs_refine_int32']
           - roi_needs_refine_int32 is a binary label indicates whether
-          further refinement is needed or not. 
+          further refinement is needed or not.
 
-        And if used during training, also doing inplace-update for the 
+        And if used during training, also doing inplace-update for the
         labels of refinement tasks. Such as update ['refined_masks_int32']
         """
         # Prepare input blobs
-        blobs_in = ['prn_probs'] 
+        blobs_in = ['prn_probs']
         if self.train:
             # adds labels of prn
             blobs_in += ['prn_labels_int32']
             # adds refinement tasks specific blobs
             if cfg.MODEL.REFINE_MASK_ON:
-                blobs_in += ['refined_masks_int32'] 
+                blobs_in += ['refined_masks_int32']
 
         blobs_in = [core.ScopedBlobReference(b) for b in blobs_in]
         name = 'GenerateRoIsNeedRefineOp: ' + ','.join(
@@ -406,7 +406,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
                 blobs_out += ['refined_masks_int32']
 
         blobs_out = [core.ScopedBlobReference(b) for b in blobs_out]
-        
+
         # Execute op
         # Note that this op will overwrite the label for the specific task
         outputs = self.net.Python(
@@ -416,7 +416,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         return outputs[0] # only return the binary label
 
     def MaskIoUs(self, blobs_in, blob_label, blob_out):
-        """ Calculate Mask IoUs. 
+        """ Calculate Mask IoUs.
             Input blobs: ['mask_probs', 'masks_int32']
             Output blobs: ['mask_ious']
         """
@@ -711,7 +711,7 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         self.metrics = list(set(self.metrics + metrics))
 
 # ---------------------------------------------------------------------------- #
-# Old codes that no longer used 
+# Old codes that no longer used
 # ---------------------------------------------------------------------------- #
     def RescaleAndDumplicateFeatureFPN(
         self,
