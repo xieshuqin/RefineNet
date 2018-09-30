@@ -97,6 +97,17 @@ def im_detect_all(model, im, box_proposals, timers=None):
     else:
         cls_keyps = None
 
+    if cfg.MODEL.PRN_ON and boxes.shape[0] > 0:
+        timers['im_detect_prn'].tic()
+        prn_probs = im_detect_prn(model, im_scales, boxes)
+        timers['im_detect_prn'].toc()
+
+        timers['misc_prn'].tic()
+        roi_needs_refine = prn_results(cls_boxes, prn_probs, boxes)
+        timers['misc_prn'].toc()
+    else:
+        roi_needs_refine = None
+
     if cfg.MODEL.REFINE_MASK_ON and boxes.shape[0] > 0:
         timers['im_detect_refined_mask'].tic()
         if cfg.TEST.MASK_AUG.ENABLED:
@@ -112,6 +123,12 @@ def im_detect_all(model, im, box_proposals, timers=None):
         timers['misc_refined_mask'].toc()
     else:
         cls_refined_segms = None
+
+    if cfg.MODEL.REFINE_MASK_ON and cfg.MODEL.PRN_ON and boxes.shape[0] > 0:
+        # Merge cls_refined_segms with cls_segms 
+        cls_refined_segms = merge_refined_results_with_normal_results(
+            cls_boxes, cls_segms, cls_refined_segms, roi_needs_refine
+        )
 
     if cfg.MODEL.REFINE_KEYPOINTS_ON and boxes.shape[0] > 0:
         timers['im_detect_refined_keypoints'].tic()
@@ -978,6 +995,51 @@ def im_detect_refined_mask_aspect_ratio(model, im, aspect_ratio, boxes, hflip=Fa
     return refined_masks_ar
 
 
+def im_detect_prn(model, im_scales, boxes):
+    """Infer refined instance segmentation masks. This function must be called
+    after **im_detect_mask** as it assumes that the Caffe2 workspace is already
+    populated with the necessary blobs.
+
+    Arguments:
+        model (DetectionModelHelper): the detection model to use
+        im_scales (list): image blob scales as returned by im_detect_bbox
+
+    Returns:
+        pred_refined_masks (ndarray): R x K x M x M array of class specific
+            soft masks, where M is the refined mask resolution, defined in
+            cfg.REFINENET.RESOLUTION 
+            The output must be processed by the function refined_segm_results
+            to convert into hard masks in the original image coordinate space)
+
+    """
+    assert len(im_scales) == 1, \
+        'Only single-image / single-scale batch implemented'
+
+    num_cls = cfg.MODEL.NUM_CLASSES
+
+    if boxes.shape[0] == 0:
+        prn_probs = np.zeros((0, ), np.float32)
+        return prn_probs
+
+    workspace.RunNet(model.prn.Proto().name)
+
+    # Fetch prn_probs
+    prn_probs = workspace.FetchBlob(core.ScopedName('prn_probs')).squeeze()
+
+    # And feed a dummy roi_needs_refine to the workspace
+    workspace.FeedBlob(
+        core.ScopedName('roi_needs_refine_int32'),
+        np.ones((boxes.shape[0], ), dtype=np.int32)
+    )
+
+    if cfg.PRN.CLS_SPECIFIC_LABEL:
+        prn_probs = prn_probs.reshape([-1, num_cls])
+    else:
+        prn_probs = prn_probs.reshape([-1, 1])
+
+    return prn_probs
+
+
 def combine_heatmaps_size_dep(hms_ts, ds_ts, us_ts, boxes, heur_f):
     """Combines heatmaps while taking object sizes into account."""
     assert len(hms_ts) == len(ds_ts) and len(ds_ts) == len(us_ts), \
@@ -1242,6 +1304,58 @@ def refined_global_segm_results(cls_boxes, refined_masks, im_scales, im_h, im_w)
 
     assert mask_ind == refined_masks.shape[0]
     return cls_refined_segms
+
+
+def merge_refined_results_with_normal_results(
+        cls_boxes, normal_results, refined_results, roi_needs_refine
+    ):
+    """ A post-processing function to merge the normal results 
+    with refined_results if we have a binary roi_needs_refine to 
+    tell whether the roi needs refinement. If roi_needs_refine is 0, 
+    then use the normal results, else use the refined_results.
+    """
+    num_classes = cfg.MODEL.NUM_CLASSES
+    cls_merged_results = [[] for _ in range(num_classes)]
+    roi_ind = 0
+
+    # skip j = 0, because it's the background class
+    for j in range(1, num_classes):
+        merged_results = []
+        for i in range(cls_boxes[j].shape[0]):
+            if roi_needs_refine[roi_ind] == 0:
+                # use normal results
+                merged_results.append(normal_results[j][i])
+            else:
+                # use refined results
+                merged_results.append(refined_results[j][i])
+
+            roi_ind += 1
+
+        cls_merged_results[j] = merged_results
+
+    assert roi_ind == roi_needs_refine.shape[0]
+    return cls_merged_results
+
+
+def prn_results(cls_boxes, prn_probs, ref_boxes):
+    num_classes = cfg.MODEL.NUM_CLASSES
+    roi_needs_refine = np.zeros((ref_boxes.shape[0], ))
+    prn_ind = 0
+
+    # skip j = 0, because it's the background class
+    for j in range(1, num_classes):
+        for _ in range(cls_boxes[j].shape[0]):
+            if cfg.PRN.CLS_SPECIFIC_LABEL:
+                prn_prob = prn_probs[prn_ind, j]
+            else:
+                prn_prob = prn_probs[prn_ind, 0]
+
+            roi_needs_refine[prn_ind] = 0 if prn_prob < 0.5 else 1
+            prn_ind += 1
+
+    assert prn_ind == ref_boxes.shape[0]
+    assert prn_ind == prn_probs.shape[0]
+    return roi_needs_refine
 
 
 def keypoint_results(cls_boxes, pred_heatmaps, ref_boxes):
