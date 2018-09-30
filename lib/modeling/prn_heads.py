@@ -52,11 +52,11 @@ def add_prn_losses(model):
         scale=1. / cfg.NUM_GPUS
     )
     loss_gradients = blob_utils.get_loss_gradients(model, [loss_prn])
+    model.AddLosses(['loss_prn'])
+    # And add some useful metrics
     model.net.Sigmoid('prn_logits', 'prn_probs')
     model.SigmoidAccuracy(['prn_probs', 'prn_labels_int32'], 'accuracy_prn')
-    model.AddLosses(['loss_prn'])
     model.AddMetrics('accuracy_prn')
-    # And add the refine ratio too
     model.AddMetrics('refine_ratio')
     return loss_gradients
 

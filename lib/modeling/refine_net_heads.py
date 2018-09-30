@@ -386,6 +386,18 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
         ['refined_mask_ious', 'mean_refined_mask_ious']
     )
     model.AddMetrics('mean_refined_mask_ious')
+    # And we also want to monitor the mask_ious before refined
+    if cfg.MODEL.PRN_ON:
+        model.net.SampleAs(
+            ['mask_ious', 'roi_needs_refine_int32'],
+            ['prior_mask_ious']
+        )
+        model.net.ReduceFrontMean(
+            'prior_mask_ious', 
+            'mean_prior_mask_ious',
+            num_reduce_dim=1
+        )
+        model.AddMetrics('mean_prior_mask_ious')
     return loss_gradients
 
 
