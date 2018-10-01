@@ -382,8 +382,8 @@ def _add_prn_head(
         # mask and refine mask prediction.
         # So we extract the need refinement prediction net, store it as its own
         # network,then restore model.net to be the bbox-only network
-        model.prn, prn_blob_out = c2_utils.SuffixNet(
-            'prn', model.net, len(bbox_net.op), blob_prn_out
+        model.prn_net, prn_blob_out = c2_utils.SuffixNet(
+            'prn_net', model.net, len(bbox_net.op), blob_prn_out
         )
         model.net._net = bbox_net
         loss_gradients = None

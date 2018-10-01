@@ -266,6 +266,8 @@ def initialize_model_from_cfg():
         workspace.CreateNet(model.mask_net)
     if cfg.MODEL.KEYPOINTS_ON:
         workspace.CreateNet(model.keypoint_net)
+    if cfg.MODEL.PRN_ON:
+        workspace.CreateNet(model.prn_net)
     if cfg.MODEL.REFINE_MASK_ON:
         workspace.CreateNet(model.refine_mask_net)
     if cfg.MODEL.REFINE_KEYPOINTS_ON:

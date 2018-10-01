@@ -1021,7 +1021,7 @@ def im_detect_prn(model, im_scales, boxes):
         prn_probs = np.zeros((0, ), np.float32)
         return prn_probs
 
-    workspace.RunNet(model.prn.Proto().name)
+    workspace.RunNet(model.prn_net.Proto().name)
 
     # Fetch prn_probs
     prn_probs = workspace.FetchBlob(core.ScopedName('prn_probs')).squeeze()
