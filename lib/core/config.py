@@ -290,6 +290,9 @@ __C.TEST.DATASET = b''
 # Active proposal file to use
 __C.TEST.PROPOSAL_FILE = b''
 
+# Test time, use prn results to resample 
+__C.TEST.USE_PRN_FOR_REFINE = False
+
 
 # ---------------------------------------------------------------------------- #
 # Test-time augmentations for bounding box detection

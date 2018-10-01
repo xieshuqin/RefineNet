@@ -125,10 +125,12 @@ def im_detect_all(model, im, box_proposals, timers=None):
         cls_refined_segms = None
 
     if cfg.MODEL.REFINE_MASK_ON and cfg.MODEL.PRN_ON and boxes.shape[0] > 0:
-        # Merge cls_refined_segms with cls_segms 
-        cls_refined_segms = merge_refined_results_with_normal_results(
-            cls_boxes, cls_segms, cls_refined_segms, roi_needs_refine
-        )
+        # And another condition
+        if cfg.TEST.USE_PRN_FOR_REFINE:
+            # Merge cls_refined_segms with cls_segms 
+            cls_refined_segms = merge_refined_results_with_normal_results(
+                cls_boxes, cls_segms, cls_refined_segms, roi_needs_refine
+            )
 
     if cfg.MODEL.REFINE_KEYPOINTS_ON and boxes.shape[0] > 0:
         timers['im_detect_refined_keypoints'].tic()
