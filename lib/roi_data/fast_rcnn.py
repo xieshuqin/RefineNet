@@ -86,25 +86,36 @@ def get_fast_rcnn_blob_names(is_training=True):
         # 'keypoint_loss_normalizer': optional normalization factor to use if
         # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
         blob_names += ['keypoint_loss_normalizer']
-    if is_training and cfg.MODEL.REFINE_ON:
-        if cfg.REFINENET.REFINE_OUTPUT_TYPE == 'Mask':
-            # Refined masks label
+    if is_training and cfg.MODEL.REFINE_MASK_ON:
+        # 'refined_mask_rois': RoIs sampled for training the mask prediction branch.
+        # Shape is (#masks, 5) in format (batch_idx, x1, y1, x2, y2).
+        blob_names += ['refined_mask_rois']
+        # 'roi_has_refined_mask': binary labels for the RoIs specified in 'rois'
+        # indicating if each RoI has a mask or not. Note that in some cases
+        # a *bg* RoI will have an all -1 (ignore) mask associated with it in
+        # the case that no fg RoIs can be sampled. Shape is (batchsize).
+        blob_names += ['roi_has_refined_mask_int32']
+        # 'refined_masks_int32' holds global binary masks for the RoIs
+        # specified in 'mask_rois'. Shape is (#fg, G_M * G_M) where G_M
+        # is the global mask size
+        blob_names += ['refined_masks_int32']
+    if is_training and cfg.MODEL.REFINE_KEYPOINTS_ON:
+        # 'keypoint_rois': RoIs sampled for training the keypoint prediction
+        # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
+        # y2).
+        blob_names += ['refined_keypoint_rois']
+        # 'keypoint_locations_int32': index of keypoint in
+        # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
+        # SoftmaxWithLoss.
+        blob_names += ['refined_keypoint_locations_int32']
+        # 'keypoint_weights': weight assigned to each target in
+        # 'keypoint_locations_int32'. Shape is (#instances). Used in
+        # SoftmaxWithLoss.
+        blob_names += ['refined_keypoint_weights']
+        # 'keypoint_loss_normalizer': optional normalization factor to use if
+        # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
+        blob_names += ['refined_keypoint_loss_normalizer']
 
-            # 'refined_mask_rois': RoIs sampled for training the mask prediction branch.
-            # Shape is (#masks, 5) in format (batch_idx, x1, y1, x2, y2).
-            blob_names += ['refined_mask_rois']
-            # 'roi_has_refined_mask': binary labels for the RoIs specified in 'rois'
-            # indicating if each RoI has a mask or not. Note that in some cases
-            # a *bg* RoI will have an all -1 (ignore) mask associated with it in
-            # the case that no fg RoIs can be sampled. Shape is (batchsize).
-            blob_names += ['roi_has_refined_mask_int32']
-            # 'refined_masks_int32' holds global binary masks for the RoIs
-            # specified in 'mask_rois'. Shape is (#fg, G_M * G_M) where G_M
-            # is the global mask size
-            blob_names += ['refined_masks_int32']
-        else:
-            # Refined keypoint label
-            pass
     if is_training and cfg.MODEL.SEMANTIC_ON:
         # Add semantic segmentation label
         blob_names += ['semantic_segms_int32']
@@ -152,6 +163,8 @@ def add_fast_rcnn_blobs(blobs, im_scales, roidb, data):
     valid = True
     if cfg.MODEL.KEYPOINTS_ON:
         valid = roi_data.keypoint_rcnn.finalize_keypoint_minibatch(blobs, valid)
+    if cfg.MODEL.REFINE_KEYPOINTS_ON:
+        valid = roi_data.refine_net.finalize_refined_keypoint_minibatch(blobs, valid)
 
     return valid
 
@@ -249,7 +262,7 @@ def _sample_rois(roidb, im_scale, batch_idx, data=None):
     # Optionally add Refine Keypoints Net blobs
     if cfg.MODEL.REFINE_KEYPOINTS_ON:
         roi_data.refine_net.add_refine_keypoints_blobs(
-            blob_dict, sampled_boxes, roidb, im_scale, batch_idx, data
+            blob_dict, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx, data
         )
 
     if cfg.MODEL.SEMANTIC_ON:

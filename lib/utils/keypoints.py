@@ -157,7 +157,7 @@ def heatmaps_to_keypoints(maps, rois):
     return xy_preds
 
 
-def keypoints_to_heatmap_labels(keypoints, rois):
+def keypoints_to_heatmap_labels(keypoints, rois, M=56):
     """Encode keypoint location in the target heatmap for use in
     SoftmaxWithLoss.
     """
@@ -174,8 +174,8 @@ def keypoints_to_heatmap_labels(keypoints, rois):
 
     offset_x = rois[:, 0]
     offset_y = rois[:, 1]
-    scale_x = cfg.KRCNN.HEATMAP_SIZE / (rois[:, 2] - rois[:, 0])
-    scale_y = cfg.KRCNN.HEATMAP_SIZE / (rois[:, 3] - rois[:, 1])
+    scale_x = M / (rois[:, 2] - rois[:, 0])
+    scale_y = M / (rois[:, 3] - rois[:, 1])
 
     for kp in range(keypoints.shape[2]):
         vis = keypoints[:, 2, kp] > 0
@@ -189,22 +189,22 @@ def keypoints_to_heatmap_labels(keypoints, rois):
         x = (x - offset_x) * scale_x
         x = np.floor(x)
         if len(x_boundary_inds) > 0:
-            x[x_boundary_inds] = cfg.KRCNN.HEATMAP_SIZE - 1
+            x[x_boundary_inds] = M - 1
 
         y = (y - offset_y) * scale_y
         y = np.floor(y)
         if len(y_boundary_inds) > 0:
-            y[y_boundary_inds] = cfg.KRCNN.HEATMAP_SIZE - 1
+            y[y_boundary_inds] = M - 1
 
         valid_loc = np.logical_and(
             np.logical_and(x >= 0, y >= 0),
             np.logical_and(
-                x < cfg.KRCNN.HEATMAP_SIZE, y < cfg.KRCNN.HEATMAP_SIZE))
+                x < M, y < M))
 
         valid = np.logical_and(valid_loc, vis)
         valid = valid.astype(np.int32)
 
-        lin_ind = y * cfg.KRCNN.HEATMAP_SIZE + x
+        lin_ind = y * M + x
         heatmaps[:, kp] = lin_ind * valid
         weights[:, kp] = valid
 

@@ -73,7 +73,7 @@ def add_keypoint_rcnn_blobs(
             assert np.sum(sampled_keypoints[ii, 2, :]) > 0
 
     heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
-        sampled_keypoints, sampled_fg_rois
+        sampled_keypoints, sampled_fg_rois, M=cfg.KRCNN.HEATMAP_SIZE
     )
 
     shape = (sampled_fg_rois.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)

@@ -239,7 +239,7 @@ def build_generic_detection_model(
         if cfg.MODEL.REFINE_KEYPOINTS_ON:
             # Add the refine keypoint net head
             head_loss_gradients['refine_keypoints'] = \
-            _add_generic_refine_keypoints_net_head(
+            _add_generic_refine_keypoint_net_head(
                 model, blob_conv, dim_conv, spatial_scale_conv
             )
 
@@ -437,7 +437,7 @@ def _add_generic_refine_mask_net_head(
     return loss_gradients
 
 
-def _add_generic_refine_keypoints_net_head(
+def _add_generic_refine_keypoint_net_head(
     model, blob_in, dim_in, spatial_scale_in
 ):
     """Add a generic refine head to the model.
@@ -450,18 +450,18 @@ def _add_generic_refine_keypoints_net_head(
     # Different indicator type will generate different blob_refine_net_in
     INDICATOR_TYPE = model.REFINENET.INDICATOR_TYPE
     blob_refine_net_in, dim_refine_net_in = \
-        refine_net_heads.add_refine_net_input(
+        refine_net_heads.add_refine_net_inputs(
             model, blob_in, dim_in, spatial_scale_in, INDICATOR_TYPE
         )
     # Add RefineNet head
-    prefix = 'keypoints'
+    prefix = 'keypoint'
     blob_refine_net_head, dim_refine_net_head = \
         refine_net_heads.add_refine_net_head(
             model, blob_refine_net_in, dim_refine_net_in, prefix
         )
     # Add RefineNet output
     # Different refined-output type will generate different output
-    blob_refine_keypoints_out = refine_net_heads.add_refine_keypoints_net_outputs(
+    blob_refine_keypoint_out = refine_net_heads.add_refine_net_keypoint_outputs(
         model, blob_refine_net_head, dim_refine_net_head
     )
 
@@ -471,15 +471,15 @@ def _add_generic_refine_keypoints_net_head(
         # mask and refine mask prediction.
         # So we extract the refine mask prediction net, store it as its own
         # network,then restore model.net to be the bbox-only network
-        model.refine_keypoints_net, refine_blob_out = c2_utils.SuffixNet(
-            'refine_keypoints_net', model.net, len(bbox_net.op),
-            blob_refine_keypoints_out
+        model.refine_keypoint_net, refine_blob_out = c2_utils.SuffixNet(
+            'refine_keypoint_net', model.net, len(bbox_net.op),
+            blob_refine_keypoint_out
         )
         model.net._net = bbox_net
         loss_gradients = None
     else:
-        loss_gradients = refine_net_heads.add_refine_losses(
-            model, blob_refine_keypoints_out, REFINE_OUTPUT_TYPE
+        loss_gradients = refine_net_heads.add_refine_net_keypoint_losses(
+            model, blob_refine_mask_out
         )
     return loss_gradients
 
@@ -648,7 +648,7 @@ def add_inference_inputs(model):
     if cfg.MODEL.REFINE_MASK_ON:
         create_input_blobs_for_net(model.refine_mask_net.Proto())
     if cfg.MODEL.REFINE_KEYPOINTS_ON:
-        create_input_blobs_for_net(model.refine_keypoints_net.Proto())
+        create_input_blobs_for_net(model.refine_keypoint_net.Proto())
 
 
 # ---------------------------------------------------------------------------- #

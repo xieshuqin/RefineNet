@@ -240,8 +240,112 @@ def add_refine_global_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_id
     blobs['roi_has_refined_mask_int32'] = roi_has_mask
     blobs['refined_masks_int32'] = masks
 
-def add_refine_keypoints_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data):
-    pass
+
+def add_refine_keypoints_blobs(
+        blobs, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx, data
+    ):
+    """Add Mask R-CNN keypoint specific blobs to the given blobs dictionary."""
+    # Note: gt_inds must match how they're computed in
+    # datasets.json_dataset._merge_proposal_boxes_into_roidb
+    gt_inds = np.where(roidb['gt_classes'] > 0)[0]
+    max_overlaps = roidb['max_overlaps']
+    gt_keypoints = roidb['gt_keypoints']
+
+    ind_kp = gt_inds[roidb['box_to_gt_ind_map']]
+    within_box = _within_box(gt_keypoints[ind_kp, :, :], roidb['boxes'])
+    vis_kp = gt_keypoints[ind_kp, 2, :] > 0
+    is_visible = np.sum(np.logical_and(vis_kp, within_box), axis=1) > 0
+    kp_fg_inds = np.where(
+        np.logical_and(max_overlaps >= cfg.TRAIN.FG_THRESH, is_visible)
+    )[0]
+
+    kp_fg_rois_per_this_image = np.minimum(fg_rois_per_image, kp_fg_inds.size)
+    if kp_fg_inds.size > kp_fg_rois_per_this_image:
+        kp_fg_inds = np.random.choice(
+            kp_fg_inds, size=kp_fg_rois_per_this_image, replace=False
+        )
+
+    sampled_fg_rois = roidb['boxes'][kp_fg_inds]
+    box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
+
+    # Define size variables
+    up_scale = cfg.REFINENET.UP_SCALE
+    inp_h, inp_w = data.shape[2], data.shape[3]
+    pad_img_h, pad_img_w = inp_h / im_scale, inp_w / im_scale
+
+    # Expand the foreground rois by a factor of up_scale and
+    # clip by the padded image boundary
+    pad_rois_fg = box_utils.expand_boxes_by_scale(sampled_fg_rois, up_scale)
+    pad_rois_fg = box_utils.clip_boxes_to_image(pad_rois_fg, pad_img_h, pad_img_w)
+
+
+    num_keypoints = gt_keypoints.shape[2]
+    sampled_keypoints = -np.ones(
+        (len(sampled_fg_rois), gt_keypoints.shape[1], num_keypoints),
+        dtype=gt_keypoints.dtype
+    )
+    for ii in range(len(sampled_fg_rois)):
+        ind = box_to_gt_ind_map[ii]
+        if ind >= 0:
+            sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
+            assert np.sum(sampled_keypoints[ii, 2, :]) > 0
+
+    heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
+        sampled_keypoints, pad_rois_fg, M=cfg.REFINENET.KRCNN.HEATMAP_SIZE
+    )
+
+    shape = (pad_rois_fg.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
+    heats = heats.reshape(shape)
+    weights = weights.reshape(shape)
+
+    pad_rois_fg *= im_scale
+    repeated_batch_idx = batch_idx * blob_utils.ones(
+        (pad_rois_fg.shape[0], 1)
+    )
+    pad_rois_fg = np.hstack((repeated_batch_idx, pad_rois_fg))
+
+    blobs['refined_keypoint_rois'] = pad_rois_fg
+    blobs['refined_keypoint_locations_int32'] = heats.astype(np.int32, copy=False)
+    blobs['refined_keypoint_weights'] = weights
+
+
+def finalize_refined_keypoint_minibatch(blobs, valid):
+    """Finalize the minibatch after blobs for all minibatch images have been
+    collated.
+    """
+    min_count = cfg.KRCNN.MIN_KEYPOINT_COUNT_FOR_VALID_MINIBATCH
+    num_visible_keypoints = np.sum(blobs['refined_keypoint_weights'])
+    valid = (
+        valid and len(blobs['refined_keypoint_weights']) > 0 and
+        num_visible_keypoints > min_count
+    )
+    # Normalizer to use if cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
+    # See modeling.model_builder.add_keypoint_losses
+    norm = num_visible_keypoints / (
+        cfg.TRAIN.IMS_PER_BATCH * cfg.TRAIN.BATCH_SIZE_PER_IM *
+        cfg.TRAIN.FG_FRACTION * cfg.KRCNN.NUM_KEYPOINTS
+    )
+    blobs['refined_keypoint_loss_normalizer'] = np.array(norm, dtype=np.float32)
+    return valid
+
+
+def _within_box(points, boxes):
+    """Validate which keypoints are contained inside a given box.
+
+    points: Nx2xK
+    boxes: Nx4
+    output: NxK
+    """
+    x_within = np.logical_and(
+        points[:, 0, :] >= np.expand_dims(boxes[:, 0], axis=1),
+        points[:, 0, :] <= np.expand_dims(boxes[:, 2], axis=1)
+    )
+    y_within = np.logical_and(
+        points[:, 1, :] >= np.expand_dims(boxes[:, 1], axis=1),
+        points[:, 1, :] <= np.expand_dims(boxes[:, 3], axis=1)
+    )
+    return np.logical_and(x_within, y_within)
+
 
 
 def _expand_to_class_specific_mask_targets(masks, mask_class_labels):

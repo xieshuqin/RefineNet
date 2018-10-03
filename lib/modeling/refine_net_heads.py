@@ -292,7 +292,89 @@ def add_refine_net_local_mask_inputs_cpu(model, blob_in, dim_in, spatial_scale):
 
 
 def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
-    pass
+    """ Prepare keypoint inputs for RefineNet.
+    This function uses keypoint heatmap as indicator and generates input for
+    RefineNet. It concantates the indicator with the RoI feature. The resulted 
+    tensor served as input for RefineNet.
+    Input:
+        blob_in: FPN/ResNet feature.
+        dim_in: FPN/ResNet feature dimension
+        spatial_scale: FPN/ResNet scale
+    Output:
+        'refine_keypoint_net_input'
+        dim_out: dim_in + num_cls
+    """
+
+    # Generate the indicator feature map by
+    # 1. up_scale the rois
+    # 2. use RoIAlign to pool a M x M feature from the pad_rois,
+    #    where M is specified in the cfg.
+    # 3. draw the keypoint heatmap to the pad_rois as an indicator
+    # 4. concat the indicator with the pooled feature
+
+    M = cfg.REFINENET.ROI_XFORM_RESOLUTION
+    up_scale = cfg.REFINENET.UP_SCALE
+
+    # up_scale rois
+    scale_rois = model.ScaleRoIs(
+        blob_rois='keypoint_rois',
+        blob_scale_rois='refined_keypoint_rois',
+        up_scale=up_scale
+    )
+    # use RoIAlign to poor the feature
+    refined_rois_feat = model.RoIFeatureTransform(
+        blob_in,
+        blob_out='refined_rois_feat',
+        blob_rois='refined_keypoint_rois',
+        method='RoIAlign',
+        resolution=M,
+        sampling_ratio=cfg.REFINENET.ROI_XFORM_SAMPLING_RATIO,
+        spatial_scale=spatial_scale
+    )
+
+    if cfg.REFINENET.USE_INDICATOR: # whether to use indicator
+        # Generate mask indicators
+        num_keypoints = cfg.REFINENET.KRCNN.NUM_KEYPOINTS
+        kps_score = core.ScopedBlobReference('kps_score')
+
+        # Conditions on how to use indicator
+        if cfg.REFINENET.GRADIENT_INTO_INDICATOR_ON:
+            # Allow gradient to flow from Refinenet to indicators
+            kps_indicator = model.GenerateAutoLearningIndicators(
+                blobs_in=kps_score,
+                blob_out='kps_indicator',
+                blob_rois='keypoint_rois',
+                up_scale=cfg.REFINENET.UP_SCALE,
+                resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
+            )
+        else:
+            # Default setting, just use the local indicator
+            blob_data = core.ScopedBlobReference('data')
+            kps_indicator = model.GenerateLocalMaskIndicators(
+                blobs_in=[blob_data, kps_score],
+                blob_out='kps_indicator',
+                blob_rois='keypoint_rois',
+            )
+
+        # Concatenate along the channel dimension
+        concat_list = [refined_rois_feat, kps_indicator]
+        refine_net_input, _ = model.net.Concat(
+            concat_list, ['refine_keypoint_net_input', '_split_info'], axis=1
+        )
+
+        blob_out = refine_net_input
+        dim_out = dim_in + num_cls
+    else:
+        blob_out = refined_rois_feat
+        dim_out = dim_in
+
+    if cfg.MODEL.PRN_ON:
+        # use IoU Net, sample according to the roi_needs_refine
+        blob_out = model.net.SampleAs(
+            [blob_out, 'roi_needs_refine_int32'], [blob_out + '_slice']
+        )
+
+    return blob_out, dim_out
 
 
 # ---------------------------------------------------------------------------- #
@@ -342,8 +424,67 @@ def add_refine_net_mask_outputs(model, blob_in, dim_in):
 
 
 def add_refine_net_keypoint_outputs(model, blob_in, dim_in):
-    pass
+    """Add Mask R-CNN keypoint specific outputs: keypoint heatmaps."""
+    # NxKxHxW
+    upsample_heatmap = (cfg.REFINENET.KRCNN.UP_SCALE > 1)
 
+    if cfg.REFINENET.KRCNN.USE_DECONV:
+        # Apply ConvTranspose to the feature representation; results in 2x
+        # upsampling
+        blob_in = model.ConvTranspose(
+            blob_in,
+            'refined_kps_deconv',
+            dim,
+            cfg.REFINENET.KRCNN.DECONV_DIM,
+            kernel=cfg.REFINENET.KRCNN.DECONV_KERNEL,
+            pad=int(cfg.REFINENET.KRCNN.DECONV_KERNEL / 2 - 1),
+            stride=2,
+            weight_init=gauss_fill(0.01),
+            bias_init=const_fill(0.0)
+        )
+        model.Relu('refined_kps_deconv', 'refined_kps_deconv')
+        dim = cfg.REFINENET.KRCNN.DECONV_DIM
+
+    if upsample_heatmap:
+        blob_name = 'refined_kps_score_lowres'
+    else:
+        blob_name = 'refined_kps_score'
+
+    if cfg.REFINENET.KRCNN.USE_DECONV_OUTPUT:
+        # Use ConvTranspose to predict heatmaps; results in 2x upsampling
+        blob_out = model.ConvTranspose(
+            blob_in,
+            blob_name,
+            dim,
+            cfg.REFINENET.KRCNN.NUM_KEYPOINTS,
+            kernel=cfg.REFINENET.KRCNN.DECONV_KERNEL,
+            pad=int(cfg.REFINENET.KRCNN.DECONV_KERNEL / 2 - 1),
+            stride=2,
+            weight_init=(cfg.REFINENET.KRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=const_fill(0.0)
+        )
+    else:
+        # Use Conv to predict heatmaps; does no upsampling
+        blob_out = model.Conv(
+            blob_in,
+            blob_name,
+            dim,
+            cfg.REFINENET.KRCNN.NUM_KEYPOINTS,
+            kernel=1,
+            pad=0,
+            stride=1,
+            weight_init=(cfg.REFINENET.KRCNN.CONV_INIT, {'std': 0.001}),
+            bias_init=const_fill(0.0)
+        )
+
+    if upsample_heatmap:
+        # Increase heatmap output size via bilinear upsampling
+        blob_out = model.BilinearInterpolation(
+            blob_out, 'refined_kps_score', cfg.REFINENET.KRCNN.NUM_KEYPOINTS,
+            cfg.REFINENET.KRCNN.NUM_KEYPOINTS, cfg.REFINENET.KRCNN.UP_SCALE
+        )
+
+    return blob_out
 
 # ---------------------------------------------------------------------------- #
 # RefineNet losses
@@ -402,7 +543,48 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
 
 
 def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
-    pass
+    """Add Mask R-CNN keypoint specific losses."""
+    # Reshape input from (N, K, H, W) to (NK, HW)
+    model.net.Reshape(
+        [blob_refined_keypoint], 
+        ['refined_kps_score_reshaped', 'refined_kps_score_old_shape'],
+        shape=(-1, cfg.REFINENET.KRCNN.HEATMAP_SIZE ** 2)
+    )
+    # Softmax across **space** (woahh....space!)
+    # Note: this is not what is commonly called "spatial softmax"
+    # (i.e., softmax applied along the channel dimension at each spatial
+    # location); This is softmax applied over a set of spatial locations (i.e.,
+    # each spatial location is a "class").
+    refined_kps_prob, loss_refined_kps = model.net.SoftmaxWithLoss(
+        ['refined_kps_score_reshaped', 'refined_keypoint_locations_int32', 
+         'refined_keypoint_weights'],
+        ['refined_kps_prob', 'loss_refined_kps'],
+        scale=cfg.REFINENET.KRCNN.LOSS_WEIGHT / cfg.NUM_GPUS,
+        spatial=0
+    )
+    if not cfg.REFINENET.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS:
+        # Discussion: the softmax loss above will average the loss by the sum of
+        # keypoint_weights, i.e. the total number of visible keypoints. Since
+        # the number of visible keypoints can vary significantly between
+        # minibatches, this has the effect of up-weighting the importance of
+        # minibatches with few visible keypoints. (Imagine the extreme case of
+        # only one visible keypoint versus N: in the case of N, each one
+        # contributes 1/N to the gradient compared to the single keypoint
+        # determining the gradient direction). Instead, we can normalize the
+        # loss by the total number of keypoints, if it were the case that all
+        # keypoints were visible in a full minibatch. (Returning to the example,
+        # this means that the one visible keypoint contributes as much as each
+        # of the N keypoints.)
+        model.StopGradient(
+            'refined_keypoint_loss_normalizer', 'refined_keypoint_loss_normalizer'
+        )
+        loss_refined_kps = model.net.Mul(
+            ['loss_refined_kps', 'refined_keypoint_loss_normalizer'], 
+            'loss_refined_kps_normalized'
+        )
+    loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_kps])
+    model.AddLosses(loss_refined_kps)
+    return loss_gradients
 
 
 # ---------------------------------------------------------------------------- #
@@ -454,6 +636,12 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
             model, blob_in, blob_out, dim_in, prefix,
             n_downsampling, num_res_blocks, use_deconv
         )
+        return blob_out, dim_out
+    elif cfg.REFINENET.HEAD == 'KRCNN':
+        # Use keypoint rcnn like head
+        blob_out, dim_out = add_krcnn_head(
+            model, blob_in, blob_out, dim_in, prefix
+        )   
         return blob_out, dim_out
     else:
         raise NotImplementedError(
@@ -525,6 +713,30 @@ def add_fcn_head(model, blob_in, blob_out, dim_in, prefix, num_convs, use_deconv
     dim_out = dim_inner
 
     return blob_out, dim_out
+
+
+def add_krcnn_head(model, blob_in, blob_out, dim_in, prefix):
+    """Add a Mask R-CNN keypoint head. v1convX design: X * (conv)."""
+    hidden_dim = cfg.REFINENET.KRCNN.CONV_HEAD_DIM
+    kernel_size = cfg.REFINENET.KRCNN.CONV_HEAD_KERNEL
+    pad_size = kernel_size // 2
+
+    for i in range(cfg.REFINENET.KRCNN.NUM_STACKED_CONVS):
+        current = model.Conv(
+            current,
+            'refined_'+ prefix + '_conv_fcn' + str(i + 1),
+            dim_in,
+            hidden_dim,
+            kernel_size,
+            stride=1,
+            pad=pad_size,
+            weight_init=(cfg.REFINENET.KRCNN.CONV_INIT, {'std': 0.01}),
+            bias_init=('ConstantFill', {'value': 0.})
+        )
+        current = model.Relu(current, current)
+        dim_in = hidden_dim
+
+    return current, hidden_dim
 
 
 def add_resnet_head(

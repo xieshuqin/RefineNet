@@ -1080,6 +1080,73 @@ __C.REFINENET.ONLY_USE_CROWDED_SAMPLES = False
 __C.REFINENET.OVERLAP_THRESHOLD = 0.1
 
 # ---------------------------------------------------------------------------- #
+# Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
+# ---------------------------------------------------------------------------- #
+__C.REFINENET.KRCNN = AttrDict()
+
+# Output size (and size loss is computed on), e.g., 56x56
+__C.REFINENET.KRCNN.HEATMAP_SIZE = -1
+
+# Use bilinear interpolation to upsample the final heatmap by this factor
+__C.REFINENET.KRCNN.UP_SCALE = -1
+
+# Apply a ConvTranspose layer to the hidden representation computed by the
+# keypoint head prior to predicting the per-keypoint heatmaps
+__C.REFINENET.KRCNN.USE_DECONV = False
+# Channel dimension of the hidden representation produced by the ConvTranspose
+__C.REFINENET.KRCNN.DECONV_DIM = 256
+
+# Use a ConvTranspose layer to predict the per-keypoint heatmaps
+__C.REFINENET.KRCNN.USE_DECONV_OUTPUT = False
+
+# Use dilation in the keypoint head
+__C.REFINENET.KRCNN.DILATION = 1
+
+# Size of the kernels to use in all ConvTranspose operations
+__C.REFINENET.KRCNN.DECONV_KERNEL = 4
+
+# Number of keypoints in the dataset (e.g., 17 for COCO)
+__C.REFINENET.KRCNN.NUM_KEYPOINTS = -1
+
+# Number of stacked Conv layers in keypoint head
+__C.REFINENET.KRCNN.NUM_STACKED_CONVS = 8
+
+# Dimension of the hidden representation output by the keypoint head
+__C.REFINENET.KRCNN.CONV_HEAD_DIM = 256
+
+# Conv kernel size used in the keypoint head
+__C.REFINENET.KRCNN.CONV_HEAD_KERNEL = 3
+# Conv kernel weight filling function
+__C.REFINENET.KRCNN.CONV_INIT = b'GaussianFill'
+
+# Use NMS based on OKS if True
+__C.REFINENET.KRCNN.NMS_OKS = False
+
+# Source of keypoint confidence
+#   Valid options: ('bbox', 'logit', 'prob')
+__C.REFINENET.KRCNN.KEYPOINT_CONFIDENCE = b'bbox'
+
+# Minimum number of labeled keypoints that must exist in a minibatch (otherwise
+# the minibatch is discarded)
+__C.REFINENET.KRCNN.MIN_KEYPOINT_COUNT_FOR_VALID_MINIBATCH = 20
+
+# When infering the keypoint locations from the heatmap, don't scale the heatmap
+# below this minimum size
+__C.REFINENET.KRCNN.INFERENCE_MIN_SIZE = 0
+
+# Multi-task loss weight to use for keypoints
+# Recommended values:
+#   - use 1.0 if KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is True
+#   - use 4.0 if KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False
+__C.REFINENET.KRCNN.LOSS_WEIGHT = 1.0
+
+# Normalize by the total number of visible keypoints in the minibatch if True.
+# Otherwise, normalize by the total number of keypoints that could ever exist
+# in the minibatch. See comments in modeling.model_builder.add_keypoint_losses
+# for detailed discussion.
+__C.REFINENET.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS = True
+
+# ---------------------------------------------------------------------------- #
 # Pixel Focal Loss options
 # ---------------------------------------------------------------------------- #
 __C.PIXEL_FOCAL_LOSS = AttrDict()
