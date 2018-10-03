@@ -294,7 +294,7 @@ def add_refine_net_local_mask_inputs_cpu(model, blob_in, dim_in, spatial_scale):
 def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
     """ Prepare keypoint inputs for RefineNet.
     This function uses keypoint heatmap as indicator and generates input for
-    RefineNet. It concantates the indicator with the RoI feature. The resulted 
+    RefineNet. It concantates the indicator with the RoI feature. The resulted
     tensor served as input for RefineNet.
     Input:
         blob_in: FPN/ResNet feature.
@@ -314,6 +314,7 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
 
     M = cfg.REFINENET.ROI_XFORM_RESOLUTION
     up_scale = cfg.REFINENET.UP_SCALE
+    num_keypoints = cfg.KRCNN.NUM_KEYPOINTS
 
     # up_scale rois
     scale_rois = model.ScaleRoIs(
@@ -363,7 +364,7 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
         )
 
         blob_out = refine_net_input
-        dim_out = dim_in + num_cls
+        dim_out = dim_in + num_keypoints
     else:
         blob_out = refined_rois_feat
         dim_out = dim_in
@@ -423,7 +424,7 @@ def add_refine_net_mask_outputs(model, blob_in, dim_in):
     return blob_out
 
 
-def add_refine_net_keypoint_outputs(model, blob_in, dim_in):
+def add_refine_net_keypoint_outputs(model, blob_in, dim):
     """Add Mask R-CNN keypoint specific outputs: keypoint heatmaps."""
     # NxKxHxW
     upsample_heatmap = (cfg.REFINENET.KRCNN.UP_SCALE > 1)
@@ -534,7 +535,7 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
             ['prior_mask_ious']
         )
         model.net.ReduceFrontMean(
-            'prior_mask_ious', 
+            'prior_mask_ious',
             'mean_prior_mask_ious',
             num_reduce_dim=1
         )
@@ -546,9 +547,9 @@ def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
     """Add Mask R-CNN keypoint specific losses."""
     # Reshape input from (N, K, H, W) to (NK, HW)
     model.net.Reshape(
-        [blob_refined_keypoint], 
+        blob_refined_keypoint,
         ['refined_kps_score_reshaped', 'refined_kps_score_old_shape'],
-        shape=(-1, cfg.REFINENET.KRCNN.HEATMAP_SIZE ** 2)
+        shape=(-1, cfg.REFINENET.KRCNN.HEATMAP_SIZE * cfg.REFINENET.KRCNN.HEATMAP_SIZE)
     )
     # Softmax across **space** (woahh....space!)
     # Note: this is not what is commonly called "spatial softmax"
@@ -556,7 +557,7 @@ def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
     # location); This is softmax applied over a set of spatial locations (i.e.,
     # each spatial location is a "class").
     refined_kps_prob, loss_refined_kps = model.net.SoftmaxWithLoss(
-        ['refined_kps_score_reshaped', 'refined_keypoint_locations_int32', 
+        ['refined_kps_score_reshaped', 'refined_keypoint_locations_int32',
          'refined_keypoint_weights'],
         ['refined_kps_prob', 'loss_refined_kps'],
         scale=cfg.REFINENET.KRCNN.LOSS_WEIGHT / cfg.NUM_GPUS,
@@ -579,7 +580,7 @@ def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
             'refined_keypoint_loss_normalizer', 'refined_keypoint_loss_normalizer'
         )
         loss_refined_kps = model.net.Mul(
-            ['loss_refined_kps', 'refined_keypoint_loss_normalizer'], 
+            ['loss_refined_kps', 'refined_keypoint_loss_normalizer'],
             'loss_refined_kps_normalized'
         )
     loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_kps])
@@ -596,7 +597,7 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
     Note that the refine head is free of indicator type.
     """
     # note that prefix must be 'mask' or 'keypoint'
-    assert prefix in {'mask', 'keypoints'}, \
+    assert prefix in {'mask', 'keypoint'}, \
         'prefix must be mask/keypoints'
     blob_out = 'refine_' + prefix + '_net_feat'
     if cfg.REFINENET.HEAD == 'HOURGLASS':
@@ -641,7 +642,7 @@ def add_refine_net_head(model, blob_in, dim_in, prefix):
         # Use keypoint rcnn like head
         blob_out, dim_out = add_krcnn_head(
             model, blob_in, blob_out, dim_in, prefix
-        )   
+        )
         return blob_out, dim_out
     else:
         raise NotImplementedError(
@@ -721,6 +722,7 @@ def add_krcnn_head(model, blob_in, blob_out, dim_in, prefix):
     kernel_size = cfg.REFINENET.KRCNN.CONV_HEAD_KERNEL
     pad_size = kernel_size // 2
 
+    current = blob_in
     for i in range(cfg.REFINENET.KRCNN.NUM_STACKED_CONVS):
         current = model.Conv(
             current,

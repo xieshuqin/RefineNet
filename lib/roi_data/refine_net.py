@@ -31,6 +31,7 @@ from core.config import cfg
 import utils.blob as blob_utils
 import utils.boxes as box_utils
 import utils.segms as segm_utils
+import utils.keypoints as keypoint_utils
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +299,9 @@ def add_refine_keypoints_blobs(
     heats = heats.reshape(shape)
     weights = weights.reshape(shape)
 
+    pad_rois_fg = pad_rois_fg.astype(np.float32)
     pad_rois_fg *= im_scale
+    pad_rois_fg.astype(np.int32)
     repeated_batch_idx = batch_idx * blob_utils.ones(
         (pad_rois_fg.shape[0], 1)
     )

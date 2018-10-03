@@ -448,7 +448,7 @@ def _add_generic_refine_keypoint_net_head(
 
     # Prepare for RefineNet input
     # Different indicator type will generate different blob_refine_net_in
-    INDICATOR_TYPE = model.REFINENET.INDICATOR_TYPE
+    INDICATOR_TYPE = cfg.REFINENET.INDICATOR_TYPE
     blob_refine_net_in, dim_refine_net_in = \
         refine_net_heads.add_refine_net_inputs(
             model, blob_in, dim_in, spatial_scale_in, INDICATOR_TYPE
@@ -479,7 +479,7 @@ def _add_generic_refine_keypoint_net_head(
         loss_gradients = None
     else:
         loss_gradients = refine_net_heads.add_refine_net_keypoint_losses(
-            model, blob_refine_mask_out
+            model, blob_refine_keypoint_out
         )
     return loss_gradients
 
