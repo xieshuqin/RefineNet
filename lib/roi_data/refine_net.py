@@ -70,6 +70,7 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
     polys_gt_inds = np.where(
         (roidb['gt_classes'] > 0) & (roidb['is_crowd'] == 0)
     )[0]
+    gt_classes = roidb['gt_classes'][polys_gt_inds]
     polys_gt = [roidb['segms'][i] for i in polys_gt_inds]
     boxes_from_polys = segm_utils.polys_to_boxes(polys_gt)
     fg_inds = np.where(blobs['labels_int32'] > 0)[0]
@@ -120,6 +121,33 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
                 else:   # Only one instance, then set label to be -1 (ignored)
                     masks[i, :] = -1
                     mask_class_labels[i] = 0
+        elif cfg.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES:
+            loss_weights = blob_utils.ones((rois_fg.shape[0], ))
+            for i in range(rois_fg.shape[0]):
+                fg_polys_ind = fg_polys_inds[i]
+                poly_gt = polys_gt[fg_polys_ind]
+                pad_roi_fg = pad_rois_fg[i]
+                class_label = mask_class_labels[i]
+
+                # Rasterize the portion of the polygon mask within the given 
+                # fg roi to an M x M binary image
+                mask = segm_utils.polys_to_mask_wrt_box(poly_gt, pad_roi_fg, M)
+                mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
+                masks[i, :] = np.reshape(mask, M**2)
+
+                # And now determine the weight for each roi. If any instance 
+                # that is of the same class as the RoI, then we expect it to
+                # be a hard sample and assigns a larger weight for this RoI
+                for j in range(len(polys_gt)):
+                    if gt_classes[j] == class_label: # only same class is valid
+                        mask = segm_utils.polys_to_mask_wrt_box(
+                            polys_gt[j], pad_rois_fg, M
+                        )
+                        # and check if has anypart fall inside the bbox
+                        is_inside_bbox = np.sum(mask)
+                        if is_inside_bbox > 0:
+                            loss_weights[i] = cfg.REFINENET.WEIGHT_LOSS_CROWDED
+                            break # early stop
 
         else:
             # add fg targets
@@ -159,6 +187,9 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
     blobs['refined_mask_rois'] = pad_rois_fg
     blobs['roi_has_refined_mask_int32'] = roi_has_mask
     blobs['refined_masks_int32'] = masks
+
+    if cfg.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES:
+        blobs['loss_weights'] = loss_weights
 
 
 def add_refine_global_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx, data):

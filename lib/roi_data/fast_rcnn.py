@@ -99,6 +99,9 @@ def get_fast_rcnn_blob_names(is_training=True):
         # specified in 'mask_rois'. Shape is (#fg, G_M * G_M) where G_M
         # is the global mask size
         blob_names += ['refined_masks_int32']
+
+        if cfg.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES:
+            blob_names += ['loss_weights']
     if is_training and cfg.MODEL.REFINE_KEYPOINTS_ON:
         # 'keypoint_rois': RoIs sampled for training the keypoint prediction
         # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,

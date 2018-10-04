@@ -1079,6 +1079,12 @@ __C.REFINENET.ONLY_USE_CROWDED_SAMPLES = False
 # Overlapped threshold
 __C.REFINENET.OVERLAP_THRESHOLD = 0.1
 
+# assign larger weights to crowded samples or not
+__C.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES = False
+
+# weight for crowded samples
+__C.REFINENET.WEIGHT_LOSS_CROWDED = 1.
+
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
 # ---------------------------------------------------------------------------- #

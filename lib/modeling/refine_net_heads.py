@@ -504,14 +504,7 @@ def add_refine_net_losses(model, blob_refined, refined_output_type):
 
 def add_refine_net_mask_losses(model, blob_refined_mask):
     """ Add RefineNet mask specific losses. """
-    if not cfg.MODEL.PIXEL_FOCAL_LOSS_ON:
-        # using normal sigmoid cross entropy loss
-        loss_refined_mask = model.net.SigmoidCrossEntropyLoss(
-            [blob_refined_mask, 'refined_masks_int32'],
-            'loss_refined_mask',
-            scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK
-        )
-    else:
+    if cfg.MODEL.PIXEL_FOCAL_LOSS_ON:
         # using pixel level focal sigmoid cross entropy loss
         loss_refined_mask = model.net.MaskSigmoidFocalLoss(
             [blob_refined_mask, 'refined_masks_int32'],
@@ -519,27 +512,41 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
             scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK,
             gamma=cfg.PIXEL_FOCAL_LOSS.LOSS_GAMMA
         )
+    elif cfg.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES:
+        loss_refined_mask = model.net.InstanceWeightedSigmoidCrossEntropyLoss(
+            [blob_refined_mask, 'refined_masks_int32', 'loss_weights'],
+            'loss_refined_mask',
+            scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK
+        )
+    else:
+        # using normal sigmoid cross entropy loss
+        loss_refined_mask = model.net.SigmoidCrossEntropyLoss(
+            [blob_refined_mask, 'refined_masks_int32'],
+            'loss_refined_mask',
+            scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK
+        )
+        
     loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_mask])
     model.AddLosses('loss_refined_mask')
-    # And adds MaskIoU ops
-    model.net.Sigmoid(blob_refined_mask, 'refined_mask_probs')
-    model.net.MaskIoU(
-        ['refined_mask_probs', 'refined_masks_int32'],
-        ['refined_mask_ious', 'mean_refined_mask_ious']
-    )
-    model.AddMetrics('mean_refined_mask_ious')
-    # And we also want to monitor the mask_ious before refined
-    if cfg.MODEL.PRN_ON:
-        model.net.SampleAs(
-            ['mask_ious', 'roi_needs_refine_int32'],
-            ['prior_mask_ious']
-        )
-        model.net.ReduceFrontMean(
-            'prior_mask_ious',
-            'mean_prior_mask_ious',
-            num_reduce_dim=1
-        )
-        model.AddMetrics('mean_prior_mask_ious')
+    # # And adds MaskIoU ops
+    # model.net.Sigmoid(blob_refined_mask, 'refined_mask_probs')
+    # model.net.MaskIoU(
+    #     ['refined_mask_probs', 'refined_masks_int32'],
+    #     ['refined_mask_ious', 'mean_refined_mask_ious']
+    # )
+    # model.AddMetrics('mean_refined_mask_ious')
+    # # And we also want to monitor the mask_ious before refined
+    # if cfg.MODEL.PRN_ON:
+    #     model.net.SampleAs(
+    #         ['mask_ious', 'roi_needs_refine_int32'],
+    #         ['prior_mask_ious']
+    #     )
+    #     model.net.ReduceFrontMean(
+    #         'prior_mask_ious',
+    #         'mean_prior_mask_ious',
+    #         num_reduce_dim=1
+    #     )
+    #     model.AddMetrics('mean_prior_mask_ious')
     return loss_gradients
 
 
