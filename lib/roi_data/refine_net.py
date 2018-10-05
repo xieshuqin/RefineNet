@@ -129,19 +129,21 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
                 pad_roi_fg = pad_rois_fg[i]
                 class_label = mask_class_labels[i]
 
-                # Rasterize the portion of the polygon mask within the given 
+                # Rasterize the portion of the polygon mask within the given
                 # fg roi to an M x M binary image
                 mask = segm_utils.polys_to_mask_wrt_box(poly_gt, pad_roi_fg, M)
                 mask = np.array(mask > 0, dtype=np.int32)  # Ensure it's binary
                 masks[i, :] = np.reshape(mask, M**2)
 
-                # And now determine the weight for each roi. If any instance 
+                # And now determine the weight for each roi. If any instance
                 # that is of the same class as the RoI, then we expect it to
                 # be a hard sample and assigns a larger weight for this RoI
                 for j in range(len(polys_gt)):
+                    if j == fg_polys_ind:
+                        continue
                     if gt_classes[j] == class_label: # only same class is valid
                         mask = segm_utils.polys_to_mask_wrt_box(
-                            polys_gt[j], pad_rois_fg, M
+                            polys_gt[j], pad_roi_fg, M
                         )
                         # and check if has anypart fall inside the bbox
                         is_inside_bbox = np.sum(mask)

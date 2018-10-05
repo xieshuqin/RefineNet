@@ -96,7 +96,7 @@ def add_mask_rcnn_losses(model, blob_mask):
     """Add Mask R-CNN specific losses."""
     if not cfg.MODEL.INDICATOR_LOSS_ON:
         # Whether using pixel level focal loss
-        if cfg.MODEL.PIXEL_FOCAL_LOSS_ON: 
+        if cfg.MODEL.PIXEL_FOCAL_LOSS_ON:
             # using pixel focal sigmoid cross entropy loss
             loss_mask = model.net.MaskSigmoidFocalLoss(
                 [blob_mask, 'masks_int32'],
@@ -120,8 +120,8 @@ def add_mask_rcnn_losses(model, blob_mask):
                 'loss_mask',
                 scale=1. / cfg.NUM_GPUS * cfg.MRCNN.WEIGHT_LOSS_MASK
             )
-        
-            
+
+
         loss_gradients = blob_utils.get_loss_gradients(model, [loss_mask])
         model.AddLosses('loss_mask')
     else:
@@ -132,10 +132,10 @@ def add_mask_rcnn_losses(model, blob_mask):
             'loss_mask',
             scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_ENCOURAGE
         )
-        
+
         # Add Indicator loss
-        if cfg.MODEL.INDICATOR_HINGLE_LOSS_ON: 
-            # Use Hinge Loss 
+        if cfg.MODEL.INDICATOR_HINGLE_LOSS_ON:
+            # Use Hinge Loss
             loss_indicator = model.net.ThresholdSigmoidHingleLoss(
                 [blob_mask, 'masks_int32'],
                 'loss_indicator',
@@ -143,8 +143,8 @@ def add_mask_rcnn_losses(model, blob_mask):
                 low_threshold = cfg.REFINENET.INDICATOR_HINGLE_LOSS_LOW_THRESHOLD,
                 high_threshold = cfg.REFINENET.INDICATOR_HINGLE_LOSS_HIGH_THRESHOLD
             )
-        elif cfg.MODEL.INDICATOR_NEGATIVE_SIGMOID_LOSS_ON: 
-            # Use Negative Sigmoid Cross Entropy Loss: 
+        elif cfg.MODEL.INDICATOR_NEGATIVE_SIGMOID_LOSS_ON:
+            # Use Negative Sigmoid Cross Entropy Loss:
             loss_indicator = model.net.NegativeSigmoidCrossEntropyLoss(
                 [blob_mask, 'masks_int32'],
                 'loss_indicator',
@@ -158,20 +158,20 @@ def add_mask_rcnn_losses(model, blob_mask):
                 scale = 1. / cfg.NUM_GPUS,
                 threshold = cfg.REFINENET.INDICATOR_LOSS_THRESHOLD
             )
-            
-            
+
+
         loss_gradients = blob_utils.get_loss_gradients(
             model, [loss_mask, loss_indicator]
         )
         model.AddLosses(['loss_mask', 'loss_indicator'])
 
-    # Add a mask iou op to metrics
-    model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
-    model.net.MaskIoU(
-        ['mask_probs', 'masks_int32'], 
-        ['mask_ious', 'mean_mask_ious']
-    )
-    model.AddMetrics('mean_mask_ious')
+    # # Add a mask iou op to metrics
+    # model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    # model.net.MaskIoU(
+    #     ['mask_probs', 'masks_int32'],
+    #     ['mask_ious', 'mean_mask_ious']
+    # )
+    # model.AddMetrics('mean_mask_ious')
 
     return loss_gradients
 
