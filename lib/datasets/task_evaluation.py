@@ -74,7 +74,7 @@ def evaluate_all(
         all_results[dataset.name].update(results[dataset.name])
         logger.info('Evaluating refined segmentations is done!')
     if cfg.MODEL.REFINE_KEYPOINTS_ON:
-        results = evaluate_refined_keyps(dataset, all_boxes, all_refined_keyps, output_dir)
+        results = evaluate_refined_keypoints(dataset, all_boxes, all_refined_keyps, output_dir)
         all_results[dataset.name].update(results[dataset.name])
         logger.info('Evaluating refined keypoints is done!')
     return all_results
