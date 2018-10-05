@@ -127,7 +127,7 @@ def im_detect_all(model, im, box_proposals, timers=None):
     if cfg.MODEL.REFINE_MASK_ON and cfg.MODEL.PRN_ON and boxes.shape[0] > 0:
         # And another condition
         if cfg.TEST.USE_PRN_FOR_REFINE:
-            # Merge cls_refined_segms with cls_segms 
+            # Merge cls_refined_segms with cls_segms
             cls_refined_segms = merge_refined_results_with_normal_results(
                 cls_boxes, cls_segms, cls_refined_segms, roi_needs_refine
             )
@@ -142,7 +142,7 @@ def im_detect_all(model, im, box_proposals, timers=None):
 
         timers['misc_refined_keypoints'].tic()
         cls_refined_keyps = refined_keypoint_results(
-            cls_boxes, refined_heatmaps, boxes
+            cls_boxes, refined_heatmaps, boxes, im_scales
         )
         timers['misc_refined_keypoints'].toc()
     else:
@@ -788,7 +788,7 @@ def im_detect_refined_local_mask(model, im_scales, boxes):
     Returns:
         pred_refined_masks (ndarray): R x K x M x M array of class specific
             soft masks, where M is the refined mask resolution, defined in
-            cfg.REFINENET.RESOLUTION 
+            cfg.REFINENET.RESOLUTION
             The output must be processed by the function refined_segm_results
             to convert into hard masks in the original image coordinate space)
 
@@ -1112,7 +1112,7 @@ def im_detect_refined_keypoints_aug(model, im, boxes):
 
     # Combine the heatmaps
     if cfg.TEST.KPS_AUG.SCALE_SIZE_DEP:
-        # There might be a bug here. The boxes are not expanded so it 
+        # There might be a bug here. The boxes are not expanded so it
         # may not be correct.
         heatmaps_c = combine_heatmaps_size_dep(
             heatmaps_ts, ds_ts, us_ts, boxes, heur_f
@@ -1197,7 +1197,7 @@ def im_detect_prn(model, im_scales, boxes):
     Returns:
         pred_refined_masks (ndarray): R x K x M x M array of class specific
             soft masks, where M is the refined mask resolution, defined in
-            cfg.REFINENET.RESOLUTION 
+            cfg.REFINENET.RESOLUTION
             The output must be processed by the function refined_segm_results
             to convert into hard masks in the original image coordinate space)
 
@@ -1393,14 +1393,14 @@ def refined_local_segm_results(cls_boxes, masks, ref_boxes, im_scales, im_h, im_
     mask_ind = 0
 
     # Since the refined mask is done on the padded image, we need to
-    # copy the output to the padded image. Therefore, we need to 
+    # copy the output to the padded image. Therefore, we need to
     # get the padded image size.
     data = workspace.FetchBlob(core.ScopedName('data'))
     pad_h, pad_w = data.shape[2], data.shape[3]
     pad_img_h, pad_img_w = int(pad_h / im_scales), int(pad_w / im_scales)
 
-    # The ref_boxes are with regard to mask_rois, we need to scale it 
-    # up to get the boxes for indicator, then clip it to the size of 
+    # The ref_boxes are with regard to mask_rois, we need to scale it
+    # up to get the boxes for indicator, then clip it to the size of
     # padded image
     up_scale = cfg.REFINENET.UP_SCALE
     ref_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
@@ -1499,9 +1499,9 @@ def refined_global_segm_results(cls_boxes, refined_masks, im_scales, im_h, im_w)
 def merge_refined_results_with_normal_results(
         cls_boxes, normal_results, refined_results, roi_needs_refine
     ):
-    """ A post-processing function to merge the normal results 
-    with refined_results if we have a binary roi_needs_refine to 
-    tell whether the roi needs refinement. If roi_needs_refine is 0, 
+    """ A post-processing function to merge the normal results
+    with refined_results if we have a binary roi_needs_refine to
+    tell whether the roi needs refinement. If roi_needs_refine is 0,
     then use the normal results, else use the refined_results.
     """
     num_classes = cfg.MODEL.NUM_CLASSES
@@ -1567,21 +1567,22 @@ def keypoint_results(cls_boxes, pred_heatmaps, ref_boxes):
     return cls_keyps
 
 
-def refined_keypoint_results(cls_boxes, pred_heatmaps, ref_boxes):
+def refined_keypoint_results(cls_boxes, pred_heatmaps, ref_boxes, im_scales):
 
     # Since the refined mask is done on the padded image, we need to
-    # copy the output to the padded image. Therefore, we need to 
+    # copy the output to the padded image. Therefore, we need to
     # get the padded image size.
     data = workspace.FetchBlob(core.ScopedName('data'))
     pad_h, pad_w = data.shape[2], data.shape[3]
     pad_img_h, pad_img_w = int(pad_h / im_scales), int(pad_w / im_scales)
 
-    # The ref_boxes are with regard to mask_rois, we need to scale it 
-    # up to get the boxes for indicator, then clip it to the size of 
+    # The ref_boxes are with regard to mask_rois, we need to scale it
+    # up to get the boxes for indicator, then clip it to the size of
     # padded image
     up_scale = cfg.REFINENET.UP_SCALE
     ref_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
     ref_boxes = box_utils.clip_boxes_to_image(ref_boxes, pad_img_h, pad_img_w)
+    ref_boxes = ref_boxes.astype(np.float32)
 
     num_classes = cfg.MODEL.NUM_CLASSES
     cls_keyps = [[] for _ in range(num_classes)]

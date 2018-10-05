@@ -271,7 +271,7 @@ def initialize_model_from_cfg():
     if cfg.MODEL.REFINE_MASK_ON:
         workspace.CreateNet(model.refine_mask_net)
     if cfg.MODEL.REFINE_KEYPOINTS_ON:
-        workspace.CreateNet(model.refine_keypoints_net)
+        workspace.CreateNet(model.refine_keypoint_net)
     return model
 
 
