@@ -27,6 +27,7 @@ from utils.c2 import const_fill
 from utils.c2 import gauss_fill
 import modeling.Hourglass as Hourglass
 import utils.blob as blob_utils
+import utils.keypoints as keypoint_utils
 
 # ---------------------------------------------------------------------------- #
 # RefineNet input
@@ -56,66 +57,6 @@ def add_refine_net_mask_inputs(model, blob_in, dim_in, spatial_scale):
         blob_out, dim_out = add_refine_net_global_mask_inputs(
             model, blob_in, dim_in, spatial_scale
         )
-
-    return blob_out, dim_out
-
-def add_refine_net_global_mask_inputs(model, blob_in, dim_in, spatial_scale):
-    """ Prepare mask inputs for RefineNet.
-    This function uses mask as indicator and generates input for
-    RefineNet. It maps the local mask prediction to global image
-    space, which serves as an indicator, and concantate the
-    indicator with the entire feature map. The resulted tensor
-    served as input for RefineNet.
-    Input:
-        blob_in: FPN/ResNet feature.
-        dim_in: FPN/ResNet feature dimension
-        spatial_scale: FPN/ResNet scale
-    Output:
-        'refine_mask_net_input'
-        dim_out: dim_in + num_cls
-    """
-
-    # Rescale and Dumplicate the feature map
-    src_sc = spatial_scale
-    dst_sc = cfg.REFINENET.SPATIAL_SCALE
-
-    if cfg.FPN.FPN_ON:
-        rois_global_feat = model.RescaleAndDumplicateFeatureFPN(
-            blobs_in=blob_in,
-            blob_out='rois_global_feat',
-            blob_rois='mask_rois',
-            src_spatial_scales=src_sc,
-            dst_spatial_scale=dst_sc
-        )
-    else:
-        rois_global_feat = model.RescaleAndDumplicateFeatureSingle(
-            blobs_in=blob_in,
-            blob_out='rois_global_feat',
-            blob_rois='mask_rois',
-            src_spatial_scales=src_sc,
-            dst_spatial_scale=dst_sc
-        )
-
-
-    # Generate mask indicators
-    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
-    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
-    blob_data = core.ScopedBlobReference('data')
-    mask_indicators = model.GenerateGlobalMaskIndicators(
-        blobs_in=[blob_data, mask_probs],
-        blob_out='mask_indicators',
-        blob_rois='mask_rois',
-        dst_spatial_scale=dst_sc
-    )
-
-    # Concatenate along the channel dimension
-    concat_list = [rois_global_feat, mask_indicators]
-    refine_net_input, _ = model.net.Concat(
-        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
-    )
-
-    blob_out = refine_net_input
-    dim_out = dim_in + num_cls
 
     return blob_out, dim_out
 
@@ -228,69 +169,6 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
     return blob_out, dim_out
 
 
-def add_refine_net_local_mask_inputs_cpu(model, blob_in, dim_in, spatial_scale):
-    """ Prepare mask inputs for RefineNet.
-    This function uses mask as indicator and generates input for
-    RefineNet. It maps the local mask prediction to global image
-    space, which serves as an indicator, and concantate the
-    indicator with the entire feature map. The resulted tensor
-    served as input for RefineNet.
-    Input:
-        blob_in: FPN/ResNet feature.
-        dim_in: FPN/ResNet feature dimension
-        spatial_scale: FPN/ResNet scale
-    Output:
-        'refine_mask_net_input'
-        dim_out: dim_in + num_cls
-    """
-
-    # Generate the indicator feature map by
-    # 1. up_scale the rois
-    # 2. pool the feature from the pad_rois
-    # 3. resize to MxM, where M is specified in the cfg
-
-    M = cfg.REFINENET.RESOLUTION
-    up_scale = cfg.REFINENET.UP_SCALE
-    if isinstance(blob_in, list):
-        # FPN case
-        rois_global_feat = model.PoolingIndicatorFeatureFPN(
-            blobs_in=blob_in,
-            blob_out='rois_global_feat',
-            blob_rois='mask_rois',
-            spatial_scales=spatial_scale
-        )
-    else:
-        #
-        rois_global_feat = model.PoolingIndicatorFeatureSingle(
-            blobs_in=blob_in,
-            blob_out='rois_global_feat',
-            blob_rois='mask_rois',
-            spatial_scale=spatial_scale
-        )
-
-
-    # Generate mask indicators
-    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
-    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
-    blob_data = core.ScopedBlobReference('data')
-    mask_indicators = model.GenerateLocalMaskIndicators(
-        blobs_in=[blob_data, mask_probs],
-        blob_out='mask_indicators',
-        blob_rois='mask_rois',
-    )
-
-    # Concatenate along the channel dimension
-    concat_list = [rois_global_feat, mask_indicators]
-    refine_net_input, _ = model.net.Concat(
-        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
-    )
-
-    blob_out = refine_net_input
-    dim_out = dim_in + num_cls
-
-    return blob_out, dim_out
-
-
 def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
     """ Prepare keypoint inputs for RefineNet.
     This function uses keypoint heatmap as indicator and generates input for
@@ -351,7 +229,7 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
         else:
             # Default setting, just use the local indicator
             blob_data = core.ScopedBlobReference('data')
-            kps_indicator = model.GenerateLocalMaskIndicators(
+            kps_indicator = model.GenerateKeypointIndicators(
                 blobs_in=[blob_data, kps_score],
                 blob_out='kps_indicator',
                 blob_rois='keypoint_rois',
@@ -902,3 +780,130 @@ def add_residual_block(
         s = model.net.Sum([tr, sc], prefix + '_sum')
 
     return model.Relu(s, s)
+
+
+# ---------------------------------------------------------------------------- #
+# Old codes that no longer used
+# ---------------------------------------------------------------------------- #
+def add_refine_net_local_mask_inputs_cpu(model, blob_in, dim_in, spatial_scale):
+    """ Prepare mask inputs for RefineNet.
+    This function uses mask as indicator and generates input for
+    RefineNet. It maps the local mask prediction to global image
+    space, which serves as an indicator, and concantate the
+    indicator with the entire feature map. The resulted tensor
+    served as input for RefineNet.
+    Input:
+        blob_in: FPN/ResNet feature.
+        dim_in: FPN/ResNet feature dimension
+        spatial_scale: FPN/ResNet scale
+    Output:
+        'refine_mask_net_input'
+        dim_out: dim_in + num_cls
+    """
+
+    # Generate the indicator feature map by
+    # 1. up_scale the rois
+    # 2. pool the feature from the pad_rois
+    # 3. resize to MxM, where M is specified in the cfg
+
+    M = cfg.REFINENET.RESOLUTION
+    up_scale = cfg.REFINENET.UP_SCALE
+    if isinstance(blob_in, list):
+        # FPN case
+        rois_global_feat = model.PoolingIndicatorFeatureFPN(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            spatial_scales=spatial_scale
+        )
+    else:
+        #
+        rois_global_feat = model.PoolingIndicatorFeatureSingle(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            spatial_scale=spatial_scale
+        )
+
+
+    # Generate mask indicators
+    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
+    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    blob_data = core.ScopedBlobReference('data')
+    mask_indicators = model.GenerateLocalMaskIndicators(
+        blobs_in=[blob_data, mask_probs],
+        blob_out='mask_indicators',
+        blob_rois='mask_rois',
+    )
+
+    # Concatenate along the channel dimension
+    concat_list = [rois_global_feat, mask_indicators]
+    refine_net_input, _ = model.net.Concat(
+        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
+    )
+
+    blob_out = refine_net_input
+    dim_out = dim_in + num_cls
+
+    return blob_out, dim_out
+
+
+def add_refine_net_global_mask_inputs(model, blob_in, dim_in, spatial_scale):
+    """ Prepare mask inputs for RefineNet.
+    This function uses mask as indicator and generates input for
+    RefineNet. It maps the local mask prediction to global image
+    space, which serves as an indicator, and concantate the
+    indicator with the entire feature map. The resulted tensor
+    served as input for RefineNet.
+    Input:
+        blob_in: FPN/ResNet feature.
+        dim_in: FPN/ResNet feature dimension
+        spatial_scale: FPN/ResNet scale
+    Output:
+        'refine_mask_net_input'
+        dim_out: dim_in + num_cls
+    """
+
+    # Rescale and Dumplicate the feature map
+    src_sc = spatial_scale
+    dst_sc = cfg.REFINENET.SPATIAL_SCALE
+
+    if cfg.FPN.FPN_ON:
+        rois_global_feat = model.RescaleAndDumplicateFeatureFPN(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            src_spatial_scales=src_sc,
+            dst_spatial_scale=dst_sc
+        )
+    else:
+        rois_global_feat = model.RescaleAndDumplicateFeatureSingle(
+            blobs_in=blob_in,
+            blob_out='rois_global_feat',
+            blob_rois='mask_rois',
+            src_spatial_scales=src_sc,
+            dst_spatial_scale=dst_sc
+        )
+
+
+    # Generate mask indicators
+    num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
+    mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+    blob_data = core.ScopedBlobReference('data')
+    mask_indicators = model.GenerateGlobalMaskIndicators(
+        blobs_in=[blob_data, mask_probs],
+        blob_out='mask_indicators',
+        blob_rois='mask_rois',
+        dst_spatial_scale=dst_sc
+    )
+
+    # Concatenate along the channel dimension
+    concat_list = [rois_global_feat, mask_indicators]
+    refine_net_input, _ = model.net.Concat(
+        concat_list, ['refine_mask_net_input', '_split_info'], axis=1
+    )
+
+    blob_out = refine_net_input
+    dim_out = dim_in + num_cls
+
+    return blob_out, dim_out

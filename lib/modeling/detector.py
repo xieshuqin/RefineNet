@@ -50,6 +50,7 @@ from ops.generate_rois_need_refine import GenerateRoIsNeedRefineOp
 
 from ops.generate_mask_indicators import GenerateGlobalMaskIndicatorsOp
 from ops.generate_mask_indicators import GenerateLocalMaskIndicatorsOp
+from ops.generate_keypoint_indicators import GenerateKeypointIndicatorsOp
 from utils import lr_policy
 import roi_data.fast_rcnn
 import ops.prepare_labels_for_prn_and_update_refine_blobs as prn_label_op
@@ -327,6 +328,39 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         xform_out = self.net.Python(
             GenerateLocalMaskIndicatorsOp(up_scale=up_scale, resolution=M).forward,
             GenerateLocalMaskIndicatorsOp(up_scale=up_scale, resolution=M).backward,
+            grad_input_indices=grad_input_indices
+        )(blobs_in_list, blob_out, name=name)
+        return xform_out
+
+    def GenerateKeypointIndicators(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois='keypoint_rois',
+    ):
+        """ Add keypoint indicators to the refine network. It maps the
+        keypoint heatmap on local rois into the expanded rois. The heatmap
+        is re-drawed instead of directly resized to handle special issues 
+        for keypoints
+
+        Input blobs: [data, kps_scores]
+        Input rois: keypoint_rois
+        Output blob: keypoint_indicators
+        """
+        blob_rois = core.ScopedBlobReference(blob_rois) # refer blob_rois
+        blobs_in_list = blobs_in + [blob_rois]
+        name = 'GenerateKeypointIndicatorsOp:' + ','.join(
+            [str(b) for b in blobs_in_list]
+        )
+        blob_out = core.ScopedBlobReference(blob_out)
+        grad_input_indices = [0] # ignore gradient for blob_rois
+
+        up_scale = cfg.REFINENET.UP_SCALE
+        M = cfg.REFINENET.ROI_XFORM_RESOLUTION
+
+        xform_out = self.net.Python(
+            GenerateKeypointIndicatorsOp(up_scale=up_scale, resolution=M).forward,
+            GenerateKeypointIndicatorsOp(up_scale=up_scale, resolution=M).backward,
             grad_input_indices=grad_input_indices
         )(blobs_in_list, blob_out, name=name)
         return xform_out
