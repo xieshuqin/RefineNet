@@ -12,17 +12,17 @@ import utils.keypoints as keypoint_utils
 
 
 class GenerateKeypointIndicatorsOp(object):
-    """ Generate keypoint indicators. 
-        A function similar to GenerateLocalMaskIndicator but deal with special 
-        issues for keypoint heatmap. 
+    """ Generate keypoint indicators.
+        A function similar to GenerateLocalMaskIndicator but deal with special
+        issues for keypoint heatmap.
 
         Since the input keypoint heatmap is usually a one-hot heatmap,
-        resizing it to a smaller resolution will result in a darken heatmap or 
-        even an all-zero heatmap. 
+        resizing it to a smaller resolution will result in a darken heatmap or
+        even an all-zero heatmap.
         To avoid this problem, instead of resizing the original heatmap,
-        we get the position with maximum value from the original heatmap and 
-        convert it to the new rois. Then we draw a one-hot heatmap based on 
-        the converted position and the new rois. 
+        we get the position with maximum value from the original heatmap and
+        convert it to the new rois. Then we draw a one-hot heatmap based on
+        the converted position and the new rois.
 
         inputs: [data, keypoint_scores, keypoint_rois]
         outputs: [keypoint_indicators]
@@ -58,11 +58,12 @@ class GenerateKeypointIndicatorsOp(object):
         locations_on_pad_rois, _ = keypoint_utils.keypoints_to_heatmap_labels(
             pred_rois[:, [0, 1, 3], :], pad_rois, M
         )
+        locations_on_pad_rois = locations_on_pad_rois.astype(np.int32)
 
         # and now generate keypoint indicators
         keypoint_indicators = blob_utils.zeros((num_rois, num_keypoints, M**2))
         for i in range(num_rois):
-            locations = locations_on_pad_rois[i] # shape (#keypoints, ) 
+            locations = locations_on_pad_rois[i] # shape (#keypoints, )
             for k in range(num_keypoints):
                 keypoint_indicators[i, k, locations[k]] = pred_rois[i, 3, k]
 
