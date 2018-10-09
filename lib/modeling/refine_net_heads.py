@@ -214,26 +214,25 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
     if cfg.REFINENET.USE_INDICATOR: # whether to use indicator
         # Generate mask indicators
         num_keypoints = cfg.REFINENET.KRCNN.NUM_KEYPOINTS
-        kps_score = core.ScopedBlobReference('kps_score')
 
-        # Conditions on how to use indicator
-        if cfg.REFINENET.GRADIENT_INTO_INDICATOR_ON:
-            # Allow gradient to flow from Refinenet to indicators
-            kps_indicator = model.GenerateAutoLearningIndicators(
-                blobs_in=kps_score,
-                blob_out='kps_indicator',
-                blob_rois='keypoint_rois',
-                up_scale=cfg.REFINENET.UP_SCALE,
-                resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
-            )
+        # Prepare inputs for PythonOp
+        if model.train:
+            kps_prob = core.ScopedBlobReference('kps_prob')
         else:
-            # Default setting, just use the local indicator
-            blob_data = core.ScopedBlobReference('data')
-            kps_indicator = model.GenerateKeypointIndicators(
-                blobs_in=[blob_data, kps_score],
-                blob_out='kps_indicator',
-                blob_rois='keypoint_rois',
+            # Test time, we need to generate kps_prob 
+            model.net.Reshape(
+                ['kps_score'], ['kps_score_reshaped', '_kps_score_old_shape'],
+                shape=(-1, cfg.KRCNN.HEATMAP_SIZE * cfg.KRCNN.HEATMAP_SIZE)
             )
+            kps_prob = model.net.Softmax('kps_score_reshaped','kps_prob')
+
+        # Default setting, just use the local indicator
+        blob_data = core.ScopedBlobReference('data')
+        kps_indicator = model.GenerateKeypointIndicators(
+            blobs_in=[blob_data, kps_prob],
+            blob_out='kps_indicator',
+            blob_rois='keypoint_rois',
+        )
 
         # Concatenate along the channel dimension
         concat_list = [refined_rois_feat, kps_indicator]

@@ -24,7 +24,7 @@ class GenerateKeypointIndicatorsOp(object):
         convert it to the new rois. Then we draw a one-hot heatmap based on
         the converted position and the new rois.
 
-        inputs: [data, keypoint_scores, keypoint_rois]
+        inputs: [data, keypoint_probs, keypoint_rois]
         outputs: [keypoint_indicators]
     """
 
@@ -34,29 +34,27 @@ class GenerateKeypointIndicatorsOp(object):
 
     def forward(self, inputs, outputs):
         data = inputs[0].data
-        keypoint_scores = inputs[1].data
+        keypoint_probs = inputs[1].data
         keypoint_rois = inputs[2].data
 
         # output indicator resolution
         M = self.resolution
         up_scale = self.up_scale
         num_rois = keypoint_rois.shape[0]
-        num_keypoints = keypoint_scores.shape[1]
+        num_keypoints = keypoint_probs.shape[1]
 
         # first expand the keypoint rois
         height, width = data.shape[2], data.shape[3]
         pad_rois = box_utils.expand_boxes_by_scale(keypoint_rois[:, 1:5], up_scale)
         pad_rois = box_utils.clip_boxes_to_image(pad_rois, height, width)
 
-        # get keypoint predictions and their scores
-        # output shape is (#rois, 4, #keypoints) and 4 means (x, y, score, prob)
-        pred_rois = keypoint_utils.heatmaps_to_keypoints(
-            keypoint_scores, keypoint_rois
-        )
+        # get keypoint predictions and their probs
+        # output shape is (#rois, 3, #keypoints) and 3 means (x, y, prob)
+        pred_rois = keypoint_utils.probs_to_keypoints(keypoint_probs, keypoint_rois)
         # map keypoint position to the pad_rois
         # output shape is (#rois, #keypoints), locations flatter out
         locations_on_pad_rois, _ = keypoint_utils.keypoints_to_heatmap_labels(
-            pred_rois[:, [0, 1, 3], :], pad_rois, M
+            pred_rois, pad_rois, M
         )
         locations_on_pad_rois = locations_on_pad_rois.astype(np.int32)
 
