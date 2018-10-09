@@ -51,6 +51,7 @@ class GenerateKeypointIndicatorsOp(object):
         # get keypoint predictions and their probs
         # output shape is (#rois, 3, #keypoints) and 3 means (x, y, prob)
         pred_rois = keypoint_utils.probs_to_keypoints(keypoint_probs, keypoint_rois)
+        
         # map keypoint position to the pad_rois
         # output shape is (#rois, #keypoints), locations flatter out
         locations_on_pad_rois, _ = keypoint_utils.keypoints_to_heatmap_labels(
