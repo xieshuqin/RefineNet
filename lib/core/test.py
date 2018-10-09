@@ -1576,21 +1576,22 @@ def refined_keypoint_results(cls_boxes, pred_heatmaps, ref_boxes, im_scales):
     pad_h, pad_w = data.shape[2], data.shape[3]
     pad_img_h, pad_img_w = int(pad_h / im_scales), int(pad_w / im_scales)
 
-    # The ref_boxes are with regard to mask_rois, we need to scale it
+    # The pad_boxes are with regard to keypoint_rois, we need to scale it
     # up to get the boxes for indicator, then clip it to the size of
     # padded image
     up_scale = cfg.REFINENET.UP_SCALE
-    ref_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
-    ref_boxes = box_utils.clip_boxes_to_image(ref_boxes, pad_img_h, pad_img_w)
-    ref_boxes = ref_boxes.astype(np.float32)
+    pad_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
+    pad_boxes = box_utils.clip_boxes_to_image(pad_boxes, pad_img_h, pad_img_w)
+    pad_boxes = pad_boxes.astype(np.float32)
 
     num_classes = cfg.MODEL.NUM_CLASSES
     cls_keyps = [[] for _ in range(num_classes)]
     person_idx = keypoint_utils.get_person_class_index()
-    xy_preds = keypoint_utils.heatmaps_to_keypoints(pred_heatmaps, ref_boxes)
+    xy_preds = keypoint_utils.heatmaps_to_keypoints(pred_heatmaps, pad_boxes)
 
     # NMS OKS
     if cfg.KRCNN.NMS_OKS:
+        # when nms, use the original bbox to compute oks
         keep = keypoint_utils.nms_oks(xy_preds, ref_boxes, 0.3)
         xy_preds = xy_preds[keep, :, :]
         ref_boxes = ref_boxes[keep, :]
