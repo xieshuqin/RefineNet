@@ -217,14 +217,22 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
 
         # Prepare inputs for PythonOp
         if model.train:
-            kps_prob = core.ScopedBlobReference('kps_prob')
+            kps_prob, _ = model.net.Reshape(
+                ['kps_prob'], ['kps_prob_reshaped', '_kps_prob_old_shape'],
+                shape=(-1, cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.HEATMAP_SIZE, cfg.KRCNN.HEATMAP_SIZE)
+            )
         else:
-            # Test time, we need to generate kps_prob 
+            # Test time, we need to generate kps_prob
             model.net.Reshape(
                 ['kps_score'], ['kps_score_reshaped', '_kps_score_old_shape'],
                 shape=(-1, cfg.KRCNN.HEATMAP_SIZE * cfg.KRCNN.HEATMAP_SIZE)
             )
-            kps_prob = model.net.Softmax('kps_score_reshaped','kps_prob')
+            model.net.Softmax('kps_score_reshaped','kps_prob')
+            kps_prob, _ = model.net.Reshape(
+                ['kps_prob'], ['kps_prob_reshaped', '_kps_prob_old_shape'],
+                shape=(-1, cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.HEATMAP_SIZE, cfg.KRCNN.HEATMAP_SIZE)
+            )
+
 
         # Default setting, just use the local indicator
         blob_data = core.ScopedBlobReference('data')
@@ -402,7 +410,7 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
             'loss_refined_mask',
             scale=1. / cfg.NUM_GPUS * cfg.REFINENET.WEIGHT_LOSS_MASK
         )
-        
+
     loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_mask])
     model.AddLosses('loss_refined_mask')
     # # And adds MaskIoU ops

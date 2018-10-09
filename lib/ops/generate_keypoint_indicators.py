@@ -63,7 +63,7 @@ class GenerateKeypointIndicatorsOp(object):
         for i in range(num_rois):
             locations = locations_on_pad_rois[i] # shape (#keypoints, )
             for k in range(num_keypoints):
-                keypoint_indicators[i, k, locations[k]] = pred_rois[i, 3, k]
+                keypoint_indicators[i, k, locations[k]] = pred_rois[i, 2, k]
 
         # and reshape to 4 dimension
         keypoint_indicators = keypoint_indicators.reshape(
