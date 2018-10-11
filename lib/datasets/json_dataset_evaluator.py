@@ -41,11 +41,17 @@ def evaluate_masks(
     all_segms,
     output_dir,
     use_salt=True,
-    cleanup=False
+    cleanup=False,
+    is_refined=False
 ):
-    res_file = os.path.join(
-        output_dir, 'segmentations_' + json_dataset.name + '_results'
-    )
+    if is_refined:
+        res_file = os.path.join(
+            output_dir, 'refined_segmentations_' + json_dataset.name + '_results'
+        )
+    else:
+        res_file = os.path.join(
+            output_dir, 'segmentations_' + json_dataset.name + '_results'
+        )
     if use_salt:
         res_file += '_{}'.format(str(uuid.uuid4()))
     res_file += '.json'
@@ -53,7 +59,7 @@ def evaluate_masks(
         json_dataset, all_boxes, all_segms, res_file)
     # Only do evaluation on non-test sets (annotations are undisclosed on test)
     if json_dataset.name.find('test') == -1:
-        coco_eval = _do_segmentation_eval(json_dataset, res_file, output_dir)
+        coco_eval = _do_segmentation_eval(json_dataset, res_file, output_dir, is_refined)
     else:
         coco_eval = None
     # Optionally cleanup results json file
@@ -111,13 +117,16 @@ def _coco_segms_results_one_category(json_dataset, boxes, segms, cat_id):
     return results
 
 
-def _do_segmentation_eval(json_dataset, res_file, output_dir):
+def _do_segmentation_eval(json_dataset, res_file, output_dir, is_refined=False):
     coco_dt = json_dataset.COCO.loadRes(str(res_file))
     coco_eval = COCOeval(json_dataset.COCO, coco_dt, 'segm')
     coco_eval.evaluate()
     coco_eval.accumulate()
     _log_detection_eval_metrics(json_dataset, coco_eval)
-    eval_file = os.path.join(output_dir, 'segmentation_results.pkl')
+    if is_refined:
+        eval_file = os.path.join(output_dir, 'refined_segmentation_results.pkl')
+    else:
+        eval_file = os.path.join(output_dir, 'segmentation_results.pkl')
     save_object(coco_eval, eval_file)
     logger.info('Wrote json eval results to: {}'.format(eval_file))
     return coco_eval

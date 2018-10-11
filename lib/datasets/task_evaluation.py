@@ -151,7 +151,8 @@ def evaluate_refined_masks(dataset, all_boxes, all_segms, output_dir):
             all_segms,
             output_dir,
             use_salt=not_comp,
-            cleanup=not_comp
+            cleanup=not_comp,
+            is_refined=True
         )
         mask_results = _coco_eval_to_mask_results(coco_eval)
     elif _use_cityscapes_evaluator(dataset):

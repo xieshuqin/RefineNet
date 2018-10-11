@@ -146,8 +146,8 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
                             polys_gt[j], pad_roi_fg, M
                         )
                         # and check if has anypart fall inside the bbox
-                        is_inside_bbox = np.sum(mask)
-                        if is_inside_bbox > 0:
+                        is_inside_bbox = (np.sum(mask) > 0)
+                        if is_inside_bbox:
                             loss_weights[i] = cfg.REFINENET.WEIGHT_LOSS_CROWDED
                             break # early stop
 
