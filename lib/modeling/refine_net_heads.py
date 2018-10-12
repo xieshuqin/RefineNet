@@ -214,33 +214,43 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
     if cfg.REFINENET.USE_INDICATOR: # whether to use indicator
         # Generate mask indicators
         num_keypoints = cfg.REFINENET.KRCNN.NUM_KEYPOINTS
+        blob_data = core.ScopedBlobReference('data')
 
-        # Prepare inputs for PythonOp
-        if model.train:
-            kps_prob, _ = model.net.Reshape(
-                ['kps_prob'], ['kps_prob_reshaped', '_kps_prob_old_shape'],
-                shape=(-1, cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.HEATMAP_SIZE, cfg.KRCNN.HEATMAP_SIZE)
+        if cfg.REFINENET.USE_PROBS_AS_INDICATOR: 
+            # using probability map for generating keypoint indicator
+
+            # Prepare inputs for PythonOp
+            if model.train:
+                kps_prob, _ = model.net.Reshape(
+                    ['kps_prob'], ['kps_prob_reshaped', '_kps_prob_old_shape'],
+                    shape=(-1, cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.HEATMAP_SIZE, cfg.KRCNN.HEATMAP_SIZE)
+                )
+            else:
+                # Test time, we need to generate kps_prob
+                model.net.Reshape(
+                    ['kps_score'], ['kps_score_reshaped', '_kps_score_old_shape'],
+                    shape=(-1, cfg.KRCNN.HEATMAP_SIZE * cfg.KRCNN.HEATMAP_SIZE)
+                )
+                model.net.Softmax('kps_score_reshaped','kps_prob')
+                kps_prob, _ = model.net.Reshape(
+                    ['kps_prob'], ['kps_prob_reshaped', '_kps_prob_old_shape'],
+                    shape=(-1, cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.HEATMAP_SIZE, cfg.KRCNN.HEATMAP_SIZE)
+                )
+
+            # Default setting, just use the local indicator
+            kps_indicator = model.GenerateKeypointIndicators(
+                blobs_in=[blob_data, kps_prob],
+                blob_out='kps_indicator',
+                blob_rois='keypoint_rois',
             )
         else:
-            # Test time, we need to generate kps_prob
-            model.net.Reshape(
-                ['kps_score'], ['kps_score_reshaped', '_kps_score_old_shape'],
-                shape=(-1, cfg.KRCNN.HEATMAP_SIZE * cfg.KRCNN.HEATMAP_SIZE)
+            # use score map as indicator
+            kps_score = core.ScopedBlobReference('kps_score')
+            kps_indicator = model.GenerateLocalMaskIndicators(
+                blobs_in=[blob_data, kps_score],
+                blob_out='kps_indicator',
+                blob_rois='keypoint_rois'
             )
-            model.net.Softmax('kps_score_reshaped','kps_prob')
-            kps_prob, _ = model.net.Reshape(
-                ['kps_prob'], ['kps_prob_reshaped', '_kps_prob_old_shape'],
-                shape=(-1, cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.HEATMAP_SIZE, cfg.KRCNN.HEATMAP_SIZE)
-            )
-
-
-        # Default setting, just use the local indicator
-        blob_data = core.ScopedBlobReference('data')
-        kps_indicator = model.GenerateKeypointIndicators(
-            blobs_in=[blob_data, kps_prob],
-            blob_out='kps_indicator',
-            blob_rois='keypoint_rois',
-        )
 
         # Concatenate along the channel dimension
         concat_list = [refined_rois_feat, kps_indicator]

@@ -1085,6 +1085,9 @@ __C.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES = False
 # weight for crowded samples
 __C.REFINENET.WEIGHT_LOSS_CROWDED = 1.
 
+# Use probability map for keypoint indicator
+__C.REFINENET.USE_PROBS_AS_INDICATOR = False 
+
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
 # ---------------------------------------------------------------------------- #
