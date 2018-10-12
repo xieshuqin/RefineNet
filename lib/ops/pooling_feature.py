@@ -38,8 +38,8 @@ class PoolingIndicatorFeatureSingleOp(object):
         feat_h, feat_w = feat.shape[1], feat.shape[2]
 
         # pad rois and narrow to the feature map scale
-        pad_rois = box_utils.expand_boxes_by_scale(rois[:,1:5], up_scale)
-        pad_rois = (pad_rois * spatial_scale).astype(np.int32)
+        pad_rois = box_utils.expand_boxes(rois[:,1:5], up_scale)
+        pad_rois = pad_rois * spatial_scale
         pad_rois = box_utils.clip_boxes_to_image(pad_rois, feat_h, feat_w)
 
         # abstact feature from the pad_rois
@@ -106,8 +106,8 @@ class PoolingIndicatorFeatureFPNOp(object):
             feat_h, feat_w = feat.shape[1], feat.shape[2]
 
             # pad rois and narrow to the feature map scale
-            pad_rois = box_utils.expand_boxes_by_scale(rois[:,1:5], up_scale)
-            pad_rois = (pad_rois * spatial_scale).astype(np.int32)
+            pad_rois = box_utils.expand_boxes(rois[:,1:5], up_scale)
+            pad_rois = pad_rois * spatial_scale
             pad_rois = box_utils.clip_boxes_to_image(pad_rois, feat_h, feat_w)
 
             # abstact feature from the pad_rois

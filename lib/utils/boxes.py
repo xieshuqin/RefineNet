@@ -129,8 +129,6 @@ def convert_coordinate(box_from, box_to, M):
     coordinate axis of box_to.
     The box_from and box_to are in the same coordinate axis.
     """
-    box_from = box_from.astype(np.float32)
-    box_to = box_to.astype(np.float32)
 
     box_to_ul = box_to[:, 0:2]
     box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1

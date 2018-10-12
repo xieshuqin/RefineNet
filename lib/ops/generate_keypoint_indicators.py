@@ -45,7 +45,7 @@ class GenerateKeypointIndicatorsOp(object):
 
         # first expand the keypoint rois
         height, width = data.shape[2], data.shape[3]
-        pad_rois = box_utils.expand_boxes_by_scale(keypoint_rois[:, 1:5], up_scale)
+        pad_rois = box_utils.expand_boxes(keypoint_rois[:, 1:5], up_scale)
         pad_rois = box_utils.clip_boxes_to_image(pad_rois, height, width)
 
         # get keypoint predictions and their probs

@@ -1403,7 +1403,7 @@ def refined_local_segm_results(cls_boxes, masks, ref_boxes, im_scales, im_h, im_
     # up to get the boxes for indicator, then clip it to the size of
     # padded image
     up_scale = cfg.REFINENET.UP_SCALE
-    ref_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
+    ref_boxes = box_utils.expand_boxes(ref_boxes, up_scale)
     ref_boxes = box_utils.clip_boxes_to_image(ref_boxes, pad_img_h, pad_img_w)
 
     # To work around an issue with cv2.resize (it seems to automatically pad
@@ -1580,9 +1580,8 @@ def refined_keypoint_results(cls_boxes, pred_heatmaps, ref_boxes, im_scales):
     # up to get the boxes for indicator, then clip it to the size of
     # padded image
     up_scale = cfg.REFINENET.UP_SCALE
-    pad_boxes = box_utils.expand_boxes_by_scale(ref_boxes, up_scale)
+    pad_boxes = box_utils.expand_boxes(ref_boxes, up_scale)
     pad_boxes = box_utils.clip_boxes_to_image(pad_boxes, pad_img_h, pad_img_w)
-    pad_boxes = pad_boxes.astype(np.float32)
 
     num_classes = cfg.MODEL.NUM_CLASSES
     cls_keyps = [[] for _ in range(num_classes)]

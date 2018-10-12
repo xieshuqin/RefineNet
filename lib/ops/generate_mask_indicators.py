@@ -106,7 +106,7 @@ class GenerateLocalMaskIndicatorsOp(object):
         height, width = data.shape[2], data.shape[3]
         mask_probs_NHWC = mask_probs.transpose((0,2,3,1))
         rois = mask_rois[:, 1:5] # ignore batch_id
-        pad_rois = box_utils.expand_boxes_by_scale(rois, up_scale)
+        pad_rois = box_utils.expand_boxes(rois, up_scale)
         pad_rois = box_utils.clip_boxes_to_image(pad_rois, height, width)
 
         # calculate converted coordinates

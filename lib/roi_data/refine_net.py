@@ -99,7 +99,7 @@ def add_refine_local_mask_blobs(blobs, sampled_boxes, roidb, im_scale, batch_idx
 
         # Expand the foreground rois by a factor of up_scale and
         # clip by the padded image boundary
-        pad_rois_fg = box_utils.expand_boxes_by_scale(rois_fg, up_scale)
+        pad_rois_fg = box_utils.expand_boxes(rois_fg, up_scale)
         pad_rois_fg = box_utils.clip_boxes_to_image(pad_rois_fg, pad_img_h, pad_img_w)
 
         if cfg.REFINENET.ONLY_USE_CROWDED_SAMPLES:
@@ -286,7 +286,17 @@ def add_refine_keypoints_blobs(
     gt_keypoints = roidb['gt_keypoints']
 
     ind_kp = gt_inds[roidb['box_to_gt_ind_map']]
-    within_box = _within_box(gt_keypoints[ind_kp, :, :], roidb['boxes'])
+    # To make sure the computed within_box is correct, we will scale up
+    # the roidb['boxes'] first 
+    up_scale = cfg.REFINENET.UP_SCALE
+    inp_h, inp_w = data.shape[2], data.shape[3]
+    pad_img_h, pad_img_w = inp_h / im_scale, inp_w / im_scale
+
+    pad_boxes = box_utils.expand_boxes(roidb['boxes'], up_scale)
+    pad_boxes = box_utils.clip_boxes_to_image(pad_boxes, pad_img_h, pad_img_w)
+    
+    # And now check if the keypoints within the pad_boxes
+    within_box = _within_box(gt_keypoints[ind_kp, :, :], pad_boxes)
     vis_kp = gt_keypoints[ind_kp, 2, :] > 0
     is_visible = np.sum(np.logical_and(vis_kp, within_box), axis=1) > 0
     kp_fg_inds = np.where(
@@ -299,48 +309,35 @@ def add_refine_keypoints_blobs(
             kp_fg_inds, size=kp_fg_rois_per_this_image, replace=False
         )
 
-    sampled_fg_rois = roidb['boxes'][kp_fg_inds]
+    pad_fg_rois = pad_boxes[kp_fg_inds]
     box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
-
-    # Define size variables
-    up_scale = cfg.REFINENET.UP_SCALE
-    inp_h, inp_w = data.shape[2], data.shape[3]
-    pad_img_h, pad_img_w = inp_h / im_scale, inp_w / im_scale
-
-    # Expand the foreground rois by a factor of up_scale and
-    # clip by the padded image boundary
-    pad_rois_fg = box_utils.expand_boxes_by_scale(sampled_fg_rois, up_scale)
-    pad_rois_fg = box_utils.clip_boxes_to_image(pad_rois_fg, pad_img_h, pad_img_w)
-
 
     num_keypoints = gt_keypoints.shape[2]
     sampled_keypoints = -np.ones(
-        (len(sampled_fg_rois), gt_keypoints.shape[1], num_keypoints),
+        (len(pad_fg_rois), gt_keypoints.shape[1], num_keypoints),
         dtype=gt_keypoints.dtype
     )
-    for ii in range(len(sampled_fg_rois)):
+    for ii in range(len(pad_fg_rois)):
         ind = box_to_gt_ind_map[ii]
         if ind >= 0:
             sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
             assert np.sum(sampled_keypoints[ii, 2, :]) > 0
 
     heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
-        sampled_keypoints, pad_rois_fg, M=cfg.REFINENET.KRCNN.HEATMAP_SIZE
+        sampled_keypoints, pad_fg_rois, M=cfg.REFINENET.KRCNN.HEATMAP_SIZE
     )
 
-    shape = (pad_rois_fg.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
+    shape = (pad_fg_rois.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
     heats = heats.reshape(shape)
     weights = weights.reshape(shape)
 
-    pad_rois_fg = pad_rois_fg.astype(np.float32)
-    pad_rois_fg *= im_scale
-    pad_rois_fg.astype(np.int32)
+    pad_fg_rois *= im_scale
     repeated_batch_idx = batch_idx * blob_utils.ones(
-        (pad_rois_fg.shape[0], 1)
+        (pad_fg_rois.shape[0], 1)
     )
-    pad_rois_fg = np.hstack((repeated_batch_idx, pad_rois_fg))
+    pad_fg_rois = np.hstack((repeated_batch_idx, pad_fg_rois))
 
-    blobs['refined_keypoint_rois'] = pad_rois_fg
+    blobs['refined_keypoint_rois'] = pad_fg_rois
     blobs['refined_keypoint_locations_int32'] = heats.astype(np.int32, copy=False)
     blobs['refined_keypoint_weights'] = weights
 

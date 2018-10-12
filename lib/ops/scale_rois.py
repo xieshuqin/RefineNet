@@ -28,11 +28,11 @@ class ScaleRoIsSingleOp(object):
         batch_ids = rois[:, [0]]
         # up-scale the bboxes and clip to image boundary
         # pad bboxes and narrow to the feature map scale
-        pad_bboxes = box_utils.expand_boxes_by_scale(bboxes, up_scale)
+        pad_bboxes = box_utils.expand_boxes(bboxes, up_scale)
         pad_bboxes = box_utils.clip_boxes_to_image(pad_bboxes, height, width)
 
         # add the batch_ids to the rois
-        pad_rois = np.hstack((batch_ids, pad_bboxes)).astype(np.int32)
+        pad_rois = np.hstack((batch_ids, pad_bboxes))
 
         outputs[0].reshape(pad_rois.shape)
         outputs[0].data[...] = pad_rois
@@ -62,10 +62,10 @@ class ScaleRoIsFPNOp(object):
             bboxes = rois[:, 1:5]
             batch_ids = rois[:, [0]]
             # up-scale the bboxes and narrow down to image boundary
-            pad_bboxes = box_utils.expand_boxes_by_scale(bboxes, up_scale)
+            pad_bboxes = box_utils.expand_boxes(bboxes, up_scale)
             pad_bboxes = box_utils.clip_boxes_to_image(pad_bboxes, height, width)
             # add the batch_ids to the rois
-            pad_rois = np.hstack((batch_ids, pad_bboxes)).astype(np.int32)
+            pad_rois = np.hstack((batch_ids, pad_bboxes))
 
             outputs[lvl - k_min].reshape(pad_rois.shape)
             outputs[lvl - k_min].data[...] = pad_rois
