@@ -326,46 +326,6 @@ def add_refine_keypoints_blobs(
     blobs['refined_keypoint_rois'] = pad_fg_rois
     blobs['refined_keypoint_locations_int32'] = heats.astype(np.int32, copy=False)
     blobs['refined_keypoint_weights'] = weights
-    # Debugging
-    # blobs['refined_keypoint_locations_int32'] = blobs['keypoint_locations_int32']
-
-    # For debug purpose, let's check if up_scale == 1, pad_fg_rois equal to keypoint_rois and
-    # the keypoint locations are the same
-    if up_scale == 1:
-        # is_rois_same = np.all(blobs['refined_keypoint_rois'] == blobs['keypoint_rois'])
-        # print('RoIs is the same? Answer is {}'.format(is_rois_same))
-        is_location_same = np.all(blobs['refined_keypoint_locations_int32'] == blobs['keypoint_locations_int32'])
-        # print('Keypoint locations is the same? Answer is ' + str(is_location_same))
-        # is_weight_same = np.all(blobs['refined_keypoint_weights'] == blobs['keypoint_weights'])
-        # print('Keypoint weights is the same? Answer is '+ str(is_weight_same))
-        if not is_location_same:
-            diff_location_inds = np.where(blobs['refined_keypoint_locations_int32'] != blobs['keypoint_locations_int32'])[0]
-            if diff_location_inds.shape[0] != 0:
-                ind = diff_location_inds[0]
-                roi_ind = int(ind / cfg.KRCNN.NUM_KEYPOINTS)
-                local_rois = blobs['keypoint_rois']
-                local_locations = blobs['keypoint_locations_int32']
-                local_weights = blobs['keypoint_weights']
-                refin_rois = blobs['refined_keypoint_rois']
-                refin_locations = blobs['refined_keypoint_locations_int32']
-                refin_weights = blobs['refined_keypoint_weights']
-
-                M = cfg.REFINENET.KRCNN.HEATMAP_SIZE
-                local_x = local_locations[ind] % cfg.REFINENET.KRCNN.HEATMAP_SIZE
-                local_y = int(local_locations[ind] / M )
-                print('local location ({}, {}) and weight {}'.format(
-                    local_x, local_y, local_weights[ind]
-                    )
-                )
-                refin_x = refin_locations[ind] % M
-                refin_y = int(refin_locations[ind] / M )
-                print('refin location ({}, {}) and weight {}'.format(
-                    refin_x, refin_y, refin_weights[ind]
-                    )
-                )
-                print('local bbox ', local_rois[roi_ind])
-                print('refin bbox ', refin_rois[roi_ind])
-                print('pad img size HxW is {:.1f} x {:.1f}'.format(pad_img_h, pad_img_w))
 
 
 def finalize_refined_keypoint_minibatch(blobs, valid):
@@ -386,25 +346,6 @@ def finalize_refined_keypoint_minibatch(blobs, valid):
     )
     blobs['refined_keypoint_loss_normalizer'] = np.array(norm, dtype=np.float32)
     return valid
-
-
-def _within_box(points, boxes):
-    """Validate which keypoints are contained inside a given box.
-
-    points: Nx2xK
-    boxes: Nx4
-    output: NxK
-    """
-    x_within = np.logical_and(
-        points[:, 0, :] >= np.expand_dims(boxes[:, 0], axis=1),
-        points[:, 0, :] <= np.expand_dims(boxes[:, 2], axis=1)
-    )
-    y_within = np.logical_and(
-        points[:, 1, :] >= np.expand_dims(boxes[:, 1], axis=1),
-        points[:, 1, :] <= np.expand_dims(boxes[:, 3], axis=1)
-    )
-    return np.logical_and(x_within, y_within)
-
 
 
 def _expand_to_class_specific_mask_targets(masks, mask_class_labels):
