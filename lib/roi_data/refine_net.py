@@ -287,14 +287,22 @@ def add_refine_keypoints_blobs(
 
     ind_kp = gt_inds[roidb['box_to_gt_ind_map']]
     # To make sure the computed within_box is correct, we will scale up
-    # the roidb['boxes'] first 
+    # the roidb['boxes'] first
     up_scale = cfg.REFINENET.UP_SCALE
     inp_h, inp_w = data.shape[2], data.shape[3]
     pad_img_h, pad_img_w = inp_h / im_scale, inp_w / im_scale
 
     pad_boxes = box_utils.expand_boxes(roidb['boxes'], up_scale)
     pad_boxes = box_utils.clip_boxes_to_image(pad_boxes, pad_img_h, pad_img_w)
-    
+    # # For debugging
+    # if up_scale == 1:
+    #     print('Is equal? ', np.allclose(roidb['boxes'], pad_boxes))
+    #     unclose_inds = np.where(np.isclose(roidb['boxes'], pad_boxes) == False)[0]
+    #     if unclose_inds.shape[0] > 0:
+    #         print('boundary H {} and W {}'.format(pad_img_h, pad_img_w))
+    #         print('boxes ', roidb['boxes'][unclose_inds[0]])
+    #         print('pad boxes', pad_boxes[unclose_inds[0]])
+
     # And now check if the keypoints within the pad_boxes
     within_box = _within_box(gt_keypoints[ind_kp, :, :], pad_boxes)
     vis_kp = gt_keypoints[ind_kp, 2, :] > 0
@@ -340,6 +348,46 @@ def add_refine_keypoints_blobs(
     blobs['refined_keypoint_rois'] = pad_fg_rois
     blobs['refined_keypoint_locations_int32'] = heats.astype(np.int32, copy=False)
     blobs['refined_keypoint_weights'] = weights
+    # Debugging
+    # blobs['refined_keypoint_locations_int32'] = blobs['keypoint_locations_int32']
+
+    # For debug purpose, let's check if up_scale == 1, pad_fg_rois equal to keypoint_rois and
+    # the keypoint locations are the same
+    if up_scale == 1:
+        # is_rois_same = np.all(blobs['refined_keypoint_rois'] == blobs['keypoint_rois'])
+        # print('RoIs is the same? Answer is {}'.format(is_rois_same))
+        is_location_same = np.all(blobs['refined_keypoint_locations_int32'] == blobs['keypoint_locations_int32'])
+        # print('Keypoint locations is the same? Answer is ' + str(is_location_same))
+        # is_weight_same = np.all(blobs['refined_keypoint_weights'] == blobs['keypoint_weights'])
+        # print('Keypoint weights is the same? Answer is '+ str(is_weight_same))
+        if not is_location_same:
+            diff_location_inds = np.where(blobs['refined_keypoint_locations_int32'] != blobs['keypoint_locations_int32'])[0]
+            if diff_location_inds.shape[0] != 0:
+                ind = diff_location_inds[0]
+                roi_ind = int(ind / cfg.KRCNN.NUM_KEYPOINTS)
+                local_rois = blobs['keypoint_rois']
+                local_locations = blobs['keypoint_locations_int32']
+                local_weights = blobs['keypoint_weights']
+                refin_rois = blobs['refined_keypoint_rois']
+                refin_locations = blobs['refined_keypoint_locations_int32']
+                refin_weights = blobs['refined_keypoint_weights']
+
+                M = cfg.REFINENET.KRCNN.HEATMAP_SIZE
+                local_x = local_locations[ind] % cfg.REFINENET.KRCNN.HEATMAP_SIZE
+                local_y = int(local_locations[ind] / M )
+                print('local location ({}, {}) and weight {}'.format(
+                    local_x, local_y, local_weights[ind]
+                    )
+                )
+                refin_x = refin_locations[ind] % M
+                refin_y = int(refin_locations[ind] / M )
+                print('refin location ({}, {}) and weight {}'.format(
+                    refin_x, refin_y, refin_weights[ind]
+                    )
+                )
+                print('local bbox ', local_rois[roi_ind])
+                print('refin bbox ', refin_rois[roi_ind])
+                print('pad img size HxW is {:.1f} x {:.1f}'.format(pad_img_h, pad_img_w))
 
 
 def finalize_refined_keypoint_minibatch(blobs, valid):
