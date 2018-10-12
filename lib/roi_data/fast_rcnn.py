@@ -83,6 +83,10 @@ def get_fast_rcnn_blob_names(is_training=True):
         # 'keypoint_locations_int32'. Shape is (#instances). Used in
         # SoftmaxWithLoss.
         blob_names += ['keypoint_weights']
+        # 'keypoint_fg_inds': foreground indexes for the roidb['boxes']
+        # This is used to make sure that the labels for keypoint_rois and 
+        # refined_keypoint_rois are exactly the same. 
+        blob_names += ['keypoint_fg_inds']
         # 'keypoint_loss_normalizer': optional normalization factor to use if
         # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
         blob_names += ['keypoint_loss_normalizer']

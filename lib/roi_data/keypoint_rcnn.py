@@ -90,6 +90,11 @@ def add_keypoint_rcnn_blobs(
     blobs['keypoint_locations_int32'] = heats.astype(np.int32, copy=False)
     blobs['keypoint_weights'] = weights
 
+    # Since in this function we may random sample a subset of bbox as the roi, 
+    # we need to make sure it's the same subset for the refined_keypoint_rois,
+    # so we pass out the inds for the subset too. 
+    blobs['keypoint_fg_inds'] = kp_fg_inds.astype(np.int32, copy=False)
+
 
 def finalize_keypoint_minibatch(blobs, valid):
     """Finalize the minibatch after blobs for all minibatch images have been
