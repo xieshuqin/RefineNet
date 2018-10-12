@@ -58,27 +58,40 @@ def add_keypoint_rcnn_blobs(
             kp_fg_inds, size=kp_fg_rois_per_this_image, replace=False
         )
 
-    sampled_fg_rois = roidb['boxes'][kp_fg_inds]
-    box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
+    if kp_fg_inds.shape[0] > 0:
+        sampled_fg_rois = roidb['boxes'][kp_fg_inds]
+        box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
 
-    num_keypoints = gt_keypoints.shape[2]
-    sampled_keypoints = -np.ones(
-        (len(sampled_fg_rois), gt_keypoints.shape[1], num_keypoints),
-        dtype=gt_keypoints.dtype
-    )
-    for ii in range(len(sampled_fg_rois)):
-        ind = box_to_gt_ind_map[ii]
-        if ind >= 0:
-            sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
-            assert np.sum(sampled_keypoints[ii, 2, :]) > 0
+        num_keypoints = gt_keypoints.shape[2]
+        sampled_keypoints = -np.ones(
+            (len(sampled_fg_rois), gt_keypoints.shape[1], num_keypoints),
+            dtype=gt_keypoints.dtype
+        )
+        for ii in range(len(sampled_fg_rois)):
+            ind = box_to_gt_ind_map[ii]
+            if ind >= 0:
+                sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
+                assert np.sum(sampled_keypoints[ii, 2, :]) > 0
 
-    heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
-        sampled_keypoints, sampled_fg_rois, M=cfg.KRCNN.HEATMAP_SIZE
-    )
+        heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
+            sampled_keypoints, sampled_fg_rois, M=cfg.KRCNN.HEATMAP_SIZE
+        )
 
-    shape = (sampled_fg_rois.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
-    heats = heats.reshape(shape)
-    weights = weights.reshape(shape)
+        shape = (sampled_fg_rois.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
+        heats = heats.reshape(shape)
+        weights = weights.reshape(shape)
+
+    else:# If there are no fg keypoint rois (it does happen)
+        # The network cannot handle empty blobs, so we must provide a heatmap
+        # We simply take the first bg roi, given it an all zero heatmap, and
+        # set its weights to zero (ignore label).
+        roi_inds = np.where(roidb['gt_classes'] == 0)[0]
+        # sampled_fg_rois is actually one random roi, but that's ok because ...
+        sampled_fg_rois = roidb['boxes'][roi_inds[0]].reshape((1, -1))
+        # We give it an 0's blob 
+        heats = blob_utils.zeros((1 * cfg.KRCNN.NUM_KEYPOINTS, 1))
+        # We set weights to 0 (ignore label)
+        weights = blob_utils.zeros((1 * cfg.KRCNN.NUM_KEYPOINTS, 1))
 
     sampled_fg_rois *= im_scale
     repeated_batch_idx = batch_idx * blob_utils.ones(

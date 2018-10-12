@@ -287,35 +287,48 @@ def add_refine_keypoints_blobs(
     # of mismatched keypoint_rois and refined_keypoint_rois, which cause a big
     # issue for training. 
     kp_fg_inds = blobs['keypoint_fg_inds']
-    sampled_fg_rois = roidb['boxes'][kp_fg_inds]
-    box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
+    if kp_fg_inds.shape[0] > 0:
+        sampled_fg_rois = roidb['boxes'][kp_fg_inds]
+        box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
 
-    # Let's expand the rois 
-    up_scale = cfg.REFINENET.UP_SCALE
-    inp_h, inp_w = data.shape[2], data.shape[3]
-    pad_img_h, pad_img_w = inp_h / im_scale, inp_w / im_scale
+        # Let's expand the rois 
+        up_scale = cfg.REFINENET.UP_SCALE
+        inp_h, inp_w = data.shape[2], data.shape[3]
+        pad_img_h, pad_img_w = inp_h / im_scale, inp_w / im_scale
 
-    pad_fg_rois = box_utils.expand_boxes(sampled_fg_rois, up_scale)
-    pad_fg_rois = box_utils.clip_boxes_to_image(pad_fg_rois, pad_img_h, pad_img_w)
+        pad_fg_rois = box_utils.expand_boxes(sampled_fg_rois, up_scale)
+        pad_fg_rois = box_utils.clip_boxes_to_image(pad_fg_rois, pad_img_h, pad_img_w)
 
-    num_keypoints = gt_keypoints.shape[2]
-    sampled_keypoints = -np.ones(
-        (len(pad_fg_rois), gt_keypoints.shape[1], num_keypoints),
-        dtype=gt_keypoints.dtype
-    )
-    for ii in range(len(pad_fg_rois)):
-        ind = box_to_gt_ind_map[ii]
-        if ind >= 0:
-            sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
-            assert np.sum(sampled_keypoints[ii, 2, :]) > 0
+        num_keypoints = gt_keypoints.shape[2]
+        sampled_keypoints = -np.ones(
+            (len(pad_fg_rois), gt_keypoints.shape[1], num_keypoints),
+            dtype=gt_keypoints.dtype
+        )
+        for ii in range(len(pad_fg_rois)):
+            ind = box_to_gt_ind_map[ii]
+            if ind >= 0:
+                sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
+                assert np.sum(sampled_keypoints[ii, 2, :]) > 0
 
-    heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
-        sampled_keypoints, pad_fg_rois, M=cfg.REFINENET.KRCNN.HEATMAP_SIZE
-    )
+        heats, weights = keypoint_utils.keypoints_to_heatmap_labels(
+            sampled_keypoints, pad_fg_rois, M=cfg.REFINENET.KRCNN.HEATMAP_SIZE
+        )
 
-    shape = (pad_fg_rois.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
-    heats = heats.reshape(shape)
-    weights = weights.reshape(shape)
+        shape = (pad_fg_rois.shape[0] * cfg.KRCNN.NUM_KEYPOINTS, 1)
+        heats = heats.reshape(shape)
+        weights = weights.reshape(shape)
+
+    else:# If there are no fg keypoint rois (it does happen)
+        # The network cannot handle empty blobs, so we must provide a heatmap
+        # We simply take the first bg roi, given it an all zero heatmap, and
+        # set its weights to zero (ignore label).
+        roi_inds = np.where(roidb['gt_classes'] == 0)[0]
+        # sampled_fg_rois is actually one random roi, but that's ok because ...
+        pad_fg_rois = roidb['boxes'][roi_inds[0]].reshape((1, -1))
+        # We give it an 0's blob 
+        heats = blob_utils.zeros((1 * cfg.KRCNN.NUM_KEYPOINTS, 1))
+        # We set weights to 0 (ignore label)
+        weights = blob_utils.zeros((1 * cfg.KRCNN.NUM_KEYPOINTS, 1))
 
     pad_fg_rois *= im_scale
     repeated_batch_idx = batch_idx * blob_utils.ones(
