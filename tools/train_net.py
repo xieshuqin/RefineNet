@@ -214,7 +214,11 @@ def train_model():
     for cur_iter in range(start_iter, cfg.SOLVER.MAX_ITER):
         training_stats.IterTic()
         lr = model.UpdateWorkspaceLr(cur_iter)
-        workspace.RunNet(model.net.Proto().name)
+        try:
+            workspace.RunNet(model.net.Proto().name)
+        except:
+            logger.warn("Error in iter {}".format(cur_iter))
+        # workspace.RunNet(model.net.Proto().name)
         if cur_iter == start_iter:
             nu.print_net(model)
         training_stats.IterToc()
