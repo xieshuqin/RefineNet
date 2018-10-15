@@ -10,7 +10,7 @@ namespace caffe2 {
 namespace {
 
 template <typename T>
-__global__ void expand_bbox_by_scale(
+__global__ void expand_boxes_and_clip_boundary(
   const int nthreads,
   const T* bottom_rois,
   const int height,
@@ -35,18 +35,18 @@ __global__ void expand_bbox_by_scale(
     T x2 = offset_bottom_rois[2];
     T y2 = offset_bottom_rois[3];
 
-    T roi_width = x2 - x1 + 1;
-    T roi_height = y2 - y1 + 1;
+    T roi_width_half = (x2 - x1) / 2;
+    T roi_height_half = (y2 - y1) / 2;
     T center_x = (x1 + x2) / 2;
     T center_y = (y1 + y2) / 2;
 
     // expand the size by up_scale factor 
-    T pad_roi_width = roi_width * up_scale;
-    T pad_roi_height = roi_height * up_scale;
-    T pad_x1 = int(center_x - pad_roi_width / 2);
-    T pad_y1 = int(center_y - pad_roi_height / 2);
-    T pad_x2 = int(center_x + pad_roi_width / 2);
-    T pad_y2 = int(center_y + pad_roi_height / 2);
+    T pad_roi_width_half = roi_width_half * up_scale;
+    T pad_roi_height_half = roi_height_half * up_scale;
+    T pad_x1 = center_x - pad_roi_width_half;
+    T pad_y1 = center_y - pad_roi_height_half;
+    T pad_x2 = center_x + pad_roi_width_half;
+    T pad_y2 = center_y + pad_roi_height_half;
 
     // clip to image boundary
     pad_x1 = min((T)(width-1), max((T)0., pad_x1));
@@ -67,6 +67,26 @@ __global__ void expand_bbox_by_scale(
     offset_top_rois[3] = pad_y2;
   }
 }
+
+def convert_coordinate(box_from, box_to, M):
+    """ Convert the coordinate of box_from into the
+    coordinate axis of box_to.
+    The box_from and box_to are in the same coordinate axis.
+    """
+
+    box_to_ul = box_to[:, 0:2]
+    box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
+
+    box_from_ul = box_from[:, 0:2]
+    box_from_br = box_from[:, 2:4]
+
+    converted_ul_norm = (box_from_ul - box_to_ul) / box_to_size
+    converted_br_norm = (box_from_br - box_to_ul) / box_to_size
+
+    convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
+    convert_coord = (convert_coord_norm * M).astype(np.int32)
+
+    return convert_coord
 
 template <typename T>
 __global__ void convert_coordinates(
@@ -243,7 +263,7 @@ bool GenerateIndicatorsOp<float, CUDAContext>::RunOnDevice() {
   int n_rois = R.dim32(0);
   // padded the RoIs by the up_scale factor
   TensorCUDA pad_R(R.dims());
-  expand_bbox_by_scale<float>
+  expand_boxes_and_clip_boundary<float>
       <<<CAFFE_GET_BLOCKS(n_rois),
          CAFFE_CUDA_NUM_THREADS,
          0,
