@@ -68,26 +68,6 @@ __global__ void expand_boxes_and_clip_boundary(
   }
 }
 
-def convert_coordinate(box_from, box_to, M):
-    """ Convert the coordinate of box_from into the
-    coordinate axis of box_to.
-    The box_from and box_to are in the same coordinate axis.
-    """
-
-    box_to_ul = box_to[:, 0:2]
-    box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
-
-    box_from_ul = box_from[:, 0:2]
-    box_from_br = box_from[:, 2:4]
-
-    converted_ul_norm = (box_from_ul - box_to_ul) / box_to_size
-    converted_br_norm = (box_from_br - box_to_ul) / box_to_size
-
-    convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
-    convert_coord = (convert_coord_norm * M).astype(np.int32)
-
-    return convert_coord
-
 template <typename T>
 __global__ void convert_coordinates(
   const int nthreads,
