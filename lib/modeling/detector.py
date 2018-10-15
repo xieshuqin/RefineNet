@@ -332,6 +332,37 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         )(blobs_in_list, blob_out, name=name)
         return xform_out
 
+    def GenerateLocalMaskIndicatorsCUDA(
+        self,
+        blobs_in,
+        blob_out,
+        blob_rois,
+        up_scale,
+        resolution
+    ):
+        """ Generate Indicators. Implemented in C++ and CUDA.
+        The forward function is similar to GenerateLocalMaskIndicators.
+        But This operator adds a backward function to allow e2e learning.
+        The indicator here acts as an intermediate feature.
+        Adding a StopGradient Op can avoid the backward pass, which should
+        produce the same results as the GenerateLocalMaskIndicators()
+
+        blobs_in: mask_probs/mask_logits
+        blob_out: mask_indicators
+
+        op input: X, R, Data
+        op output: Y
+        """
+        method = 'GenerateIndicators'
+
+        blob_in_list = [blobs_in, blob_rois, 'data']
+        blob_out = self.net.__getattr__(method)(
+            blob_in_list, [blob_out],
+            up_scale=float(up_scale),
+            resolution=resolution
+        )
+        return blob_out
+
     def GenerateKeypointIndicators(
         self,
         blobs_in,

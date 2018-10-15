@@ -128,6 +128,22 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
                 blob_out='mask_indicators',
                 blob_rois='mask_rois',
             )
+        elif cfg.REFINENET.USE_CUDA_INDICATOR_OP:
+            # use indicator op written in cuda 
+            # Note that this op will run backward to the mask probs, which may
+            # not produce the same results as the default python op. To avoid 
+            # this, we need to add an extra StopGradientOp. 
+            model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+            model.GenerateLocalMaskIndicatorsCUDA(
+                blobs_in='mask_probs',
+                blob_out='mask_indicators',
+                blob_rois='mask_rois',
+                up_scale=cfg.REFINENET.UP_SCALE,
+                resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
+            ) 
+            mask_indicators = model.net.StopGradient(
+                'mask_indicators', 'mask_indicators'
+            )
         elif cfg.REFINENET.GRADIENT_INTO_INDICATOR_ON:
             # Allow gradient to flow from Refinenet to indicators
             mask_probs = model.net.Sigmoid('mask_fcn_logits', 'mask_probs')

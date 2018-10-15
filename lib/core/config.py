@@ -1088,6 +1088,9 @@ __C.REFINENET.WEIGHT_LOSS_CROWDED = 1.
 # Use probability map for keypoint indicator
 __C.REFINENET.USE_PROBS_AS_INDICATOR = False 
 
+# Use indicator op written in cuda
+__C.REFINENET.USE_CUDA_INDICATOR_OP = False
+
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
 # ---------------------------------------------------------------------------- #
