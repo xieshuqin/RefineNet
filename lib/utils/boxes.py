@@ -152,15 +152,23 @@ def convert_coordinate(old_boxes, new_boxes, M):
     scale_y = M / (new_boxes[:, 3] - new_boxes[:, 1])
 
     # Compute for upper-left corner
+    x1_boundary_inds = np.where(old_boxes[:, 0] < new_boxes[:, 0])[0]
+    y1_boundary_inds = np.where(old_boxes[:, 1] < new_boxes[:, 1])[0]
+
     converted_x1 = (old_boxes[:, 0] - offset_x) * scale_x
     converted_y1 = (old_boxes[:, 1] - offset_y) * scale_y
 
     converted_x1 = np.floor(converted_x1)
     converted_y1 = np.floor(converted_y1)
 
+    if len(x1_boundary_inds > 0): # Fall outside bbox, set to 0
+        converted_x1[x1_boundary_inds] = 0
+    if len(y1_boundary_inds > 0):
+        converted_y1[y1_boundary_inds] = 0
+
     # Compute for bottom-right corner
-    x2_boundary_inds = np.where(old_boxes[:, 2] == new_boxes[:, 2])[0]
-    y2_boundary_inds = np.where(old_boxes[:, 3] == new_boxes[:, 3])[0]
+    x2_boundary_inds = np.where(old_boxes[:, 2] >= new_boxes[:, 2])[0]
+    y2_boundary_inds = np.where(old_boxes[:, 3] >= new_boxes[:, 3])[0]
 
     converted_x2 = (old_boxes[:, 2] - offset_x) * scale_x
     converted_y2 = (old_boxes[:, 3] - offset_y) * scale_y
