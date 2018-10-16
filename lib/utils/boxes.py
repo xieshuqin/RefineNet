@@ -124,25 +124,65 @@ def expand_boxes_by_scale(xyxy, scale):
         raise TypeError('Argument xyxy must be a list, typle or numpy array.')
 
 
-def convert_coordinate(box_from, box_to, M):
-    """ Convert the coordinate of box_from into the
-    coordinate axis of box_to.
-    The box_from and box_to are in the same coordinate axis.
-    """
+# def convert_coordinate(box_from, box_to, M):
+#     """ Convert the coordinate of box_from into the
+#     coordinate axis of box_to.
+#     The box_from and box_to are in the same coordinate axis.
+#     """
 
-    box_to_ul = box_to[:, 0:2]
-    box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
+#     box_to_ul = box_to[:, 0:2]
+#     box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
 
-    box_from_ul = box_from[:, 0:2]
-    box_from_br = box_from[:, 2:4]
+#     box_from_ul = box_from[:, 0:2]
+#     box_from_br = box_from[:, 2:4]
 
-    converted_ul_norm = (box_from_ul - box_to_ul) / box_to_size
-    converted_br_norm = (box_from_br - box_to_ul) / box_to_size
+#     converted_ul_norm = (box_from_ul - box_to_ul) / box_to_size
+#     converted_br_norm = (box_from_br - box_to_ul) / box_to_size
 
-    convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
-    convert_coord = (convert_coord_norm * M).astype(np.int32)
+#     convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
+#     convert_coord = (convert_coord_norm * M).astype(np.int32)
 
-    return convert_coord
+#     return convert_coord
+
+def convert_coordinate(old_boxes, new_boxes, M):
+    """ Map the old_boxes to the new_boxes in a resolution M """
+    offset_x = new_boxes[:, 0]
+    offset_y = new_boxes[:, 1]
+    scale_x = M / (new_boxes[:, 2] - new_boxes[:, 0])
+    scale_y = M / (new_boxes[:, 3] - new_boxes[:, 1])
+
+    # Compute for upper-left corner
+    converted_x1 = (old_boxes[:, 0] - offset_x) * scale_x
+    converted_y1 = (old_boxes[:, 1] - offset_y) * scale_y
+
+    converted_x1 = np.floor(converted_x1)
+    converted_y1 = np.floor(converted_y1)
+
+    # Compute for bottom-right corner
+    x2_boundary_inds = np.where(old_boxes[:, 2] == new_boxes[:, 2])[0]
+    y2_boundary_inds = np.where(old_boxes[:, 3] == new_boxes[:, 3])[0]
+
+    converted_x2 = (old_boxes[:, 2] - offset_x) * scale_x
+    converted_y2 = (old_boxes[:, 3] - offset_y) * scale_y
+
+    converted_x2 = np.floor(converted_x2)
+    converted_y2 = np.floor(converted_y2)
+
+    if len(x2_boundary_inds > 0): # Fall on boundary, set to M - 1
+        converted_x2[x2_boundary_inds] = M - 1
+    if len(y2_boundary_inds > 0):
+        converted_y2[y2_boundary_inds] = M - 1
+
+    coords = (converted_x1, converted_y1, converted_x2, converted_y2)
+    converted_coords = np.hstack(coords).astype(np.int32)
+
+    return converted_coords
+    
+    
+
+
+
+
 
 
 def filter_small_boxes(boxes, min_size):
