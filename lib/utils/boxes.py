@@ -172,8 +172,11 @@ def convert_coordinate(old_boxes, new_boxes, M):
         converted_x2[x2_boundary_inds] = M - 1
     if len(y2_boundary_inds > 0):
         converted_y2[y2_boundary_inds] = M - 1
-
-    coords = (converted_x1, converted_y1, converted_x2, converted_y2)
+        
+    coords = (
+        converted_x1[np.newaxis], converted_y1[np.newaxis],
+        converted_x2[np.newaxis], converted_y2[np.newaxis],
+    )
     converted_coords = np.hstack(coords).astype(np.int32)
 
     return converted_coords
