@@ -187,7 +187,7 @@ def expand_boxes_by_scale(xyxy, scale):
 
 #     return converted_coords
 
-def convert_coordinate_new(old_boxes, new_boxes, M):
+def convert_coordinate(old_boxes, new_boxes, M):
     shift = new_boxes[:, 0:2]
     scale = M / (new_boxes[:, 2:4] - new_boxes[:, 0:2])
 
