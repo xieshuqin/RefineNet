@@ -8,6 +8,9 @@ import cv2
 from core.config import cfg
 import utils.boxes as box_utils
 
+# Test for time
+import time
+
 class GenerateGlobalMaskIndicatorsOp(object):
     """ See detector.py for more detailed documents.
     Input blobs: [data, mask_probs, mask_rois]
@@ -73,6 +76,8 @@ class GenerateLocalMaskIndicatorsOp(object):
         self.resolution = resolution
 
     def forward(self, inputs, outputs):
+        tic = time.time()
+
         data = inputs[0].data
         mask_probs = inputs[1].data
         mask_rois = inputs[2].data
@@ -128,6 +133,9 @@ class GenerateLocalMaskIndicatorsOp(object):
 
         outputs[0].reshape(mask_indicators.shape)
         outputs[0].data[...] = mask_indicators
+
+        toc = time.time()
+        print('Running time for GenerateLocalMaskIndicatorsOp is {:.5f}'.format(toc - tic))
 
     def backward(self, inputs, outputs):
         # We don't back-propagate for this layer. So just pass a zero array.
