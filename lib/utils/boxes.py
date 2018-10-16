@@ -144,57 +144,69 @@ def expand_boxes_by_scale(xyxy, scale):
 
 #     return convert_coord
 
-def convert_coordinate(old_boxes, new_boxes, M):
-    """ Map the old_boxes to the new_boxes in a resolution M """
-    offset_x = new_boxes[:, 0]
-    offset_y = new_boxes[:, 1]
-    scale_x = M / (new_boxes[:, 2] - new_boxes[:, 0])
-    scale_y = M / (new_boxes[:, 3] - new_boxes[:, 1])
+# def convert_coordinate(old_boxes, new_boxes, M):
+#     """ Map the old_boxes to the new_boxes in a resolution M """
+#     offset_x = new_boxes[:, 0]
+#     offset_y = new_boxes[:, 1]
+#     scale_x = M / (new_boxes[:, 2] - new_boxes[:, 0])
+#     scale_y = M / (new_boxes[:, 3] - new_boxes[:, 1])
 
-    # Compute for upper-left corner
-    x1_boundary_inds = np.where(old_boxes[:, 0] < new_boxes[:, 0])[0]
-    y1_boundary_inds = np.where(old_boxes[:, 1] < new_boxes[:, 1])[0]
+#     # Compute for upper-left corner
+#     converted_x1 = (old_boxes[:, 0] - offset_x) * scale_x
+#     converted_y1 = (old_boxes[:, 1] - offset_y) * scale_y
 
-    converted_x1 = (old_boxes[:, 0] - offset_x) * scale_x
-    converted_y1 = (old_boxes[:, 1] - offset_y) * scale_y
+#     converted_x1 = np.floor(converted_x1)
+#     converted_y1 = np.floor(converted_y1)
 
-    converted_x1 = np.floor(converted_x1)
-    converted_y1 = np.floor(converted_y1)
+#     x1_boundary_inds = np.where(converted_x1 < 0)[0]
+#     y1_boundary_inds = np.where(converted_y1 < 0)[0]
+#     if len(x1_boundary_inds) > 0:
+#         converted_x1[x1_boundary_inds] = 0
+#     if len(y1_boundary_inds) > 0:
+#         converted_y1[y1_boundary_inds] = 0
 
-    if len(x1_boundary_inds > 0): # Fall outside bbox, set to 0
-        converted_x1[x1_boundary_inds] = 0
-    if len(y1_boundary_inds > 0):
-        converted_y1[y1_boundary_inds] = 0
+#     # Compute for bottom-right corner
+#     converted_x2 = (old_boxes[:, 2] - offset_x) * scale_x
+#     converted_y2 = (old_boxes[:, 3] - offset_y) * scale_y
 
-    # Compute for bottom-right corner
-    x2_boundary_inds = np.where(old_boxes[:, 2] >= new_boxes[:, 2])[0]
-    y2_boundary_inds = np.where(old_boxes[:, 3] >= new_boxes[:, 3])[0]
+#     converted_x2 = np.floor(converted_x2)
+#     converted_y2 = np.floor(converted_y2)
 
-    converted_x2 = (old_boxes[:, 2] - offset_x) * scale_x
-    converted_y2 = (old_boxes[:, 3] - offset_y) * scale_y
+#     x2_boundary_inds = np.where(converted_x2 >= M)[0]
+#     y2_boundary_inds = np.where(converted_y2 >= M)[0]
+#     if len(x2_boundary_inds > 0): # Fall on boundary, set to M - 1
+#         converted_x2[x2_boundary_inds] = M - 1
+#     if len(y2_boundary_inds > 0):
+#         converted_y2[y2_boundary_inds] = M - 1
 
-    converted_x2 = np.floor(converted_x2)
-    converted_y2 = np.floor(converted_y2)
+#     coords = (
+#         converted_x1[:, np.newaxis], converted_y1[:, np.newaxis],
+#         converted_x2[:, np.newaxis], converted_y2[:, np.newaxis],
+#     )
+#     converted_coords = np.hstack(coords).astype(np.int32)
 
-    if len(x2_boundary_inds > 0): # Fall on boundary, set to M - 1
-        converted_x2[x2_boundary_inds] = M - 1
-    if len(y2_boundary_inds > 0):
-        converted_y2[y2_boundary_inds] = M - 1
+#     return converted_coords
 
-    coords = (
-        converted_x1[:, np.newaxis], converted_y1[:, np.newaxis],
-        converted_x2[:, np.newaxis], converted_y2[:, np.newaxis],
-    )
-    converted_coords = np.hstack(coords).astype(np.int32)
+def convert_coordinate_new(old_boxes, new_boxes, M):
+    shift = new_boxes[:, 0:2]
+    scale = M / (new_boxes[:, 2:4] - new_boxes[:, 0:2])
 
+    converted_ul = (old_boxes[:, 0:2] - shift) * scale
+    converted_br = (old_boxes[:, 2:4] - shift) * scale
+
+    converted_ul = np.floor(converted_ul)
+    converted_br = np.floor(converted_br)
+
+    ul_boundary_inds = np.where(converted_ul < 0)
+    if len(ul_boundary_inds[0]) > 0:
+        converted_ul[ul_boundary_inds] = 0
+
+    br_boundary_inds = np.where(converted_br >= M)
+    if len(br_boundary_inds[0]) > 0:
+        converted_br[br_boundary_inds] = M - 1
+
+    converted_coords = np.hstack((converted_ul, converted_br)).astype(np.int32)
     return converted_coords
-    
-    
-
-
-
-
-
 
 def filter_small_boxes(boxes, min_size):
     """Keep boxes with width and height both greater than min_size."""
