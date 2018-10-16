@@ -26,8 +26,6 @@ import modeling.FPN as fpn
 import roi_data.fast_rcnn
 import utils.blob as blob_utils
 
-import time
-
 class CollectAndDistributeFpnRpnProposalsOp(object):
     def __init__(self, train):
         self._train = train
@@ -42,7 +40,6 @@ class CollectAndDistributeFpnRpnProposalsOp(object):
         # If training with RefineNet, then inputs include [data]
         # If training with Faster R-CNN, then inputs will additionally include
         #  + [roidb, im_info]
-        tic = time.time()
         rois = collect(inputs, self._train)
         if self._train:
             # During training we reuse the data loader code. We populate roidb
@@ -72,8 +69,6 @@ class CollectAndDistributeFpnRpnProposalsOp(object):
             # For inference we have a special code path that avoids some data
             # loader overhead
             distribute(rois, None, outputs, self._train)
-        toc = time.time()
-        print('Running time for CollectAndDistributeOp is {:.5f}s'.format(toc-tic))
 
 
 def collect(inputs, is_training):
