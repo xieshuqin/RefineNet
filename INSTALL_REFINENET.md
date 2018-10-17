@@ -67,6 +67,8 @@ Don't use `Ctrl-d` when escaping the docker. It will shut down the docker so the
 
 ## Other Dependencies
 
+**Skip this part if you using RefineNet docker**
+
 Install Python dependencies:
 
 ```
@@ -89,6 +91,9 @@ python2 setup.py install --user
 Note that instructions like `# COCOAPI=/path/to/install/cocoapi` indicate that you should pick a path where you'd like to have the software cloned and then set an environment variable (`COCOAPI` in this case) accordingly.
 
 ## RefineNet
+
+**Skip this part if you using RefineNet docker**
+
 Clone the RefineNet repo
 ```
 # REFINENET=/path/to/RefineNet
