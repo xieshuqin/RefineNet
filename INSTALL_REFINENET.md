@@ -37,21 +37,16 @@ data
 
 ## Caffe2 
 
-First pull a Caffe2 image or loaded an already-existed Caffe2 docker image.
-
+First load RefineNet docker image
 ``` 
-docker pull caffe2/caffe2:snapshot-py2-cuda9.0-cudnn7-ubuntu16.04 # pull image
+docker load < refinenet.tar
 ```
-or 
-```
-docker load < caffe2_image.tar # load caffe2 image
-```
-
 
 Then run 
 ```
-nvidia-docker run -it -v /path/to/data:/root/data --name test2 caffe2/caffe2:snapshot-py2-cuda9.0-cudnn7-ubuntu16.04 /bin/sh
+nvidia-docker run -it -v /path/to/data:/root/data --name test2 refinenet:latest /bin/sh
 ```
+
 It creates a container named test2. After the experiments are done, we can escape by using `Ctrl-p + Ctrl-q`, which escapes the container without shutting it down. To attach to the same container again, use `docker attach test2` . 
 
 Please ensure that your Caffe2 installation was successful before proceeding by running the following commands and checking their output as directed in the comments.
