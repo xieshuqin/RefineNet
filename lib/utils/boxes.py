@@ -337,7 +337,8 @@ def expand_boxes(boxes, scale):
     w_half *= scale
     h_half *= scale
 
-    boxes_exp = boxes.copy()
+    boxes_exp = np.zeros(boxes.shape)
+    # boxes_exp = boxes.copy()
     boxes_exp[:, 0] = x_c - w_half
     boxes_exp[:, 2] = x_c + w_half
     boxes_exp[:, 1] = y_c - h_half
