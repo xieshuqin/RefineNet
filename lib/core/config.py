@@ -1091,6 +1091,9 @@ __C.REFINENET.USE_PROBS_AS_INDICATOR = False
 # Use indicator op written in cuda
 __C.REFINENET.USE_CUDA_INDICATOR_OP = False
 
+# Backward through indicator op
+__C.REFINENET.BP_TO_INDICATORS = False 
+
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
 # ---------------------------------------------------------------------------- #
