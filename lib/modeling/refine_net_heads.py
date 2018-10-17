@@ -134,7 +134,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
             # not produce the same results as the default python op. To avoid 
             # this, we need to add an extra StopGradientOp. 
             model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
-            model.GenerateLocalMaskIndicatorsCUDA(
+            mask_indicators = model.GenerateLocalMaskIndicatorsCUDA(
                 blobs_in='mask_probs',
                 blob_out='mask_indicators',
                 blob_rois='mask_rois',
