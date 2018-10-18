@@ -359,7 +359,8 @@ class DetectionModelHelper(cnn.CNNModelHelper):
         blob_out = self.net.__getattr__(method)(
             blob_in_list, [blob_out],
             up_scale=float(up_scale),
-            resolution=resolution
+            resolution=resolution,
+            same_as_opencv=cfg.REFINENET.SAME_AS_OPENCV,
         )
         return blob_out
 

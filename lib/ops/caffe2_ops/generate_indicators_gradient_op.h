@@ -17,7 +17,9 @@ class GenerateIndicatorsGradientOp final : public Operator<Context> {
         up_scale_(
             OperatorBase::GetSingleArgument<float>("up_scale", 1.)),
         resolution_(
-          OperatorBase::GetSingleArgument<int>("resolution", 1)) {
+          OperatorBase::GetSingleArgument<int>("resolution", 1)),
+        same_as_opencv_(
+          OperatorBase::GetSingleArgument<bool>("same_as_opencv", true)) {
     DCHECK_GT(up_scale_, 0);
     DCHECK_GT(resolution_, 0);
   }
@@ -30,6 +32,7 @@ class GenerateIndicatorsGradientOp final : public Operator<Context> {
  protected:
   float up_scale_;
   int resolution_;
+  bool same_as_opencv_;
 };
 
 } // namespace caffe2

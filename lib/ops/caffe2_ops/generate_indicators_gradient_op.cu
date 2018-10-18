@@ -195,6 +195,7 @@ __global__ void GenerateIndicatorsBackwardFeature(
     const int width,
     const int top_height,
     const int top_width,
+    const bool same_as_opencv,
     const T* coordinates,
     T* bottom_diff) {
   CUDA_1D_KERNEL_LOOP(index, nthreads) {
@@ -213,8 +214,8 @@ __global__ void GenerateIndicatorsBackwardFeature(
     if (pw >= x1 && pw <= x2 && ph >= y1 && ph <= y2) {
       int pooled_width = x2 - x1 + 1;
       int pooled_height = y2 - y1 + 1;
-      T bin_size_h = static_cast<T>(height) / static_cast<T>(pooled_height);
-      T bin_size_w = static_cast<T>(width) / static_cast<T>(pooled_width);
+      T scale_h = static_cast<T>(height) / static_cast<T>(pooled_height);
+      T scale_w = static_cast<T>(width) / static_cast<T>(pooled_width);
 
       T* offset_bottom_diff = 
           bottom_diff + (n * channels + c) * height * width;
@@ -223,10 +224,20 @@ __global__ void GenerateIndicatorsBackwardFeature(
       const T* offset_top_diff = top_diff + top_offset;
       const T top_diff_this_bin = offset_top_diff[ph * top_width + pw];
 
-      //const T x = (pw - x1) * bin_size_w;
-      //const T y = (ph - y1) * bin_size_h;
-      const T y = (ph - y1 + 0.5) * bin_size_h - 0.5; // some magic trick
-      const T x = (pw - x1 + 0.5) * bin_size_w - 0.5;
+      T y, x;
+      if (same_as_opencv) {
+        // Produce extacly the same results as opencv
+        y = (ph - y1 + 0.5) * scale_h - 0.5;
+        x = (pw - x1 + 0.5) * scale_w - 0.5;
+      }
+      else {
+        // Produce same result as in roi_align
+        T correction_h = scale_h / static_cast<T>(ceil(scale_h));
+        T correction_w = scale_w / static_cast<T>(ceil(scale_w));
+
+        y = (ph - y1) * scale_h + 0.5 * correction_h;
+        x = (pw - x1) * scale_w + 0.5 * correction_w;
+      }
 
       T w1, w2, w3, w4;
       int x_low, x_high, y_low, y_high;
@@ -331,6 +342,7 @@ bool GenerateIndicatorsGradientOp<float, CUDAContext>::RunOnDevice() {
             X.dim32(3),
             resolution_,
             resolution_,
+            same_as_opencv_,
             coordinates.data<float>(),
             dX->mutable_data<float>());
   }

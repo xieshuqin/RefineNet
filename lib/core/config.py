@@ -1094,6 +1094,9 @@ __C.REFINENET.USE_CUDA_INDICATOR_OP = False
 # Backward through indicator op
 __C.REFINENET.BP_TO_INDICATORS = False 
 
+# Same results as cv2.resize or not
+__C.REFINENET.SAME_AS_OPENCV = True
+
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
 # ---------------------------------------------------------------------------- #

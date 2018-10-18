@@ -124,25 +124,25 @@ def expand_boxes_by_scale(xyxy, scale):
         raise TypeError('Argument xyxy must be a list, typle or numpy array.')
 
 
-# def convert_coordinate(box_from, box_to, M):
-#     """ Convert the coordinate of box_from into the
-#     coordinate axis of box_to.
-#     The box_from and box_to are in the same coordinate axis.
-#     """
+def convert_coordinate(box_from, box_to, M):
+    """ Convert the coordinate of box_from into the
+    coordinate axis of box_to.
+    The box_from and box_to are in the same coordinate axis.
+    """
 
-#     box_to_ul = box_to[:, 0:2]
-#     box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
+    box_to_ul = box_to[:, 0:2]
+    box_to_size = box_to[:, 2:4] - box_to[:, 0:2] + 1
 
-#     box_from_ul = box_from[:, 0:2]
-#     box_from_br = box_from[:, 2:4]
+    box_from_ul = box_from[:, 0:2]
+    box_from_br = box_from[:, 2:4]
 
-#     converted_ul_norm = (box_from_ul - box_to_ul) / box_to_size
-#     converted_br_norm = (box_from_br - box_to_ul) / box_to_size
+    converted_ul_norm = (box_from_ul - box_to_ul) / box_to_size
+    converted_br_norm = (box_from_br - box_to_ul) / box_to_size
 
-#     convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
-#     convert_coord = (convert_coord_norm * M).astype(np.int32)
+    convert_coord_norm = np.hstack((converted_ul_norm, converted_br_norm))
+    convert_coord = (convert_coord_norm * M).astype(np.int32)
 
-#     return convert_coord
+    return convert_coord
 
 # def convert_coordinate(old_boxes, new_boxes, M):
 #     """ Map the old_boxes to the new_boxes in a resolution M """
@@ -187,26 +187,26 @@ def expand_boxes_by_scale(xyxy, scale):
 
 #     return converted_coords
 
-def convert_coordinate(old_boxes, new_boxes, M):
-    shift = new_boxes[:, 0:2]
-    scale = M / (new_boxes[:, 2:4] - new_boxes[:, 0:2])
-
-    converted_ul = (old_boxes[:, 0:2] - shift) * scale
-    converted_br = (old_boxes[:, 2:4] - shift) * scale
-
-    converted_ul = np.floor(converted_ul)
-    converted_br = np.floor(converted_br)
-
-    ul_boundary_inds = np.where(converted_ul < 0)
-    if len(ul_boundary_inds[0]) > 0:
-        converted_ul[ul_boundary_inds] = 0
-
-    br_boundary_inds = np.where(converted_br >= M)
-    if len(br_boundary_inds[0]) > 0:
-        converted_br[br_boundary_inds] = M - 1
-
-    converted_coords = np.hstack((converted_ul, converted_br)).astype(np.int32)
-    return converted_coords
+# def convert_coordinate(old_boxes, new_boxes, M):
+#     shift = new_boxes[:, 0:2]
+#     scale = M / (new_boxes[:, 2:4] - new_boxes[:, 0:2])
+#
+#     converted_ul = (old_boxes[:, 0:2] - shift) * scale
+#     converted_br = (old_boxes[:, 2:4] - shift) * scale
+#
+#     converted_ul = np.floor(converted_ul)
+#     converted_br = np.floor(converted_br)
+#
+#     ul_boundary_inds = np.where(converted_ul < 0)
+#     if len(ul_boundary_inds[0]) > 0:
+#         converted_ul[ul_boundary_inds] = 0
+#
+#     br_boundary_inds = np.where(converted_br >= M)
+#     if len(br_boundary_inds[0]) > 0:
+#         converted_br[br_boundary_inds] = M - 1
+#
+#     converted_coords = np.hstack((converted_ul, converted_br)).astype(np.int32)
+#     return converted_coords
 
 def filter_small_boxes(boxes, min_size):
     """Keep boxes with width and height both greater than min_size."""
