@@ -133,14 +133,23 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
             # Note that this op will run backward to the mask probs, which may
             # not produce the same results as the default python op. To avoid 
             # this, we need to add an extra StopGradientOp. 
-            model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
-            mask_indicators = model.GenerateLocalMaskIndicatorsCUDA(
-                blobs_in='mask_probs',
-                blob_out='mask_indicators',
-                blob_rois='mask_rois',
-                up_scale=cfg.REFINENET.UP_SCALE,
-                resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
-            ) 
+            if cfg.REFINENET.USE_MASK_FEATS:
+                mask_indicators = model.GenerateLocalMaskIndicatorsCUDA(
+                    blobs_in='conv5_mask',
+                    blob_out='mask_indicators',
+                    blob_rois='mask_rois',
+                    up_scale=cfg.REFINENET.UP_SCALE,
+                    resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION,
+                )
+            else:
+                model.net.Sigmoid('mask_fcn_logits', 'mask_probs')
+                mask_indicators = model.GenerateLocalMaskIndicatorsCUDA(
+                    blobs_in='mask_probs',
+                    blob_out='mask_indicators',
+                    blob_rois='mask_rois',
+                    up_scale=cfg.REFINENET.UP_SCALE,
+                    resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
+                ) 
             if not cfg.REFINENET.BP_TO_INDICATORS:
                 # Don't backward to indicators
                 mask_indicators = model.net.StopGradient(
