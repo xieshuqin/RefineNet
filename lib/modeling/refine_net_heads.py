@@ -118,7 +118,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
 
     if cfg.REFINENET.USE_INDICATOR: # whether to use indicator
         # Generate mask indicators
-        num_cls = cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
+        dim_indicators= cfg.MODEL.NUM_CLASSES if cfg.MRCNN.CLS_SPECIFIC_MASK else 1
         if cfg.REFINENET.AUTO_LEARNING_INDICATOR:
             # Auto learning indicator
             mask_indicators = model.GenerateAutoLearningIndicators(
@@ -129,11 +129,12 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
                 resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
             )
         elif cfg.REFINENET.USE_CUDA_INDICATOR_OP:
-            # use indicator op written in cuda 
+            # use indicator op written in cuda
             # Note that this op will run backward to the mask probs, which may
-            # not produce the same results as the default python op. To avoid 
-            # this, we need to add an extra StopGradientOp. 
+            # not produce the same results as the default python op. To avoid
+            # this, we need to add an extra StopGradientOp.
             if cfg.REFINENET.USE_MASK_FEATS:
+                dim_indicators = cfg.MRCNN.DIM_REDUCED
                 mask_indicators = model.GenerateLocalMaskIndicatorsCUDA(
                     blobs_in='conv5_mask',
                     blob_out='mask_indicators',
@@ -149,7 +150,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
                     blob_rois='mask_rois',
                     up_scale=cfg.REFINENET.UP_SCALE,
                     resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
-                ) 
+                )
             if not cfg.REFINENET.BP_TO_INDICATORS:
                 # Don't backward to indicators
                 mask_indicators = model.net.StopGradient(
@@ -182,7 +183,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
         )
 
         blob_out = refine_net_input
-        dim_out = dim_in + num_cls
+        dim_out = dim_in + dim_indicators
     else:
         blob_out = rois_global_feat
         dim_out = dim_in
@@ -243,7 +244,7 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
         num_keypoints = cfg.REFINENET.KRCNN.NUM_KEYPOINTS
         blob_data = core.ScopedBlobReference('data')
 
-        if cfg.REFINENET.USE_PROBS_AS_INDICATOR: 
+        if cfg.REFINENET.USE_PROBS_AS_INDICATOR:
             # using probability map for generating keypoint indicator
 
             # Prepare inputs for PythonOp
