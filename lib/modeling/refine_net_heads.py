@@ -133,7 +133,7 @@ def add_refine_net_local_mask_inputs_gpu(model, blob_in, dim_in, spatial_scale):
             # Note that this op will run backward to the mask probs, which may
             # not produce the same results as the default python op. To avoid
             # this, we need to add an extra StopGradientOp.
-            if cfg.REFINENET.USE_MASK_FEATS:
+            if cfg.REFINENET.USE_FEATS:
                 dim_indicators = cfg.MRCNN.DIM_REDUCED
                 mask_indicators = model.GenerateLocalMaskIndicatorsCUDA(
                     blobs_in='conv5_mask',
@@ -220,7 +220,7 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
 
     M = cfg.REFINENET.ROI_XFORM_RESOLUTION
     up_scale = cfg.REFINENET.UP_SCALE
-    num_keypoints = cfg.KRCNN.NUM_KEYPOINTS
+    dim_indicators = cfg.KRCNN.NUM_KEYPOINTS
 
     # up_scale rois
     scale_rois = model.ScaleRoIs(
@@ -271,6 +271,16 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
                 blob_out='kps_indicator',
                 blob_rois='keypoint_rois',
             )
+        elif cfg.REFINENET.USE_FEATS:
+            # use feature to generate indicators
+            dim_indicators = cfg.KRCNN.CONV_HEAD_DIM
+            kps_indicator = model.GenerateLocalMaskIndicatorsCUDA(
+                blobs_in='conv_fcn8',
+                blob_out='kps_indicator',
+                blob_rois='keypoint_rois',
+                up_scale=cfg.REFINENET.UP_SCALE,
+                resolution=cfg.REFINENET.ROI_XFORM_RESOLUTION
+            )
         else:
             # use score map as indicator
             kps_score = core.ScopedBlobReference('kps_score')
@@ -287,7 +297,7 @@ def add_refine_net_keypoint_inputs(model, blob_in, dim_in, spatial_scale):
         )
 
         blob_out = refine_net_input
-        dim_out = dim_in + num_keypoints
+        dim_out = dim_in + dim_indicators
     else:
         blob_out = refined_rois_feat
         dim_out = dim_in

@@ -1098,7 +1098,7 @@ __C.REFINENET.BP_TO_INDICATORS = False
 __C.REFINENET.SAME_AS_OPENCV = True
 
 # Use mask features for generating indicators
-__C.REFINENET.USE_MASK_FEATS = False
+__C.REFINENET.USE_FEATS = False
 
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
