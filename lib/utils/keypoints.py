@@ -224,7 +224,7 @@ def keypoints_to_sigmoid_heatmap_labels(keypoints, rois, M=56):
 
     shape = (len(rois), cfg.KRCNN.NUM_KEYPOINTS, M**2)
     heatmaps = blob_utils.zeros(shape)
-    weights = blob_utils.zeros(len(rois), cfg.KRCNN.NUM_KEYPOINTS, 1)
+    weights = blob_utils.zeros((len(rois), cfg.KRCNN.NUM_KEYPOINTS))
 
     offset_x = rois[:, 0]
     offset_y = rois[:, 1]
@@ -256,13 +256,15 @@ def keypoints_to_sigmoid_heatmap_labels(keypoints, rois, M=56):
                 x < M, y < M))
 
         valid = np.logical_and(valid_loc, vis)
-        valid = valid.astype(np.int32)
+        valid_inds = np.arange(len(rois))[valid]
+        ignore_inds = np.arange(len(rois))[np.logical_not(valid)]
+        # valid = valid.astype(np.int32)
 
         lin_ind = (y * M + x).astype(np.int32)
-        heatmaps[valid, kp, lin_ind] = 1
-        heatmaps[np.logical_not(valid), kp] = -1
+        heatmaps[valid_inds, kp, lin_ind[valid_inds]] = 1
+        heatmaps[ignore_inds, kp] = -1
 
-        weights[:, kp] = valid
+        weights[:, kp] = valid.astype(np.int32)
 
     return heatmaps, weights
 
