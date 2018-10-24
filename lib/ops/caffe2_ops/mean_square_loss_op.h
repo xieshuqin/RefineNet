@@ -29,8 +29,10 @@ class MeanSquareLossOp final : public Operator<Context> {
  public:
   MeanSquareLossOp(const OperatorDef& operator_def, Workspace* ws)
       : Operator<Context>(operator_def, ws),
-        scale_(OperatorBase::GetSingleArgument<float>("scale", 1.)) {
+        scale_(OperatorBase::GetSingleArgument<float>("scale", 1.)),
+        normalize_(OperatorBase::GetSingleArgument<int>("normalize", 1)) {
     CAFFE_ENFORCE(scale_ >= 0);
+    CAFFE_ENFORCE(normalize_ == 0 || normalize_ == 1);
   }
   USE_OPERATOR_CONTEXT_FUNCTIONS;
 
@@ -41,7 +43,10 @@ class MeanSquareLossOp final : public Operator<Context> {
 
  protected:
   float scale_;
+  int normalize_;
   Tensor<Context> losses_;
+  Tensor<Context> counts_;
+  Tensor<Context> normalizer_;
 };
 
 template <typename T, class Context>
@@ -49,8 +54,10 @@ class MeanSquareLossGradientOp final : public Operator<Context> {
  public:
   MeanSquareLossGradientOp(const OperatorDef& def, Workspace* ws)
       : Operator<Context>(def, ws),
-        scale_(OperatorBase::GetSingleArgument<float>("scale", 1.)) {
+        scale_(OperatorBase::GetSingleArgument<float>("scale", 1.)),
+        normalize_(OperatorBase::GetSingleArgument<int>("normalize", 1)) {
     CAFFE_ENFORCE(scale_ >= 0);
+    CAFFE_ENFORCE(normalize_ == 0 || normalize_ == 1);
   }
   USE_OPERATOR_CONTEXT_FUNCTIONS;
 
@@ -61,6 +68,9 @@ class MeanSquareLossGradientOp final : public Operator<Context> {
 
  protected:
   float scale_;
+  int normalize_;
+  Tensor<Context> counts_;
+  Tensor<Context> normalizer_;
 };
 
 } // namespace caffe2

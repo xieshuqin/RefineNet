@@ -28,36 +28,48 @@ __global__ void ElementwiseMaxKernel(const int n, float* data, const float a) {
 
 __global__ void MeanSquareLossKernel(
     const int n,
+    const int D,
     const float* logits,
     const float* targets,
-    float* losses) {
+    const float* weights,
+    float* losses,
+    float* counts) {
   CUDA_1D_KERNEL_LOOP(index, n) {
-    losses[index] = 0.5 * (logits[index] - targets[index]) * 
-      (logits[index] - targets[index]); 
+    int k = index / D;
+    float weight = weights[k];
+    if (weight > 0) {
+      losses[index] = weight * 0.5 * 
+        (logits[index] - targets[index]) * (logits[index] - targets[index]); 
+      counts[index] = 1.;
+    } else{
+      losses[index] = 0.;
+      counts[index] = 0.;
+    }
   }
 }
 
 __global__ void MeanSquareLossGradientKernel(
     const int n,
+    const int D, 
     const float* logits,
     const float* targets,
-    float* d_logits) {
+    const float* weights,
+    float* d_logits,
+    float* counts) {
   CUDA_1D_KERNEL_LOOP(index, n) {
-    d_logits[index] = logits[index] - targets[index];
+    int k = index / D;
+    float weight = weights[k];
+    if (weight > 0) {
+      d_logits[index] = weight * (logits[index] - targets[index]);
+      counts[index] = 1.;
+    } else{
+      d_logits[index] = 0.;
+      counts[index] = 0.;
+    }
+    
   }
 }
 
-__global__ void StripedScaleKernel(
-    const int n,
-    const int D,  
-    const float* x,
-    const float* alpha, 
-    float* y) {
-  CUDA_1D_KERNEL_LOOP(index, n) {
-    int k = index / D;
-    y[index] = x[index] * alpha[k];
- }
-}
 } // namespace
 
 template <>
@@ -77,7 +89,9 @@ bool MeanSquareLossOp<float, CUDAContext>::RunOnDevice() {
       T.size(),
       ")");
   avg_loss->Resize(vector<TIndex>());
+  counts_.ResizeLike(X);
   losses_.ResizeLike(X);
+  normalizer_.Resize(vector<TIndex>());
 
   MeanSquareLossKernel<<<
       CAFFE_GET_BLOCKS(X.size()),
@@ -85,25 +99,29 @@ bool MeanSquareLossOp<float, CUDAContext>::RunOnDevice() {
       0,
       context_.cuda_stream()>>>(
       X.size(),
+      D, 
       X.data<float>(),
       T.data<float>(),
-      losses_.mutable_data<float>());
-
-  StripedScaleKernel<<<
-      CAFFE_GET_BLOCKS(X.size()),
-      CAFFE_CUDA_NUM_THREADS,
-      0,
-      context_.cuda_stream()>>>(
-      losses_.size(),
-      D,
-      losses_.data<float>(),
       Weights.data<float>(),
-      losses_.mutable_data<float>());
-
+      losses_.mutable_data<float>()
+      counts_.mutable_data<float>());
 
   float* avg_loss_data = avg_loss->mutable_data<float>();
   math::Sum<float, CUDAContext>(
       losses_.size(), losses_.data<float>(), avg_loss_data, &context_);
+  if (normalize_) {
+    float* normalizer_data = normalizer_.mutable_data<float>();
+    math::Sum<float, CUDAContext>(
+        counts_.size(), counts_.data<float>(), normalizer_data, &context_);
+    // Prevent division by zero is all counts are zero
+    ElementwiseMaxKernel<<<
+        CAFFE_GET_BLOCKS(normalizer_.size()),
+        CAFFE_CUDA_NUM_THREADS,
+        0,
+        context_.cuda_stream()>>>(normalizer_.size(), normalizer_data, 1e-5);
+    math::Div<float, CUDAContext>(
+        1, avg_loss_data, normalizer_data, avg_loss_data, &context_);
+  }
   math::Scale<float, CUDAContext>(
       1, scale_, avg_loss_data, avg_loss_data, &context_);
 
@@ -119,7 +137,6 @@ bool MeanSquareLossGradientOp<float, CUDAContext>::RunOnDevice() {
   auto* dX = Output(0);
   int D = X.size() / Weights.size(); 
 
-  // Compute difference
   dX->ResizeLike(X);
   MeanSquareLossGradientKernel<<<
       CAFFE_GET_BLOCKS(X.size()),
@@ -127,34 +144,51 @@ bool MeanSquareLossGradientOp<float, CUDAContext>::RunOnDevice() {
       0,
       context_.cuda_stream()>>>(
       X.size(),
+      D,
       X.data<float>(),
       T.data<float>(),
-      dX->mutable_data<float>());
-
-  // Multiply by weight
-  StripedScaleKernel<<<
-      CAFFE_GET_BLOCKS(X.size()),
-      CAFFE_CUDA_NUM_THREADS,
-      0,
-      context_.cuda_stream()>>>(
-      dX->size(),
-      D,
-      dX->data<float>(),
       Weights.data<float>(),
-      dX->mutable_data<float>());
+      dX->mutable_data<float>(),
+      counts_.mutable_data<float>());
 
-  math::Scale<float, CUDAContext>(
-      dX->size(),
-      scale_,
-      dX->data<float>(),
-      dX->mutable_data<float>(),
-      &context_);
-  math::Scale<float, CUDAContext>(
-      dX->size(),
-      d_avg_loss.data<float>(),
-      dX->data<float>(),
-      dX->mutable_data<float>(),
-      &context_);
+  if (normalize_) {
+    float* normalizer_data = normalizer_.mutable_data<float>();
+    math::Sum<float, CUDAContext>(
+        counts_.size(), counts_.data<float>(), normalizer_data, &context_);
+    // Prevent division by zero is all counts are zero
+    ElementwiseMaxKernel<<<
+        CAFFE_GET_BLOCKS(normalizer_.size()),
+        CAFFE_CUDA_NUM_THREADS,
+        0,
+        context_.cuda_stream()>>>(normalizer_.size(), normalizer_data, 1e-5);
+    math::Div<float, CUDAContext>(
+        1,
+        d_avg_loss.data<float>(),
+        normalizer_data,
+        normalizer_data,
+        &context_);
+    math::Scale<float, CUDAContext>(
+        1, scale_, normalizer_data, normalizer_data, &context_);
+    math::Scale<float, CUDAContext>(
+        dX->size(),
+        normalizer_data,
+        dX->data<float>(),
+        dX->mutable_data<float>(),
+        &context_);
+  } else {
+    math::Scale<float, CUDAContext>(
+        dX->size(),
+        scale_,
+        dX->data<float>(),
+        dX->mutable_data<float>(),
+        &context_);
+    math::Scale<float, CUDAContext>(
+        dX->size(),
+        d_avg_loss.data<float>(),
+        dX->data<float>(),
+        dX->mutable_data<float>(),
+        &context_);
+  }
 
   return true;
 }
