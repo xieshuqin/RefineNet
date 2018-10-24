@@ -112,6 +112,9 @@ def add_keypoint_losses(model):
     if cfg.MODEL.USE_GAUSSIAN_HEATMAP:
         # Loss for using faussian heatmap as label
         return add_keypoint_losses_gaussian(model)
+    elif cfg.MODEL.USE_SIGMOID_HEATMAP:
+        # Sigmoid loss
+        return add_keypoint_losses_sigmoid(model)
     else:
         # Softmax loss 
         return add_keypoint_losses_softmax(model)
@@ -122,6 +125,37 @@ def add_keypoint_losses_gaussian(model):
     model.net.Alias('kps_score', 'kps_prob')
     loss_kps = model.net.MeanSquareLoss(
         ['kps_prob', 'keypoint_heatmaps', 'keypoint_weights'], 
+        'loss_kps',
+        scale=cfg.KRCNN.LOSS_WEIGHT / cfg.NUM_GPUS
+    )
+    if not cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS:
+        # Discussion: the softmax loss above will average the loss by the sum of
+        # keypoint_weights, i.e. the total number of visible keypoints. Since
+        # the number of visible keypoints can vary significantly between
+        # minibatches, this has the effect of up-weighting the importance of
+        # minibatches with few visible keypoints. (Imagine the extreme case of
+        # only one visible keypoint versus N: in the case of N, each one
+        # contributes 1/N to the gradient compared to the single keypoint
+        # determining the gradient direction). Instead, we can normalize the
+        # loss by the total number of keypoints, if it were the case that all
+        # keypoints were visible in a full minibatch. (Returning to the example,
+        # this means that the one visible keypoint contributes as much as each
+        # of the N keypoints.)
+        model.StopGradient(
+            'keypoint_loss_normalizer', 'keypoint_loss_normalizer'
+        )
+        loss_kps = model.net.Mul(
+            ['loss_kps', 'keypoint_loss_normalizer'], 'loss_kps_normalized'
+        )
+    loss_gradients = blob_utils.get_loss_gradients(model, [loss_kps])
+    model.AddLosses(loss_kps)
+    return loss_gradients
+
+
+def add_keypoint_losses_sigmoid(model):
+    """Add Mask R-CNN keypoint specific losses. Using sigmoid loss"""
+    loss_kps = model.net.SigmoidCrossEntropyLoss(
+        ['kps_score', 'keypoint_locations_int32'],
         'loss_kps',
         scale=cfg.KRCNN.LOSS_WEIGHT / cfg.NUM_GPUS
     )

@@ -211,6 +211,62 @@ def keypoints_to_heatmap_labels(keypoints, rois, M=56):
     return heatmaps, weights
 
 
+def keypoints_to_sigmoid_heatmap_labels(keypoints, rois, M=56):
+    """Encode keypoint location in the target heatmap for use in
+    SoftmaxWithLoss.
+    """
+    # Maps keypoints from the half-open interval [x1, x2) on continuous image
+    # coordinates to the closed interval [0, HEATMAP_SIZE - 1] on discrete image
+    # coordinates. We use the continuous <-> discrete conversion from Heckbert
+    # 1990 ("What is the coordinate of a pixel?"): d = floor(c) and c = d + 0.5,
+    # where d is a discrete coordinate and c is a continuous coordinate.
+    assert keypoints.shape[2] == cfg.KRCNN.NUM_KEYPOINTS
+
+    shape = (len(rois), cfg.KRCNN.NUM_KEYPOINTS, M**2)
+    heatmaps = blob_utils.zeros(shape)
+    weights = blob_utils.zeros(len(rois), cfg.KRCNN.NUM_KEYPOINTS, 1)
+
+    offset_x = rois[:, 0]
+    offset_y = rois[:, 1]
+    scale_x = M / (rois[:, 2] - rois[:, 0])
+    scale_y = M / (rois[:, 3] - rois[:, 1])
+
+    for kp in range(keypoints.shape[2]):
+        vis = keypoints[:, 2, kp] > 0
+        x = keypoints[:, 0, kp].astype(np.float32)
+        y = keypoints[:, 1, kp].astype(np.float32)
+        # Since we use floor below, if a keypoint is exactly on the roi's right
+        # or bottom boundary, we shift it in by eps (conceptually) to keep it in
+        # the ground truth heatmap.
+        x_boundary_inds = np.where(x == rois[:, 2])[0]
+        y_boundary_inds = np.where(y == rois[:, 3])[0]
+        x = (x - offset_x) * scale_x
+        x = np.floor(x)
+        if len(x_boundary_inds) > 0:
+            x[x_boundary_inds] = M - 1
+
+        y = (y - offset_y) * scale_y
+        y = np.floor(y)
+        if len(y_boundary_inds) > 0:
+            y[y_boundary_inds] = M - 1
+
+        valid_loc = np.logical_and(
+            np.logical_and(x >= 0, y >= 0),
+            np.logical_and(
+                x < M, y < M))
+
+        valid = np.logical_and(valid_loc, vis)
+        valid = valid.astype(np.int32)
+
+        lin_ind = (y * M + x).astype(np.int32)
+        heatmaps[valid, kp, lin_ind] = 1
+        heatmaps[np.logical_not(valid), kp] = -1
+
+        weights[:, kp] = valid
+
+    return heatmaps, weights
+
+
 def keypoints_to_gaussian_heatmap_labels(keypoints, rois, M=56):
     """Encode keypoint location in the target heatmap for use in
     MSELoss

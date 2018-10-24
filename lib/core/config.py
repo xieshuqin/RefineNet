@@ -529,6 +529,9 @@ __C.MODEL.WEIGHTED_SIGMOID_LOSS_ON = False
 # Use gaussian heatmap for keypoint predcition or not
 __C.MODEL.USE_GAUSSIAN_HEATMAP = False
 
+# Use sigmoid heatmap for keypoint prediction 
+__C.MODEL.USE_SIGMOID_HEATMAP = False
+
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet options
