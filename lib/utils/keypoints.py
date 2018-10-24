@@ -222,7 +222,7 @@ def keypoints_to_gaussian_heatmap_labels(keypoints, rois, M=56):
     # where d is a discrete coordinate and c is a continuous coordinate.
     assert keypoints.shape[2] == cfg.KRCNN.NUM_KEYPOINTS
 
-    heatmap_shape = (len(rois), cfg.KRCNN.NUM_KEYPOINTS, M, M)
+    shape = (len(rois), cfg.KRCNN.NUM_KEYPOINTS, M, M)
     heatmaps = blob_utils.zeros(shape)
     weights = blob_utils.zeros((len(rois), cfg.KRCNN.NUM_KEYPOINTS))
 
@@ -264,13 +264,13 @@ def keypoints_to_gaussian_heatmap_labels(keypoints, rois, M=56):
                 heatmaps[i, kp] = draw_gaussian_heatmap(
                     heatmaps[i, kp], (x[i], y[i]), sigma=1
                 )
-        
+
 
     return heatmaps, weights
 
 
 def draw_gaussian_heatmap(img, pt, sigma, type='Gaussian'):
-    # Draw a 2D gaussian 
+    # Draw a 2D gaussian
     # Adopted from https://github.com/bearpaw/pytorch-pose/blob/master/pose/utils/imutils.py
 
     # Check that any part of the gaussian is in-bounds
