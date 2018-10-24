@@ -103,7 +103,7 @@ bool MeanSquareLossOp<float, CUDAContext>::RunOnDevice() {
       X.data<float>(),
       T.data<float>(),
       Weights.data<float>(),
-      losses_.mutable_data<float>()
+      losses_.mutable_data<float>(),
       counts_.mutable_data<float>());
 
   float* avg_loss_data = avg_loss->mutable_data<float>();
@@ -136,6 +136,10 @@ bool MeanSquareLossGradientOp<float, CUDAContext>::RunOnDevice() {
   auto& d_avg_loss = Input(3);
   auto* dX = Output(0);
   int D = X.size() / Weights.size(); 
+  
+  counts_.ResizeLike(X);
+  losses_.ResizeLike(X);
+  normalizer_.Resize(vector<TIndex>());
 
   dX->ResizeLike(X);
   MeanSquareLossGradientKernel<<<
