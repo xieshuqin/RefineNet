@@ -117,7 +117,7 @@ bool MeanSquareLossOp<float, CUDAContext>::RunOnDevice() {
         0,
         context_.cuda_stream()>>>(normalizer_.size(), normalizer_data, 1e-5);
     math::Div<float, CUDAContext>(
-        losses_.size(), losses_.data<float>(), normalizer_data, 
+        losses_.size(), losses_.data<float>(), normalizer_.data<float>(), 
         losses_.mutable_data<float>(), &context_);
   }
   float* avg_loss_data = avg_loss->mutable_data<float>();
