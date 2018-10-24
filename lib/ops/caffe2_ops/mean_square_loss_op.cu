@@ -136,12 +136,10 @@ bool MeanSquareLossGradientOp<float, CUDAContext>::RunOnDevice() {
   auto& d_avg_loss = Input(3);
   auto* dX = Output(0);
   int D = X.size() / Weights.size(); 
-  
-  counts_.ResizeLike(X);
-  losses_.ResizeLike(X);
-  normalizer_.Resize(vector<TIndex>());
 
   dX->ResizeLike(X);
+  counts_.ResizeLike(X);
+  normalizer_.Resize(vector<TIndex>());
   MeanSquareLossGradientKernel<<<
       CAFFE_GET_BLOCKS(X.size()),
       CAFFE_CUDA_NUM_THREADS,
