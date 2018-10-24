@@ -1582,6 +1582,7 @@ def refined_keypoint_results(cls_boxes, pred_heatmaps, ref_boxes, im_scales):
     up_scale = cfg.REFINENET.UP_SCALE
     pad_boxes = box_utils.expand_boxes(ref_boxes, up_scale)
     pad_boxes = box_utils.clip_boxes_to_image(pad_boxes, pad_img_h, pad_img_w)
+    pad_boxes = pad_boxes.astype(np.float32)
 
     num_classes = cfg.MODEL.NUM_CLASSES
     cls_keyps = [[] for _ in range(num_classes)]
