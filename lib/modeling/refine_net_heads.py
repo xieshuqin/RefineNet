@@ -484,6 +484,46 @@ def add_refine_net_mask_losses(model, blob_refined_mask):
 
 
 def add_refine_net_keypoint_losses(model, blob_refined_keypoint):
+    if cfg.MODEL.USE_GAUSSIAN_HEATMAP:
+        return add_refine_net_keypoint_losses_gaussian(model, blob_refined_keypoint)
+    else:
+        return add_refine_net_keypoint_losses_softmax(model, blob_refined_keypoint)
+
+
+def add_refine_net_keypoint_losses_gaussian(model, blob_refined_keypoint):
+    """Add Mask R-CNN keypoint specific losses. Using MSE loss"""
+    model.net.Alias(blob_refined_keypoint, 'refined_kps_prob')
+    loss_refined_kps = model.net.MeanSquareLoss(
+        ['refined_kps_prob', 'refined_keypoint_heatmaps', 'refined_keypoint_weights'], 
+        'loss_refined_kps',
+        scale=cfg.REFINENET.KRCNN.LOSS_WEIGHT / cfg.NUM_GPUS
+    )
+    if not cfg.REFINENET.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS:
+        # Discussion: the softmax loss above will average the loss by the sum of
+        # keypoint_weights, i.e. the total number of visible keypoints. Since
+        # the number of visible keypoints can vary significantly between
+        # minibatches, this has the effect of up-weighting the importance of
+        # minibatches with few visible keypoints. (Imagine the extreme case of
+        # only one visible keypoint versus N: in the case of N, each one
+        # contributes 1/N to the gradient compared to the single keypoint
+        # determining the gradient direction). Instead, we can normalize the
+        # loss by the total number of keypoints, if it were the case that all
+        # keypoints were visible in a full minibatch. (Returning to the example,
+        # this means that the one visible keypoint contributes as much as each
+        # of the N keypoints.)
+        model.StopGradient(
+            'refined_keypoint_loss_normalizer', 'refined_keypoint_loss_normalizer'
+        )
+        loss_refined_kps = model.net.Mul(
+            ['loss_refined_kps', 'refined_keypoint_loss_normalizer'],
+            'loss_refined_kps_normalized'
+        )
+    loss_gradients = blob_utils.get_loss_gradients(model, [loss_refined_kps])
+    model.AddLosses(loss_refined_kps)
+    return loss_gradients
+
+
+def add_refine_net_keypoint_losses_softmax(model, blob_refined_keypoint):
     """Add Mask R-CNN keypoint specific losses."""
     # Reshape input from (N, K, H, W) to (NK, HW)
     model.net.Reshape(

@@ -526,6 +526,9 @@ __C.MODEL.PIXEL_FOCAL_LOSS_ON = False
 # Apply weighted sigmoid cross entropy loss
 __C.MODEL.WEIGHTED_SIGMOID_LOSS_ON = False
 
+# Use gaussian heatmap for keypoint predcition or not
+__C.MODEL.USE_GAUSSIAN_HEATMAP = False
+
 
 # ---------------------------------------------------------------------------- #
 # RetinaNet options

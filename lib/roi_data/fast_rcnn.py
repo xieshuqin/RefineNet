@@ -71,25 +71,46 @@ def get_fast_rcnn_blob_names(is_training=True):
         # mask size.
         blob_names += ['masks_int32']
     if is_training and cfg.MODEL.KEYPOINTS_ON:
-        # 'keypoint_rois': RoIs sampled for training the keypoint prediction
-        # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
-        # y2).
-        blob_names += ['keypoint_rois']
-        # 'keypoint_locations_int32': index of keypoint in
-        # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
-        # SoftmaxWithLoss.
-        blob_names += ['keypoint_locations_int32']
-        # 'keypoint_weights': weight assigned to each target in
-        # 'keypoint_locations_int32'. Shape is (#instances). Used in
-        # SoftmaxWithLoss.
-        blob_names += ['keypoint_weights']
-        # 'keypoint_fg_inds': foreground indexes for the roidb['boxes']
-        # This is used to make sure that the labels for keypoint_rois and 
-        # refined_keypoint_rois are exactly the same. 
-        blob_names += ['keypoint_fg_inds']
-        # 'keypoint_loss_normalizer': optional normalization factor to use if
-        # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
-        blob_names += ['keypoint_loss_normalizer']
+        if cfg.MODEL.USE_GAUSSIAN_HEATMAP:
+            # 'keypoint_rois': RoIs sampled for training the keypoint prediction
+            # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
+            # y2).
+            blob_names += ['keypoint_rois']
+            # 'keypoint_locations_int32': index of keypoint in
+            # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['keypoint_heatmaps']
+            # 'keypoint_weights': weight assigned to each target in
+            # 'keypoint_locations_int32'. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['keypoint_weights']
+            # 'keypoint_fg_inds': foreground indexes for the roidb['boxes']
+            # This is used to make sure that the labels for keypoint_rois and 
+            # refined_keypoint_rois are exactly the same. 
+            blob_names += ['keypoint_fg_inds']
+            # 'keypoint_loss_normalizer': optional normalization factor to use if
+            # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
+            blob_names += ['keypoint_loss_normalizer']
+        else:
+            # 'keypoint_rois': RoIs sampled for training the keypoint prediction
+            # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
+            # y2).
+            blob_names += ['keypoint_rois']
+            # 'keypoint_locations_int32': index of keypoint in
+            # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['keypoint_locations_int32']
+            # 'keypoint_weights': weight assigned to each target in
+            # 'keypoint_locations_int32'. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['keypoint_weights']
+            # 'keypoint_fg_inds': foreground indexes for the roidb['boxes']
+            # This is used to make sure that the labels for keypoint_rois and 
+            # refined_keypoint_rois are exactly the same. 
+            blob_names += ['keypoint_fg_inds']
+            # 'keypoint_loss_normalizer': optional normalization factor to use if
+            # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
+            blob_names += ['keypoint_loss_normalizer']
     if is_training and cfg.MODEL.REFINE_MASK_ON:
         # 'refined_mask_rois': RoIs sampled for training the mask prediction branch.
         # Shape is (#masks, 5) in format (batch_idx, x1, y1, x2, y2).
@@ -107,21 +128,38 @@ def get_fast_rcnn_blob_names(is_training=True):
         if cfg.REFINENET.ASSIGN_LARGER_WEIGHT_FOR_CROWDED_SAMPLES:
             blob_names += ['loss_weights']
     if is_training and cfg.MODEL.REFINE_KEYPOINTS_ON:
-        # 'keypoint_rois': RoIs sampled for training the keypoint prediction
-        # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
-        # y2).
-        blob_names += ['refined_keypoint_rois']
-        # 'keypoint_locations_int32': index of keypoint in
-        # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
-        # SoftmaxWithLoss.
-        blob_names += ['refined_keypoint_locations_int32']
-        # 'keypoint_weights': weight assigned to each target in
-        # 'keypoint_locations_int32'. Shape is (#instances). Used in
-        # SoftmaxWithLoss.
-        blob_names += ['refined_keypoint_weights']
-        # 'keypoint_loss_normalizer': optional normalization factor to use if
-        # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
-        blob_names += ['refined_keypoint_loss_normalizer']
+        if cfg.MODEL.USE_GAUSSIAN_HEATMAP:
+            # 'keypoint_rois': RoIs sampled for training the keypoint prediction
+            # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
+            # y2).
+            blob_names += ['refined_keypoint_rois']
+            # 'keypoint_locations_int32': index of keypoint in
+            # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['refined_keypoint_heatmaps']
+            # 'keypoint_weights': weight assigned to each target in
+            # 'keypoint_locations_int32'. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['refined_keypoint_weights']
+            # 'keypoint_loss_normalizer': optional normalization factor to use if
+            # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
+            blob_names += ['refined_keypoint_loss_normalizer']
+        else:
+            # 'keypoint_rois': RoIs sampled for training the keypoint prediction
+            # branch. Shape is (#instances, 5) in format (batch_idx, x1, y1, x2,
+            # y2).
+            blob_names += ['refined_keypoint_rois']
+            # 'keypoint_locations_int32': index of keypoint in
+            # KRCNN.HEATMAP_SIZE**2 sized array. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['refined_keypoint_locations_int32']
+            # 'keypoint_weights': weight assigned to each target in
+            # 'keypoint_locations_int32'. Shape is (#instances). Used in
+            # SoftmaxWithLoss.
+            blob_names += ['refined_keypoint_weights']
+            # 'keypoint_loss_normalizer': optional normalization factor to use if
+            # cfg.KRCNN.NORMALIZE_BY_VISIBLE_KEYPOINTS is False.
+            blob_names += ['refined_keypoint_loss_normalizer']
 
     if is_training and cfg.MODEL.SEMANTIC_ON:
         # Add semantic segmentation label

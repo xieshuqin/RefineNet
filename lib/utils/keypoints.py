@@ -211,6 +211,98 @@ def keypoints_to_heatmap_labels(keypoints, rois, M=56):
     return heatmaps, weights
 
 
+def keypoints_to_gaussian_heatmap_labels(keypoints, rois, M=56):
+    """Encode keypoint location in the target heatmap for use in
+    MSELoss
+    """
+    # Maps keypoints from the half-open interval [x1, x2) on continuous image
+    # coordinates to the closed interval [0, HEATMAP_SIZE - 1] on discrete image
+    # coordinates. We use the continuous <-> discrete conversion from Heckbert
+    # 1990 ("What is the coordinate of a pixel?"): d = floor(c) and c = d + 0.5,
+    # where d is a discrete coordinate and c is a continuous coordinate.
+    assert keypoints.shape[2] == cfg.KRCNN.NUM_KEYPOINTS
+
+    heatmap_shape = (len(rois), cfg.KRCNN.NUM_KEYPOINTS, M, M)
+    heatmaps = blob_utils.zeros(shape)
+    weights = blob_utils.zeros((len(rois), cfg.KRCNN.NUM_KEYPOINTS))
+
+    offset_x = rois[:, 0]
+    offset_y = rois[:, 1]
+    scale_x = M / (rois[:, 2] - rois[:, 0])
+    scale_y = M / (rois[:, 3] - rois[:, 1])
+
+    for kp in range(keypoints.shape[2]):
+        vis = keypoints[:, 2, kp] > 0
+        x = keypoints[:, 0, kp].astype(np.float32)
+        y = keypoints[:, 1, kp].astype(np.float32)
+        # Since we use floor below, if a keypoint is exactly on the roi's right
+        # or bottom boundary, we shift it in by eps (conceptually) to keep it in
+        # the ground truth heatmap.
+        x_boundary_inds = np.where(x == rois[:, 2])[0]
+        y_boundary_inds = np.where(y == rois[:, 3])[0]
+        x = (x - offset_x) * scale_x
+        x = np.floor(x)
+        if len(x_boundary_inds) > 0:
+            x[x_boundary_inds] = M - 1
+
+        y = (y - offset_y) * scale_y
+        y = np.floor(y)
+        if len(y_boundary_inds) > 0:
+            y[y_boundary_inds] = M - 1
+
+        valid_loc = np.logical_and(
+            np.logical_and(x >= 0, y >= 0),
+            np.logical_and(
+                x < M, y < M))
+
+        valid = np.logical_and(valid_loc, vis)
+        valid = valid.astype(np.int32)
+        weights[:, kp] = valid
+
+        for i in range(len(rois)):
+            if valid[i] > 0:
+                heatmaps[i, kp] = draw_gaussian_heatmap(
+                    heatmaps[i, kp], (x[i], y[i]), sigma=1
+                )
+        
+
+    return heatmaps, weights
+
+
+def draw_gaussian_heatmap(img, pt, sigma, type='Gaussian'):
+    # Draw a 2D gaussian 
+    # Adopted from https://github.com/bearpaw/pytorch-pose/blob/master/pose/utils/imutils.py
+
+    # Check that any part of the gaussian is in-bounds
+    ul = [int(pt[0] - 3 * sigma), int(pt[1] - 3 * sigma)]
+    br = [int(pt[0] + 3 * sigma + 1), int(pt[1] + 3 * sigma + 1)]
+    if (ul[0] >= img.shape[1] or ul[1] >= img.shape[0] or
+            br[0] < 0 or br[1] < 0):
+        # If not, just return the image as is
+        return img
+
+    # Generate gaussian
+    size = 6 * sigma + 1
+    x = np.arange(0, size, 1, float)
+    y = x[:, np.newaxis]
+    x0 = y0 = size // 2
+    # The gaussian is not normalized, we want the center value to equal 1
+    if type == 'Gaussian':
+        g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
+    elif type == 'Cauchy':
+        g = sigma / (((x - x0) ** 2 + (y - y0) ** 2 + sigma ** 2) ** 1.5)
+
+
+    # Usable gaussian range
+    g_x = max(0, -ul[0]), min(br[0], img.shape[1]) - ul[0]
+    g_y = max(0, -ul[1]), min(br[1], img.shape[0]) - ul[1]
+    # Image range
+    img_x = max(0, ul[0]), min(br[0], img.shape[1])
+    img_y = max(0, ul[1]), min(br[1], img.shape[0])
+
+    img[img_y[0]:img_y[1], img_x[0]:img_x[1]] = g[g_y[0]:g_y[1], g_x[0]:g_x[1]]
+
+
 def scores_to_probs(scores):
     """Transforms CxHxW of scores to probabilities spatially."""
     channels = scores.shape[0]

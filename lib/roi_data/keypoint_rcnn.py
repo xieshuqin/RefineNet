@@ -37,6 +37,96 @@ logger = logging.getLogger(__name__)
 def add_keypoint_rcnn_blobs(
     blobs, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx
 ):
+    if cfg.MODEL.USE_GAUSSIAN_HEATMAP:
+        # using gaussian heatmap for keypoint
+        add_keypoint_rcnn_blobs_gaussian(
+            blobs, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx
+        )
+    else:
+        # Use softmax as in Mask R-CNN
+        add_keypoint_rcnn_blobs_softmax(
+            blobs, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx
+        )
+
+
+def add_keypoint_rcnn_blobs_gaussian(
+    blobs, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx
+):
+    """Add Mask R-CNN keypoint specific blobs to the given blobs dictionary.
+    Different from standard Mask R-CNN, we use gaussian as the heatmap label.
+    So as to avoid the negative effect of large size softmax over bbox result.
+    """
+    # Note: gt_inds must match how they're computed in
+    # datasets.json_dataset._merge_proposal_boxes_into_roidb
+    gt_inds = np.where(roidb['gt_classes'] > 0)[0]
+    max_overlaps = roidb['max_overlaps']
+    gt_keypoints = roidb['gt_keypoints']
+
+    ind_kp = gt_inds[roidb['box_to_gt_ind_map']]
+    within_box = _within_box(gt_keypoints[ind_kp, :, :], roidb['boxes'])
+    vis_kp = gt_keypoints[ind_kp, 2, :] > 0
+    is_visible = np.sum(np.logical_and(vis_kp, within_box), axis=1) > 0
+    kp_fg_inds = np.where(
+        np.logical_and(max_overlaps >= cfg.TRAIN.FG_THRESH, is_visible)
+    )[0]
+
+    kp_fg_rois_per_this_image = np.minimum(fg_rois_per_image, kp_fg_inds.size)
+    if kp_fg_inds.size > kp_fg_rois_per_this_image:
+        kp_fg_inds = np.random.choice(
+            kp_fg_inds, size=kp_fg_rois_per_this_image, replace=False
+        )
+
+    if kp_fg_inds.shape[0] > 0:
+        sampled_fg_rois = roidb['boxes'][kp_fg_inds]
+        box_to_gt_ind_map = roidb['box_to_gt_ind_map'][kp_fg_inds]
+
+        num_keypoints = gt_keypoints.shape[2]
+        sampled_keypoints = -np.ones(
+            (len(sampled_fg_rois), gt_keypoints.shape[1], num_keypoints),
+            dtype=gt_keypoints.dtype
+        )
+        for ii in range(len(sampled_fg_rois)):
+            ind = box_to_gt_ind_map[ii]
+            if ind >= 0:
+                sampled_keypoints[ii, :, :] = gt_keypoints[gt_inds[ind], :, :]
+                assert np.sum(sampled_keypoints[ii, 2, :]) > 0
+
+        heats, weights = keypoint_utils.keypoints_to_gaussian_heatmap_labels(
+            sampled_keypoints, sampled_fg_rois, M=cfg.KRCNN.HEATMAP_SIZE
+        )
+
+    else:# If there are no fg keypoint rois (it does happen)
+        # The network cannot handle empty blobs, so we must provide a heatmap
+        # We simply take the first bg roi, given it an all zero heatmap, and
+        # set its weights to zero (ignore label).
+        roi_inds = np.where(roidb['gt_classes'] == 0)[0]
+        # sampled_fg_rois is actually one random roi, but that's ok because ...
+        sampled_fg_rois = roidb['boxes'][roi_inds[0]].reshape((1, -1))
+        # We give it an 0's blob 
+        M = cfg.KRCNN.HEATMAP_SIZE
+        heats = blob_utils.zeros((1, cfg.KRCNN.NUM_KEYPOINTS, M, M))
+        # We set weights to 0 (ignore label)
+        weights = blob_utils.zeros((1, cfg.KRCNN.NUM_KEYPOINTS, 1))
+
+    sampled_fg_rois *= im_scale
+    repeated_batch_idx = batch_idx * blob_utils.ones(
+        (sampled_fg_rois.shape[0], 1)
+    )
+    sampled_fg_rois = np.hstack((repeated_batch_idx, sampled_fg_rois))
+
+    blobs['keypoint_rois'] = sampled_fg_rois
+    blobs['keypoint_heatmaps'] = heats
+    blobs['keypoint_weights'] = weights
+
+    # Since in this function we may random sample a subset of bbox as the roi, 
+    # we need to make sure it's the same subset for the refined_keypoint_rois,
+    # so we pass out the inds for the subset too. 
+    blobs['keypoint_fg_inds'] = kp_fg_inds.astype(np.int32, copy=False)
+
+
+def add_keypoint_rcnn_blobs_softmax(
+    blobs, roidb, fg_rois_per_image, fg_inds, im_scale, batch_idx
+):
     """Add Mask R-CNN keypoint specific blobs to the given blobs dictionary."""
     # Note: gt_inds must match how they're computed in
     # datasets.json_dataset._merge_proposal_boxes_into_roidb
