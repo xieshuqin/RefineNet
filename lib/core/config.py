@@ -1106,6 +1106,9 @@ __C.REFINENET.SAME_AS_OPENCV = True
 # Use mask features for generating indicators
 __C.REFINENET.USE_FEATS = False
 
+# Ablation study for using multi-path method
+__C.REFINENET.USE_MULTI_PATH = False 
+
 # ---------------------------------------------------------------------------- #
 # Keyoint REFINENET Mask R-CNN options ("KRCNN" = Mask R-CNN with Keypoint support)
 # ---------------------------------------------------------------------------- #

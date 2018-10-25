@@ -609,6 +609,20 @@ def add_refine_net_keypoint_losses_softmax(model, blob_refined_keypoint):
 # RefineNet heads
 # ---------------------------------------------------------------------------- #
 def add_refine_net_head(model, blob_in, dim_in, prefix):
+    """ A warper function that abstracts away the usage of multi-path """
+    blob_out, dim_out = add_refine_net_head_isolate(model, blob_in, dim_in, prefix)
+    if cfg.REFINENET.USE_MULTI_PATH:
+        # Using MultiPath Concatenation. 
+        model.net.UpsampleNearest('conv5_mask', 'conv5_mask_up', scale=2)
+        blob_out, _ = model.net.Concat(
+            [blob_out, 'conv5_mask_up'], 
+            ['multi_path_feats', '_multi_path_split_info'], axis=1
+        )
+        dim_out += cfg.MRCNN.DIM_REDUCED
+    return blob_out, dim_out
+
+
+def add_refine_net_head_isolate(model, blob_in, dim_in, prefix):
     """
     Function that abstracts away different choices of fcn model.
     Note that the refine head is free of indicator type.
