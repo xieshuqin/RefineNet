@@ -146,6 +146,7 @@ def heatmaps_to_keypoints_sigmoid(maps, rois):
         #     maps[i], (roi_map_width, roi_map_height),
         #     interpolation=cv2.INTER_CUBIC)
         # Bring back to CHW
+        roi_map = maps[i]
         roi_map = np.transpose(roi_map, [2, 0, 1])
         # roi_map_probs = scores_to_probs(roi_map.copy())
         roi_map_probs = roi_map
@@ -156,8 +157,8 @@ def heatmaps_to_keypoints_sigmoid(maps, rois):
             y_int = (pos - x_int) // w
             assert (roi_map_probs[k, y_int, x_int] ==
                     roi_map_probs[k, :, :].max())
-            x = (x_int + 0.5) * width_correction
-            y = (y_int + 0.5) * height_correction
+            x = (x_int*float(roi_map_width/w) + 0.5) * width_correction
+            y = (y_int*float(roi_map_height/w) + 0.5) * height_correction
             xy_preds[i, 0, k] = x + offset_x[i]
             xy_preds[i, 1, k] = y + offset_y[i]
             xy_preds[i, 2, k] = roi_map[k, y_int, x_int]
