@@ -418,6 +418,9 @@ def add_refine_net_keypoint_outputs(model, blob_in, dim):
             cfg.REFINENET.KRCNN.NUM_KEYPOINTS, cfg.REFINENET.KRCNN.UP_SCALE
         )
 
+    if not model.train and cfg.MODEL.USE_SIGMOID_HEATMAP:
+        blob_out = model.net.Sigmoid('refined_kps_score', 'refined_kps_prob')
+
     return blob_out
 
 # ---------------------------------------------------------------------------- #

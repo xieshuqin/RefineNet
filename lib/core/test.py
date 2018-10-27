@@ -615,7 +615,10 @@ def im_detect_keypoints(model, im_scales, boxes):
         workspace.FeedBlob(core.ScopedName(k), v)
     workspace.RunNet(model.keypoint_net.Proto().name)
 
-    pred_heatmaps = workspace.FetchBlob(core.ScopedName('kps_score')).squeeze()
+    if cfg.MODEL.USE_SIGMOID_HEATMAP:
+        pred_heatmaps = workspace.FetchBlob(core.ScopedName('kps_prob')).squeeze()
+    else:
+        pred_heatmaps = workspace.FetchBlob(core.ScopedName('kps_score')).squeeze()
 
     # In case of 1
     if pred_heatmaps.ndim == 3:
@@ -1024,9 +1027,14 @@ def im_detect_refined_keypoints(model, im_scales, boxes):
 
     workspace.RunNet(model.refine_keypoint_net.Proto().name)
 
-    pred_heatmaps = workspace.FetchBlob(
-        core.ScopedName('refined_kps_score')
-    ).squeeze()
+    if cfg.MODEL.USE_SIGMOID_HEATMAP:
+        pred_heatmaps = workspace.FetchBlob(
+            core.ScopedName('refined_kps_prob')
+        ).squeeze()
+    else:
+        pred_heatmaps = workspace.FetchBlob(
+            core.ScopedName('refined_kps_score')
+        ).squeeze()
 
     # In case of 1
     if pred_heatmaps.ndim == 3:

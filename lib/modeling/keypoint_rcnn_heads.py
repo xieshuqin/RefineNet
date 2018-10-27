@@ -104,6 +104,10 @@ def add_keypoint_outputs(model, blob_in, dim):
             cfg.KRCNN.NUM_KEYPOINTS, cfg.KRCNN.UP_SCALE
         )
 
+    if not model.train and cfg.MODEL.USE_SIGMOID_HEATMAP:
+        # for sigmoid heatmap inference, add an sigmoid layer
+        blob_out = model.net.Sigmoid('kps_score', 'kps_prob') 
+
     return blob_out
 
 
